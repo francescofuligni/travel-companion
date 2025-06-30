@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.settings
+package com.example.travelcompanion.ui.stats
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 
-import com.example.travelcompanion.databinding.FragmentSettingsBinding
+import com.example.travelcompanion.databinding.FragmentStatsBinding
 
-class SettingsFragment : Fragment() {
-    private var _binding: FragmentSettingsBinding? = null
+class StatsFragment : Fragment() {
+    private var _binding: FragmentStatsBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -17,7 +17,7 @@ class SettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        _binding = FragmentStatsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
