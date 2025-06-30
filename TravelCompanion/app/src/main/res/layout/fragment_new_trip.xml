@@ -1,6 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/newTripRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".ui.newtrip.NewTripFragment">
+
+    <!-- Titolo -->
+    <TextView
+        android:id="@+id/tvStartTripTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/start_trip_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- ToggleGroup per il tipo di viaggio -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleTripType"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tvStartTripTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLocal"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/type_local"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOneDay"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/type_one_day"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMultiDays"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/type_multi_days"/>
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- Destinazione -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilDestination"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="@string/destination_hint"
+        app:layout_constraintTop_toBottomOf="@id/toggleTripType"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etDestination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPostalAddress"
+            android:enabled="true"
+            android:focusable="true"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <DatePicker
+        android:id="@+id/datePickerEnd"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:calendarViewShown="true"
+        android:datePickerMode="spinner"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tilDestination"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Pulsante “Vai” -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStartTrip"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="@string/start"
+        app:cornerRadius="24dp"
+        app:layout_constraintTop_toBottomOf="@id/datePickerEnd"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
