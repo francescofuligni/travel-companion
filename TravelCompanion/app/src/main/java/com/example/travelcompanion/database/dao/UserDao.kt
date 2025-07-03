@@ -12,7 +12,7 @@ interface UserDao {
     suspend fun insertUser(user: User)
 
     @Query("SELECT * FROM user WHERE id = :userId")
-    suspend fun getUserById(userId: Long): User?
+    suspend fun getUserById(userId: Int): User?
 
     @Delete
     suspend fun deleteUser(user: User)
