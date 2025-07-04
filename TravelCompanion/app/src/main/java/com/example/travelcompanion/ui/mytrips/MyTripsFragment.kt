@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.history
+package com.example.travelcompanion.ui.mytrips
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 
-import com.example.travelcompanion.databinding.FragmentHistoryBinding
+import com.example.travelcompanion.databinding.FragmentMyTripsBinding
 
-class HistoryFragment : Fragment() {
-    private var _binding: FragmentHistoryBinding? = null
+class MyTripsFragment : Fragment() {
+    private var _binding: FragmentMyTripsBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -17,7 +17,7 @@ class HistoryFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHistoryBinding.inflate(inflater, container, false)
+        _binding = FragmentMyTripsBinding.inflate(inflater, container, false)
         return binding.root
     }
 

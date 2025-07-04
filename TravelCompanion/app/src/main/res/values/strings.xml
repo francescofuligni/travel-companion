@@ -23,7 +23,8 @@
     <string name="start">Vai</string>
     <string name="user_name_msg">Inserisci il tuo nome utente</string>
     <string name="house_msg">Inserisci l\'indirizzo di casa</string>
-    <string name="menu_history">Viaggi passati</string>
+    <string name="menu_my_trips">Viaggi passati</string>
     <string name="menu_stats">Statistiche</string>
     <string name="menu_settings">Impostazioni</string>
+    <string name="select_year">Seleziona anno</string>
 </resources>
