@@ -18,4 +18,7 @@ interface TripDao {
 
     @Delete
     suspend fun deleteTrip(trip: Trip)
+
+    @Query("DELETE FROM trip")
+    suspend fun deleteAllTrips()
 }
