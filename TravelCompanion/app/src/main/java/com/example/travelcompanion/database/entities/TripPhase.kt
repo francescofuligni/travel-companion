@@ -30,5 +30,4 @@ data class TripPhase(
     val phaseOrder: Int,
     val arrivalDate: String? = null,
     val departureDate: String? = null,
-    val notes: String? = null
 )
