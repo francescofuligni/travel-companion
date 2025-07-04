@@ -17,12 +17,24 @@ class TravelRepository(
         locationDao.insertLocation(location)
     }
 
+    suspend fun insertLocationAndGetId(location: Location): Long {
+        return locationDao.insertLocationAndGetId(location)
+    }
+
     suspend fun getAllLocations(): List<Location> {
         return locationDao.getAllLocations()
     }
 
+    suspend fun getLocationById(id: Long): Location? {
+        return locationDao.getLocationById(id)
+    }
+
     suspend fun deleteLocation(location: Location) {
         locationDao.deleteLocation(location)
+    }
+
+    suspend fun deleteAllLocations() {
+        locationDao.deleteAllLocations()
     }
 
     // User methods
@@ -30,12 +42,24 @@ class TravelRepository(
         userDao.insertUser(user)
     }
 
+    suspend fun updateUser(user: User) {
+        userDao.updateUser(user)
+    }
+
     suspend fun getUserById(userId: Int): User? {
         return userDao.getUserById(userId)
     }
 
+    suspend fun getAllUsers(): List<User> {
+        return userDao.getAllUsers()
+    }
+
     suspend fun deleteUser(user: User) {
         userDao.deleteUser(user)
+    }
+
+    suspend fun deleteAllUsers() {
+        userDao.deleteAllUsers()
     }
 
     // Trip methods
@@ -49,5 +73,9 @@ class TravelRepository(
 
     suspend fun deleteTrip(trip: Trip) {
         tripDao.deleteTrip(trip)
+    }
+
+    suspend fun deleteAllTrips() {
+        tripDao.deleteAllTrips()
     }
 }

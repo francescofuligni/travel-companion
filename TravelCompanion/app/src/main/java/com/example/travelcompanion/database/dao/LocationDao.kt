@@ -12,9 +12,18 @@ interface LocationDao {
     @Insert
     suspend fun insertLocation(location: Location)
 
+    @Insert
+    suspend fun insertLocationAndGetId(location: Location): Long
+
     @Query("SELECT * FROM location")
     suspend fun getAllLocations(): List<Location>
 
+    @Query("SELECT * FROM location WHERE id = :id")
+    suspend fun getLocationById(id: Long): Location?
+
     @Delete
     suspend fun deleteLocation(location: Location)
+
+    @Query("DELETE FROM location")
+    suspend fun deleteAllLocations()
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -41,19 +42,49 @@
                 tools:ignore="TouchTargetSizeCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo Casa -->
+        <!-- Campo Email -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etHouse"
+                android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/house_msg"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
                 tools:ignore="TouchTargetSizeCheck" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Mappa per Casa -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleziona la tua casa sulla mappa:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <FrameLayout
+            android:id="@+id/map_container"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/teal_200" />
+
+        <!-- Coordinate selezionate -->
+        <TextView
+            android:id="@+id/tvSelectedCoordinates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nessuna posizione selezionata"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:padding="8dp"
+            android:background="@android:color/darker_gray"
+            android:textColor="@android:color/white" />
 
         <!-- Disattiva notifiche -->
         <LinearLayout
@@ -77,6 +108,17 @@
                 tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
 
+        <!-- Pulsante SALVA -->
+        <Button
+            android:id="@+id/btnSaveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SALVA IMPOSTAZIONI"
+            android:textAllCaps="true"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/teal_700"
+            android:textColor="@android:color/white" />
+
         <!-- Pulsante RESET APP -->
         <Button
             android:id="@+id/btnResetApp"
@@ -84,7 +126,7 @@
             android:layout_height="wrap_content"
             android:text="RESET APP"
             android:textAllCaps="true"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:backgroundTint="@color/design_default_color_error"
             android:textColor="@android:color/white" />
 
