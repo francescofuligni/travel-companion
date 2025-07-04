@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.travelcompanion.BuildConfig
 import com.example.travelcompanion.database.TravelDatabase
 import com.example.travelcompanion.database.entities.Location
 import com.example.travelcompanion.database.entities.User
@@ -18,7 +19,12 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.URLEncoder
+import java.net.URL
 
 class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentSettingsBinding? = null
@@ -28,6 +34,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var currentUser: User? = null
     private var googleMap: GoogleMap? = null
     private var selectedLocation: LatLng? = null
+
+    private val geocodingApiKey: String
+        get() = BuildConfig.MAPS_API_KEY
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +50,6 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize repository
         val database = TravelDatabase.getDatabase(requireContext())
         repository = TravelRepository(
             database.locationDao(),
@@ -65,15 +73,12 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
-        // Set default location (you can change this to your preferred default)
-        val defaultLocation = LatLng(45.4642, 9.1900) // Milano, Italy
+        val defaultLocation = LatLng(44.4949, 11.3426)
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
 
-        // Set up map click listener
         googleMap?.setOnMapClickListener { latLng ->
             selectedLocation = latLng
 
-            // Clear previous markers and add new one
             googleMap?.clear()
             googleMap?.addMarker(
                 MarkerOptions()
@@ -81,43 +86,45 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                     .title("Casa")
             )
 
-            // Update coordinates text
             binding.tvSelectedCoordinates.text =
                 "Coordinate selezionate: ${String.format("%.6f", latLng.latitude)}, ${String.format("%.6f", latLng.longitude)}"
         }
     }
 
     private fun setupViews() {
-        // Save button functionality
         binding.btnSaveSettings.setOnClickListener {
             saveUserData()
         }
 
-        // Reset app button functionality
         binding.btnResetApp.setOnClickListener {
             resetApp()
+        }
+
+        binding.btnSearchAddress.setOnClickListener {
+            val address = binding.etAddressSearch.text.toString().trim()
+            if (address.isNotEmpty()) {
+                searchAddress(address)
+            } else {
+                Toast.makeText(requireContext(), "Inserisci un indirizzo", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     private fun loadUserData() {
         lifecycleScope.launch {
             try {
-                // Assuming we always work with the first user (you might need to implement proper user management)
-                val users = repository.getAllUsers()
-                currentUser = users.firstOrNull()
+                val currentUser = repository.getUserById(1) 
 
                 currentUser?.let { user ->
                     binding.etUsername.setText(user.name)
                     binding.etEmail.setText(user.email)
 
-                    // Load home location if available
                     user.homeLocationId?.let { locationId ->
                         val location = repository.getLocationById(locationId)
                         location?.let {
                             val homeLatLng = LatLng(it.latitude, it.longitude)
                             selectedLocation = homeLatLng
 
-                            // Move camera to home location and add marker
                             googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, 15f))
                             googleMap?.addMarker(
                                 MarkerOptions()
@@ -162,7 +169,6 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 }
 
                 if (currentUser != null) {
-                    // Update existing user
                     val updatedUser = currentUser!!.copy(
                         name = username,
                         email = email,
@@ -171,9 +177,8 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                     repository.updateUser(updatedUser)
                     currentUser = updatedUser
                 } else {
-                    // Create new user
                     val newUser = User(
-                        id = 0, // Auto-generate
+                        id = 1,
                         name = username,
                         email = email,
                         homeLocationId = homeLocationId
@@ -209,14 +214,12 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 repository.deleteAllLocations()
                 repository.deleteAllTrips()
 
-                // Clear UI
                 binding.etUsername.setText("")
                 binding.etEmail.setText("")
                 binding.tvSelectedCoordinates.text = "Nessuna posizione selezionata"
                 selectedLocation = null
                 currentUser = null
 
-                // Clear map
                 googleMap?.clear()
 
                 Toast.makeText(requireContext(), "App reset successfully", Toast.LENGTH_SHORT).show()
@@ -224,6 +227,46 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 Toast.makeText(requireContext(), "Error resetting app", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun searchAddress(address: String) {
+        lifecycleScope.launch {
+            val latLng = geocodeAddress(address)
+            if (latLng != null) {
+                selectedLocation = latLng
+                googleMap?.clear()
+                googleMap?.addMarker(
+                    MarkerOptions()
+                        .position(latLng)
+                        .title("Casa")
+                )
+                googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                binding.tvSelectedCoordinates.text =
+                    "Coordinate selezionate: ${String.format("%.6f", latLng.latitude)}, ${String.format("%.6f", latLng.longitude)}"
+            } else {
+                Toast.makeText(requireContext(), "Indirizzo non trovato", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private suspend fun geocodeAddress(address: String): LatLng? = withContext(Dispatchers.IO) {
+        try {
+            val encodedAddress = URLEncoder.encode(address, "UTF-8")
+            val urlString =
+                "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedAddress&key=$geocodingApiKey"
+            val response = URL(urlString).readText()
+            val jsonObject = JSONObject(response)
+            val results = jsonObject.getJSONArray("results")
+            if (results.length() > 0) {
+                val location =
+                    results.getJSONObject(0).getJSONObject("geometry").getJSONObject("location")
+                val lat = location.getDouble("lat")
+                val lng = location.getDouble("lng")
+                return@withContext LatLng(lat, lng)
+            }
+        } catch (e: Exception) {
+        }
+        return@withContext null
     }
 
     override fun onDestroyView() {
