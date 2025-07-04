@@ -10,4 +10,20 @@
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
+
+    <string name="default_address">Indirizzo non inserito</string>
+    <string name="default_user_name">Nome utente non inserito</string>
+
+    <string name="start_trip_title">Avvia il viaggio</string>
+    <string name="type_local">In città</string>
+    <string name="type_one_day">Un gionro</string>
+    <string name="type_multi_days">Più giorni</string>
+    <string name="destination_hint">Destinazione</string>
+    <string name="end_date_hint">Data fine</string>
+    <string name="start">Vai</string>
+    <string name="user_name_msg">Inserisci il tuo nome utente</string>
+    <string name="house_msg">Inserisci l\'indirizzo di casa</string>
+    <string name="menu_history">Viaggi passati</string>
+    <string name="menu_stats">Statistiche</string>
+    <string name="menu_settings">Impostazioni</string>
 </resources>

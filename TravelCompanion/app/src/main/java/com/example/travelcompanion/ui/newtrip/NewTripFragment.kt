@@ -1,15 +1,15 @@
-package com.example.travelcompanion.ui.home
+package com.example.travelcompanion.ui.newtrip
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.travelcompanion.databinding.FragmentHomeBinding
+import com.example.travelcompanion.databinding.FragmentNewTripBinding
 
-class HomeFragment : Fragment() {
+class NewTripFragment : Fragment() {
 
-    private var _binding: FragmentHomeBinding? = null
+    private var _binding: FragmentNewTripBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -17,17 +17,13 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _binding = FragmentNewTripBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Inserisce il MapFragment riutilizzabile
-        childFragmentManager.beginTransaction()
-            .replace(binding.mapContainer.id, MapFragment())
-            .commit()
+        // TODO: implement your start trip logic here
     }
 
     override fun onDestroyView() {

@@ -12,14 +12,30 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.example.travelcompanion.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_new_trip"
+        android:name="com.example.travelcompanion.ui.newtrip.NewTripFragment"
+        android:label="@string/start_trip_title"
+        tools:layout="@layout/fragment_new_trip" />
 
+    <!-- History Screen -->
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.example.travelcompanion.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_history"
+        android:name="com.example.travelcompanion.ui.history.HistoryFragment"
+        android:label="@string/menu_history"
+        tools:layout="@layout/fragment_history" />
+
+    <!-- Stats Screen -->
+    <fragment
+        android:id="@+id/nav_stats"
+        android:name="com.example.travelcompanion.ui.stats.StatsFragment"
+        android:label="@string/menu_stats"
+        tools:layout="@layout/fragment_stats" />
+
+    <!-- Settings Screen -->
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.example.travelcompanion.ui.settings.SettingsFragment"
+        android:label="@string/menu_settings"
+        tools:layout="@layout/fragment_settings" />
+
 </navigation>
