@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
+import java.util.Calendar
 
 class NewTripFragment : Fragment() {
 
@@ -23,7 +25,41 @@ class NewTripFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // TODO: implement your start trip logic here
+        
+        // Imposta la data minima a oggi e mantiene la selezione di default
+        val datePicker = binding.datePickerEnd
+        datePicker.minDate = System.currentTimeMillis()
+
+        // Gestione abilitazione/disabilitazione campi in base al tipo di viaggio
+        val toggleGroup = binding.toggleTripType
+        val today = Calendar.getInstance()
+        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            when (checkedId) {
+                R.id.btnLocal -> {
+                    binding.etDestination.isEnabled = false
+                    binding.datePickerEnd.isEnabled = false
+                    binding.datePickerEnd.updateDate(
+                        today.get(Calendar.YEAR),
+                        today.get(Calendar.MONTH),
+                        today.get(Calendar.DAY_OF_MONTH)
+                    )
+                }
+                R.id.btnOneDay -> {
+                    binding.etDestination.isEnabled = true
+                    binding.datePickerEnd.isEnabled = false
+                    binding.datePickerEnd.updateDate(
+                        today.get(Calendar.YEAR),
+                        today.get(Calendar.MONTH),
+                        today.get(Calendar.DAY_OF_MONTH)
+                    )
+                }
+                R.id.btnMultiDays -> {
+                    binding.etDestination.isEnabled = true
+                    binding.datePickerEnd.isEnabled = true
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

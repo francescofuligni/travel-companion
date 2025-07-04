@@ -11,14 +11,16 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Titolo -->
+        <!-- Label immagine profilo -->
         <TextView
-            android:id="@+id/tvSettingsTitle"
+            android:id="@+id/tvProfileImageLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Impostazioni"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:text="Immagine profilo"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
 
         <!-- Immagine profilo -->
         <ImageView
@@ -32,7 +34,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp">
+            android:layout_marginTop="8dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etUsername"
@@ -57,6 +59,35 @@
                 tools:ignore="TouchTargetSizeCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Mappa per Casa -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleziona la tua casa sulla mappa:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <FrameLayout
+            android:id="@+id/map_container"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/teal_200" />
+
+        <!-- Coordinate Casa -->
+        <TextView
+            android:id="@+id/tvSelectedCoordinates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nessuna posizione selezionata"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:padding="8dp"
+            android:background="@android:color/darker_gray"
+            android:textColor="@android:color/white" />
+
         <!-- Campo ricerca indirizzo -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -78,36 +109,9 @@
             android:layout_height="wrap_content"
             android:text="Cerca"
             android:layout_gravity="end"
-            android:layout_marginTop="8dp" />
-
-        <!-- Mappa per Casa -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Seleziona la tua casa sulla mappa:"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp" />
-
-        <FrameLayout
-            android:id="@+id/map_container"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/teal_200" />
-
-        <!-- Coordinate selezionate -->
-        <TextView
-            android:id="@+id/tvSelectedCoordinates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nessuna posizione selezionata"
-            android:textSize="12sp"
             android:layout_marginTop="8dp"
             android:padding="8dp"
-            android:background="@android:color/darker_gray"
-            android:textColor="@android:color/white" />
+            android:textSize="14sp" />
 
         <!-- Disattiva notifiche -->
         <LinearLayout
