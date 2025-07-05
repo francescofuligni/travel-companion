@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
 import java.util.Calendar
@@ -69,6 +70,10 @@ class NewTripFragment : Fragment() {
 
         toggleGroup.addOnButtonCheckedListener { _, _, _ ->
             updateBtnStartTripState()
+        }
+
+        binding.btnStartTrip.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_new_trip_to_nav_home)
         }
     }
 

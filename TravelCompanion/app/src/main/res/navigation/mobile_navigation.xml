@@ -21,7 +21,11 @@
         android:id="@+id/nav_new_trip"
         android:name="com.example.travelcompanion.ui.newtrip.NewTripFragment"
         android:label="@string/start_trip_title"
-        tools:layout="@layout/fragment_new_trip" />
+        tools:layout="@layout/fragment_new_trip">
+        <action
+            android:id="@+id/action_nav_new_trip_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 
     <!-- Viaggi passati -->
     <fragment
@@ -50,4 +54,16 @@
         android:name="com.example.travelcompanion.ui.home.NoteFragment"
         android:label="Nota"
         tools:layout="@layout/fragment_note" />
+
+    <!-- Nessun viaggio in corso -->
+    <fragment
+        android:id="@+id/noTripFragment"
+        android:name="com.example.travelcompanion.ui.home.NoTripFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_no_trip">
+        <action
+            android:id="@+id/action_noTripFragment_to_nav_new_trip"
+            app:destination="@id/nav_new_trip" />
+    </fragment>
+
 </navigation>
