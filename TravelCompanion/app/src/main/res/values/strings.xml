@@ -25,4 +25,6 @@
     <string name="menu_settings">Impostazioni</string>
     <string name="select_year">Seleziona anno</string>
     <string name="clear_filter">Azzera filtro</string>
+    <string name="profile_image_placeholder">Immagine profilo</string>
+    <string name="trip_title_hint">Nome del viaggio</string>
 </resources>

@@ -11,24 +11,15 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Label immagine profilo -->
-        <TextView
-            android:id="@+id/tvProfileImageLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Immagine profilo"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"/>
-
         <!-- Immagine profilo -->
         <ImageView
             android:id="@+id/ivProfilePicture"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="24dp" />
+            android:layout_marginTop="24dp"
+            app:srcCompat="@drawable/missing_img"
+            android:contentDescription="@string/profile_image_placeholder" />
 
         <!-- Campo Nome Utente -->
         <com.google.android.material.textfield.TextInputLayout
@@ -73,8 +64,7 @@
             android:id="@+id/map_container"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/teal_200" />
+            android:layout_marginTop="8dp" />
 
         <!-- Coordinate Casa -->
         <TextView
@@ -143,7 +133,6 @@
             android:text="SALVA IMPOSTAZIONI"
             android:textAllCaps="true"
             android:layout_marginTop="24dp"
-            android:backgroundTint="@color/teal_700"
             android:textColor="@android:color/white" />
 
         <!-- Pulsante RESET APP -->

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
@@ -60,6 +61,28 @@ class NewTripFragment : Fragment() {
                 }
             }
         }
+
+        binding.btnStartTrip.isEnabled = false
+
+        binding.etTripTitle.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
+        binding.etDestination.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
+
+        toggleGroup.addOnButtonCheckedListener { _, _, _ ->
+            updateBtnStartTripState()
+        }
+    }
+
+    private fun updateBtnStartTripState() {
+        val titleNotEmpty = binding.etTripTitle.text.toString().isNotBlank()
+        val selectedType = binding.toggleTripType.checkedButtonId
+        val destinationRequired = selectedType != R.id.btnLocal
+        val destinationNotEmpty = if (destinationRequired) {
+            binding.etDestination.text.toString().isNotBlank()
+        } else true
+
+        binding.btnStartTrip.isEnabled = titleNotEmpty
+            && destinationNotEmpty
+            && selectedType != View.NO_ID
     }
 
     override fun onDestroyView() {
