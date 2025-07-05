@@ -21,7 +21,6 @@
         android:id="@+id/chronometer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:format="%%02u:%%02u:%%02u"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/map_container"
@@ -30,16 +29,37 @@
         android:layout_marginTop="16dp"/>
 
     <!-- Data di inizio e data di fine -->
-    <TextView
-        android:id="@+id/tv_trip_dates"
+    <LinearLayout
+        android:id="@+id/ll_trip_dates"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="10/10/2000 - 10/12/2000"
-        android:textSize="16sp"
+        android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/chronometer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/tv_start_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10/10/2000"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/tv_separator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" - "
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/tv_end_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10/12/2000"
+            android:textSize="16sp"/>
+    </LinearLayout>
 
     <!-- Bottone interrompi -->
     <Button
@@ -48,7 +68,7 @@
         android:layout_height="wrap_content"
         android:text="Interrompi"
         android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@id/tv_trip_dates"
+        app:layout_constraintTop_toBottomOf="@id/ll_trip_dates"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"
