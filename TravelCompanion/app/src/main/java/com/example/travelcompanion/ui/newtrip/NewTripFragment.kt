@@ -4,8 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
+import java.util.Calendar
 
 class NewTripFragment : Fragment() {
 
@@ -23,7 +27,67 @@ class NewTripFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // TODO: implement your start trip logic here
+        
+        // Imposta la data minima a oggi e mantiene la selezione di default
+        val datePicker = binding.datePickerEnd
+        datePicker.minDate = System.currentTimeMillis()
+
+        // Gestione abilitazione/disabilitazione campi in base al tipo di viaggio
+        val toggleGroup = binding.toggleTripType
+        val today = Calendar.getInstance()
+        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            when (checkedId) {
+                R.id.btnLocal -> {
+                    binding.etDestination.isEnabled = false
+                    binding.datePickerEnd.isEnabled = false
+                    binding.datePickerEnd.updateDate(
+                        today.get(Calendar.YEAR),
+                        today.get(Calendar.MONTH),
+                        today.get(Calendar.DAY_OF_MONTH)
+                    )
+                }
+                R.id.btnOneDay -> {
+                    binding.etDestination.isEnabled = true
+                    binding.datePickerEnd.isEnabled = false
+                    binding.datePickerEnd.updateDate(
+                        today.get(Calendar.YEAR),
+                        today.get(Calendar.MONTH),
+                        today.get(Calendar.DAY_OF_MONTH)
+                    )
+                }
+                R.id.btnMultiDays -> {
+                    binding.etDestination.isEnabled = true
+                    binding.datePickerEnd.isEnabled = true
+                }
+            }
+        }
+
+        binding.btnStartTrip.isEnabled = false
+
+        binding.etTripTitle.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
+        binding.etDestination.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
+
+        toggleGroup.addOnButtonCheckedListener { _, _, _ ->
+            updateBtnStartTripState()
+        }
+
+        binding.btnStartTrip.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_new_trip_to_nav_home)
+        }
+    }
+
+    private fun updateBtnStartTripState() {
+        val titleNotEmpty = binding.etTripTitle.text.toString().isNotBlank()
+        val selectedType = binding.toggleTripType.checkedButtonId
+        val destinationRequired = selectedType != R.id.btnLocal
+        val destinationNotEmpty = if (destinationRequired) {
+            binding.etDestination.text.toString().isNotBlank()
+        } else true
+
+        binding.btnStartTrip.isEnabled = titleNotEmpty
+            && destinationNotEmpty
+            && selectedType != View.NO_ID
     }
 
     override fun onDestroyView() {
