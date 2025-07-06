@@ -18,17 +18,21 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMap"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="MAPPA"
+            android:text="HEATMAP"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginEnd="8dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="?attr/colorPrimary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCharts"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="CHARTS"
+            android:text="TRENDS"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            app:strokeWidth="2dp"
+            app:strokeColor="?attr/colorPrimary"/>
     </LinearLayout>
 
     <!-- Contenitore per i fragment dinamici -->
