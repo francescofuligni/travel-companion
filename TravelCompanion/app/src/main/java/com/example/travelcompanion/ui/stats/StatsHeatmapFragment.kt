@@ -38,6 +38,12 @@ class StatsHeatmapFragment : Fragment(), OnMapReadyCallback {
 
         // Abilita i controlli di zoom sulla mappa
         googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.isScrollGesturesEnabled = true
+        googleMap?.uiSettings?.isZoomGesturesEnabled = true
+        googleMap?.uiSettings?.isRotateGesturesEnabled = true
+        googleMap?.uiSettings?.isTiltGesturesEnabled = true
+        googleMap?.uiSettings?.isCompassEnabled = true
+        googleMap?.uiSettings?.isMapToolbarEnabled = true
 
         // Imposta un padding se necessario per evitare che copra elementi superiori
         googleMap?.setPadding(0, 100, 0, 0)
@@ -53,6 +59,7 @@ class StatsHeatmapFragment : Fragment(), OnMapReadyCallback {
 
         val heatmapProvider = HeatmapTileProvider.Builder()
             .data(dummyLocations)
+            .radius(50) // aumenta il raggio per rendere l'area colorata più evidente
             .build()
 
         googleMap?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapProvider))
