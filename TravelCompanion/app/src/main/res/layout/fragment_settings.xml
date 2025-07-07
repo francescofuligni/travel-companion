@@ -1,150 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical">
 
-        <!-- Immagine profilo -->
-        <ImageView
-            android:id="@+id/ivProfilePicture"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="24dp"
-            app:srcCompat="@drawable/missing_img"
-            android:contentDescription="@string/profile_image_placeholder" />
+        <!-- Profile Picture Section -->
+        <FrameLayout
+            android:id="@+id/profilePictureContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp" />
 
-        <!-- Campo Nome Utente -->
+        <!-- User Information Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="User Information"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
+            android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etUsername"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/user_name_msg"
-                tools:ignore="TouchTargetSizeCheck" />
+                android:hint="Username" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo Email -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Email"
-                android:inputType="textEmailAddress"
-                tools:ignore="TouchTargetSizeCheck" />
+                android:inputType="textEmailAddress" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Mappa per Casa -->
+        <!-- Home Location Section -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Seleziona la tua casa sulla mappa:"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp" />
-
-        <FrameLayout
-            android:id="@+id/map_container"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginTop="8dp" />
+            android:layout_height="wrap_content"
+            android:text="Home Location"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="24dp" />
 
-        <!-- Coordinate Casa -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAddressSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Search address" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/btnSearchAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search" />
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvSelectedCoordinates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Nessuna posizione selezionata"
-            android:textSize="12sp"
-            android:layout_marginTop="8dp"
-            android:padding="8dp"
-            android:background="@android:color/darker_gray"
-            android:textColor="@android:color/white" />
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp" />
 
-        <!-- Campo ricerca indirizzo -->
-        <com.google.android.material.textfield.TextInputLayout
+        <FrameLayout
+            android:id="@+id/mapContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_height="300dp"
+            android:layout_marginBottom="24dp" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAddressSearch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Cerca indirizzo"
-                android:inputType="text"
-                tools:ignore="TouchTargetSizeCheck" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <Button
-            android:id="@+id/btnSearchAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cerca"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp"
-            android:padding="8dp"
-            android:textSize="14sp" />
-
-        <!-- Disattiva notifiche -->
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:id="@+id/tvDisableNotifications"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Disattiva notifiche" />
-
-            <Switch
-                android:id="@+id/switchDisableNotifications"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:ignore="TouchTargetSizeCheck" />
-        </LinearLayout>
-
-        <!-- Pulsante SALVA -->
+        <!-- Action Buttons -->
         <Button
             android:id="@+id/btnSaveSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SALVA IMPOSTAZIONI"
-            android:textAllCaps="true"
-            android:layout_marginTop="24dp"
-            android:textColor="@android:color/white" />
+            android:text="Save Settings"
+            android:layout_marginBottom="16dp" />
 
-        <!-- Pulsante RESET APP -->
         <Button
             android:id="@+id/btnResetApp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RESET APP"
-            android:textAllCaps="true"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="@color/design_default_color_error"
-            android:textColor="@android:color/white" />
+            android:text="Reset App"
+            style="@style/Widget.Material3.Button.TextButton" />
 
     </LinearLayout>
+
 </ScrollView>

@@ -3,22 +3,22 @@ package com.example.travelcompanion.repository
 import com.example.travelcompanion.database.dao.LocationDao
 import com.example.travelcompanion.database.dao.UserDao
 import com.example.travelcompanion.database.dao.TripDao
-import com.example.travelcompanion.database.entities.Location
-import com.example.travelcompanion.database.entities.User
-import com.example.travelcompanion.database.entities.Trip
+import com.example.travelcompanion.database.dao.ImageDao
+import com.example.travelcompanion.database.models.Location
+import com.example.travelcompanion.database.models.User
+import com.example.travelcompanion.database.models.Trip
+import com.example.travelcompanion.database.models.Image
 
 class TravelRepository(
-    private val locationDao: LocationDao,
     private val userDao: UserDao,
-    private val tripDao: TripDao
+    private val locationDao: LocationDao,
+    private val tripDao: TripDao,
+    public val imageDao: ImageDao
 ) {
     // Location methods
-    suspend fun insertLocation(location: Location) {
-        locationDao.insertLocation(location)
-    }
 
-    suspend fun insertLocationAndGetId(location: Location): Long {
-        return locationDao.insertLocationAndGetId(location)
+    suspend fun insertLocation(location: Location): Long {
+        return locationDao.insertLocation(location)
     }
 
     suspend fun getAllLocations(): List<Location> {
@@ -46,8 +46,9 @@ class TravelRepository(
         userDao.updateUser(user)
     }
 
-    suspend fun getUserById(userId: Int): User? {
-        return userDao.getUserById(userId)
+
+    suspend fun getUserById(id: Long): User? {
+        return userDao.getUserById(id)
     }
 
     suspend fun getAllUsers(): List<User> {
@@ -78,4 +79,27 @@ class TravelRepository(
     suspend fun deleteAllTrips() {
         tripDao.deleteAllTrips()
     }
+    
+    // Image operations
+    suspend fun insertImage(image: Image): Long {
+        return imageDao.insertImage(image)
+    }
+    
+    suspend fun getImageById(id: Long): Image? {
+        return imageDao.getImageById(id)
+    }
+    
+    suspend fun updateImage(image: Image) {
+        imageDao.updateImage(image)
+    }
+    
+    suspend fun deleteImage(image: Image) {
+        imageDao.deleteImage(image)
+    }
+    
+    suspend fun deleteImageById(id: Long) {
+        imageDao.deleteImageById(id)
+    }
+    
+
 }

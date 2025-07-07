@@ -1,0 +1,89 @@
+package com.example.travelcompanion.utils
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Environment
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.*
+
+object ProfilePictureUtils {
+    
+    private const val PROFILE_PICTURES_DIR = "profile_pictures"
+    private const val MAX_IMAGE_SIZE = 1024 // Max width/height in pixels
+    
+    fun createImageFile(context: Context): File? {
+        return try {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val imageFileName = "JPEG_${timeStamp}_"
+            val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            File.createTempFile(imageFileName, ".jpg", storageDir)
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    fun saveImageToInternalStorage(context: Context, sourceUri: Uri): Uri? {
+        return try {
+            val inputStream: InputStream? = context.contentResolver.openInputStream(sourceUri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+            
+            // Resize bitmap if needed
+            val resizedBitmap = resizeBitmap(bitmap, MAX_IMAGE_SIZE)
+            
+            // Create internal storage directory for profile pictures
+            val profilePicturesDir = File(context.filesDir, PROFILE_PICTURES_DIR)
+            if (!profilePicturesDir.exists()) {
+                profilePicturesDir.mkdirs()
+            }
+            
+            // Create unique filename
+            val fileName = "profile_${System.currentTimeMillis()}.jpg"
+            val file = File(profilePicturesDir, fileName)
+            
+            // Save bitmap to file
+            val outputStream = FileOutputStream(file)
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+            outputStream.flush()
+            outputStream.close()
+            
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+    
+    private fun resizeBitmap(bitmap: Bitmap, maxSize: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        
+        if (width <= maxSize && height <= maxSize) {
+            return bitmap
+        }
+        
+        val ratio = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height)
+        val newWidth = (width * ratio).toInt()
+        val newHeight = (height * ratio).toInt()
+        
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+    
+    fun deleteProfilePicture(context: Context, uri: Uri): Boolean {
+        return try {
+            val file = File(uri.path ?: return false)
+            if (file.exists() && file.absolutePath.contains(PROFILE_PICTURES_DIR)) {
+                file.delete()
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+}
