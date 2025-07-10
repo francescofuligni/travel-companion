@@ -25,6 +25,7 @@ import java.util.Date
 import android.content.pm.PackageManager
 import android.content.ActivityNotFoundException
 import android.os.SystemClock
+import java.util.concurrent.TimeUnit
 
 class HomeFragment : Fragment() {
 
@@ -66,8 +67,15 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Avvia il cronometro all'apertura del fragment
+        // Avvia il cronometro all'apertura del fragment con formato HH:MM:SS
         binding.chronometer.base = SystemClock.elapsedRealtime()
+        binding.chronometer.setOnChronometerTickListener { chronometer ->
+            val elapsedMillis = SystemClock.elapsedRealtime() - chronometer.base
+            val hours = TimeUnit.MILLISECONDS.toHours(elapsedMillis)
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedMillis) % 60
+            val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis) % 60
+            chronometer.text = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        }
         binding.chronometer.start()
 
         binding.btnStop.setOnClickListener {

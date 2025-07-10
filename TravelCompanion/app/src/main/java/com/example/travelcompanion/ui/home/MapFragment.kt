@@ -55,16 +55,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-
-        // UI Settings
-        googleMap.uiSettings.isZoomControlsEnabled = true
-        googleMap.uiSettings.isMyLocationButtonEnabled = true
+        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.isMyLocationButtonEnabled = true
 
         // Marker fisso (es. Riccione)
         val riccione = LatLng(44.0043, 12.6560)
         googleMap.addMarker(MarkerOptions().position(riccione).title("Sei a Riccione"))
 
-        // Controllo permesso posizione
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -78,15 +75,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun enableUserLocation() {
         try {
-            googleMap.isMyLocationEnabled = true
-
+            googleMap?.isMyLocationEnabled = true
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
                     val currentLatLng = LatLng(location.latitude, location.longitude)
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
+                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
                 }
             }
-
         } catch (e: SecurityException) {
             e.printStackTrace()
         }
