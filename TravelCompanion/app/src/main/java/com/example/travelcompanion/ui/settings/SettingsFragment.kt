@@ -71,12 +71,15 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
         val database = TravelDatabase.getDatabase(requireContext())
         val repository = TravelRepository(
             database.userDao(),
             database.locationDao(),
             database.tripDao(),
-            database.imageDao() // Add this
+            database.imageDao()
         )
         val factory = SettingsViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
