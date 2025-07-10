@@ -1,6 +1,12 @@
 package com.example.travelcompanion.ui.settings
 
 import android.net.Uri
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import androidx.activity.result.contract.ActivityResultContracts
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -37,6 +43,18 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var googleMap: GoogleMap? = null
     private var selectedLocation: LatLng? = null
     private var currentProfilePictureUri: Uri? = null
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private val locationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            enableUserLocation()
+        } else {
+            Toast.makeText(requireContext(), "Permesso posizione negato", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private val geocodingApiKey: String
         get() = BuildConfig.MAPS_API_KEY
@@ -94,12 +112,38 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
+        googleMap?.uiSettings?.isZoomControlsEnabled = true
+        googleMap?.uiSettings?.isMyLocationButtonEnabled = true
+
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            enableUserLocation()
+        } else {
+            locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
 
         val defaultLocation = LatLng(44.4949, 11.3426)
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
 
         googleMap?.setOnMapClickListener { latLng ->
             viewModel.setHomeLocation(latLng)
+        }
+    }
+
+    private fun enableUserLocation() {
+        try {
+            googleMap?.isMyLocationEnabled = true
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    val currentLatLng = LatLng(location.latitude, location.longitude)
+                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
+                }
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
         }
     }
 

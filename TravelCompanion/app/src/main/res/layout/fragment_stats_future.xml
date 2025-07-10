@@ -1,0 +1,58 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/futureStatsLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textNextMonth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Prossimo mese:"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@android:color/black" />
+
+    <TextView
+        android:id="@+id/textPredictedTrips"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Aspettativa viaggi: #5"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textEstimatedKm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stima KM: 400 KM"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/trendChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="Grafico del trend futuro"
+        android:src="@drawable/missing_img" />
+
+    <TextView
+        android:id="@+id/textTrend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Trend: in calo"
+        android:layout_marginTop="12dp"
+        android:textSize="16sp"
+        android:textColor="@android:color/holo_red_dark" />
+
+    <TextView
+        android:id="@+id/textSuggestion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Suggerimento: viaggia di più!"
+        android:textStyle="italic"
+        android:layout_marginTop="4dp"
+        android:textSize="16sp"
+        android:textColor="@android:color/holo_red_dark" />
+</LinearLayout>
