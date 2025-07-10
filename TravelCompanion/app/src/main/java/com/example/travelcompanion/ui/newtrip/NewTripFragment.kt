@@ -6,15 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
+import com.example.travelcompanion.ui.home.NewTripViewModel
 import java.util.Calendar
 
 class NewTripFragment : Fragment() {
 
     private var _binding: FragmentNewTripBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: NewTripViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +77,21 @@ class NewTripFragment : Fragment() {
         }
 
         binding.btnStartTrip.setOnClickListener {
+            val title = binding.etTripTitle.text.toString()
+            val destination = binding.etDestination.text.toString()
+            val type = when (binding.toggleTripType.checkedButtonId) {
+                R.id.btnLocal -> "local"
+                R.id.btnOneDay -> "one_day"
+                R.id.btnMultiDays -> "multi_days"
+                else -> "unknown"
+            }
+
+            val calendar = Calendar.getInstance()
+            calendar.set(binding.datePickerEnd.year, binding.datePickerEnd.month, binding.datePickerEnd.dayOfMonth)
+            val endDate = calendar.time
+
+            viewModel.startTrip(title, destination, type, endDate)
+
             findNavController().navigate(R.id.action_nav_new_trip_to_nav_home)
         }
     }

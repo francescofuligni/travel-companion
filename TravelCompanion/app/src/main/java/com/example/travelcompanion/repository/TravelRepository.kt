@@ -13,10 +13,9 @@ class TravelRepository(
     private val userDao: UserDao,
     private val locationDao: LocationDao,
     private val tripDao: TripDao,
-    public val imageDao: ImageDao
+    val imageDao: ImageDao
 ) {
     // Location methods
-
     suspend fun insertLocation(location: Location): Long {
         return locationDao.insertLocation(location)
     }
@@ -45,7 +44,6 @@ class TravelRepository(
     suspend fun updateUser(user: User) {
         userDao.updateUser(user)
     }
-
 
     suspend fun getUserById(id: Long): User? {
         return userDao.getUserById(id)
@@ -79,6 +77,17 @@ class TravelRepository(
     suspend fun deleteAllTrips() {
         tripDao.deleteAllTrips()
     }
+
+    suspend fun completeTrip(tripId: Long, roundedDuration: Double) {
+        val trip = tripDao.getTripById(tripId)
+        if (trip != null) {
+            val updatedTrip = trip.copy(
+                duration = roundedDuration,
+                inProgress = false
+            )
+            tripDao.updateTrip(updatedTrip)
+        }
+    }
     
     // Image operations
     suspend fun insertImage(image: Image): Long {
@@ -100,6 +109,6 @@ class TravelRepository(
     suspend fun deleteImageById(id: Long) {
         imageDao.deleteImageById(id)
     }
-    
+
 
 }

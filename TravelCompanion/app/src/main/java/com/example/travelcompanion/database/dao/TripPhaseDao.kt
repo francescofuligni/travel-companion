@@ -23,4 +23,7 @@ interface TripPhaseDao {
 
     @Query("DELETE FROM trip_phases WHERE tripId = :tripId")
     suspend fun deletePhasesByTripId(tripId: Long)
+
+    @Query("SELECT * FROM trip_phases WHERE tripId = :tripId AND phaseOrder < :order ORDER BY phaseOrder DESC LIMIT 1")
+    suspend fun getLastPhaseBefore(tripId: Long, order: Int): TripPhase?
 }
