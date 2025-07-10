@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Delete
 import androidx.room.Update
-import com.example.travelcompanion.database.entities.User
+import com.example.travelcompanion.database.models.User
 
 @Dao
 interface UserDao {
@@ -15,8 +15,8 @@ interface UserDao {
     @Update
     suspend fun updateUser(user: User)
 
-    @Query("SELECT * FROM user WHERE id = :userId")
-    suspend fun getUserById(userId: Int): User?
+    @Query("SELECT * FROM user WHERE id = :id")
+    suspend fun getUserById(id: Long): User?
 
     @Delete
     suspend fun deleteUser(user: User)

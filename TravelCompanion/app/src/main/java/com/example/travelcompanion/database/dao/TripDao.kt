@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Delete
-import com.example.travelcompanion.database.entities.Trip
+import com.example.travelcompanion.database.models.Trip
 
 @Dao
 interface TripDao {

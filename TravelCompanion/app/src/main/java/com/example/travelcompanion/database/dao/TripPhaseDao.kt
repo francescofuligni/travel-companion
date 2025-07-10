@@ -1,7 +1,7 @@
 package com.example.travelcompanion.database.dao
 
 import androidx.room.*
-import com.example.travelcompanion.database.entities.TripPhase
+import com.example.travelcompanion.database.models.TripPhase
 import kotlinx.coroutines.flow.Flow
 
 @Dao

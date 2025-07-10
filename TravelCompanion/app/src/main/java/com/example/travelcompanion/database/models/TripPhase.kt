@@ -1,4 +1,4 @@
-package com.example.travelcompanion.database.entities
+package com.example.travelcompanion.database.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

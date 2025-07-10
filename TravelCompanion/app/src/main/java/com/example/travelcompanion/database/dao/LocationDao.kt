@@ -4,16 +4,13 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Delete
-import com.example.travelcompanion.database.entities.Location
+import com.example.travelcompanion.database.models.Location
 
 @Dao
 interface LocationDao {
 
     @Insert
-    suspend fun insertLocation(location: Location)
-
-    @Insert
-    suspend fun insertLocationAndGetId(location: Location): Long
+    suspend fun insertLocation(location: Location) : Long
 
     @Query("SELECT * FROM location")
     suspend fun getAllLocations(): List<Location>
