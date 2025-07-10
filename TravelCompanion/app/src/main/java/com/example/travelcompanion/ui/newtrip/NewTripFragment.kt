@@ -6,11 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+
 import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
 import com.example.travelcompanion.ui.home.NewTripViewModel
+import com.example.travelcompanion.ui.home.NewTripViewModelFactory
+import com.example.travelcompanion.database.TravelDatabase
+import com.example.travelcompanion.repository.TravelRepository
 import java.util.Calendar
 
 class NewTripFragment : Fragment() {
@@ -18,7 +22,7 @@ class NewTripFragment : Fragment() {
     private var _binding: FragmentNewTripBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: NewTripViewModel by viewModels()
+    private lateinit var viewModel: NewTripViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,7 +35,17 @@ class NewTripFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
+        val database = TravelDatabase.getDatabase(requireContext())
+        val repository = TravelRepository(
+            database.userDao(),
+            database.locationDao(),
+            database.tripDao(),
+            database.imageDao()
+        )
+        val factory = NewTripViewModelFactory(repository, requireContext())
+        viewModel = ViewModelProvider(this, factory)[NewTripViewModel::class.java]
+
         // Imposta la data minima a oggi e mantiene la selezione di default
         val datePicker = binding.datePickerEnd
         datePicker.minDate = System.currentTimeMillis()
