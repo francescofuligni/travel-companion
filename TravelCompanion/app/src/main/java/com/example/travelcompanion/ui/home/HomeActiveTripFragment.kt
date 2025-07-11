@@ -44,7 +44,7 @@ class HomeActiveTripFragment : Fragment() {
         val tvDistance = view.findViewById<TextView>(R.id.tv_distance)
         val tvDuration = view.findViewById<TextView>(R.id.tv_duration_label)
 
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
         viewModel.getTripById(tripId).observe(viewLifecycleOwner, Observer { trip ->
             tvStartDate.text = dateFormat.format(Date(trip.startDate))

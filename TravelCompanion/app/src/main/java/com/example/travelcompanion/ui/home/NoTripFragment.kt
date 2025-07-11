@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.newtrip
+package com.example.travelcompanion.ui.home
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,18 +7,18 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
-import com.example.travelcompanion.databinding.FragmentNewTripActiveBinding
+import com.example.travelcompanion.databinding.FragmentHomeNoTripBinding
 
-class NewTripActiveFragment : Fragment() {
+class NoTripFragment : Fragment() {
 
-    private var _binding: FragmentNewTripActiveBinding? = null
+    private var _binding: FragmentHomeNoTripBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentNewTripActiveBinding.inflate(inflater, container, false)
+        _binding = FragmentHomeNoTripBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -26,7 +26,7 @@ class NewTripActiveFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnStartNewTrip.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+            findNavController().navigate(R.id.action_noTripFragment_to_nav_new_trip)
         }
     }
 

@@ -54,7 +54,7 @@ class NewTripCreateFragment : Fragment() {
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             when (checkedId) {
-                R.id.btnLocal -> {
+                binding.btnLocal.id -> {
                     binding.etDestination.isEnabled = false
                     binding.datePickerEnd.isEnabled = false
                     binding.datePickerEnd.updateDate(
@@ -63,7 +63,7 @@ class NewTripCreateFragment : Fragment() {
                         today.get(Calendar.DAY_OF_MONTH)
                     )
                 }
-                R.id.btnOneDay -> {
+                binding.btnOneDay.id -> {
                     binding.etDestination.isEnabled = true
                     binding.datePickerEnd.isEnabled = false
                     binding.datePickerEnd.updateDate(
@@ -72,7 +72,7 @@ class NewTripCreateFragment : Fragment() {
                         today.get(Calendar.DAY_OF_MONTH)
                     )
                 }
-                R.id.btnMultiDays -> {
+                binding.btnMultiDays.id -> {
                     binding.etDestination.isEnabled = true
                     binding.datePickerEnd.isEnabled = true
                 }

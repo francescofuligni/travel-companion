@@ -5,10 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentHomeBinding
 import com.example.travelcompanion.repository.TravelRepository
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
@@ -28,9 +29,10 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val repository = TravelRepository.create(requireContext())
-        val factory = HomeVMFactory(repository)
-        val viewModel = ViewModelProvider(this, factory)[HomeViewModel::class.java]
-        viewModel.activeTrip.observe(viewLifecycleOwner) { trip ->
+        lifecycleScope.launch {
+            val activeId = repository.getActiveTripId()
+            val trip = activeId?.let { repository.getTripById(it) }
+
             val fragment = if (trip != null) {
                 val bundle = Bundle().apply {
                     putLong("tripId", trip.id)
@@ -46,8 +48,6 @@ class HomeFragment : Fragment() {
                 .replace(R.id.home_container, fragment)
                 .commit()
         }
-
-        viewModel.checkActiveTrip()
     }
 
     override fun onDestroyView() {
