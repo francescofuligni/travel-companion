@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.home
+package com.example.travelcompanion.ui.newtrip
 
 import android.content.Intent
 import android.content.Context
@@ -13,7 +13,7 @@ import com.example.travelcompanion.utils.TrackingService
 import kotlinx.coroutines.launch
 import java.util.Date
 
-class NewTripViewModel(
+class NewTripCreateViewModel(
     private val repository: TravelRepository,
     private val context: Context
 ) : ViewModel() {

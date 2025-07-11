@@ -23,7 +23,23 @@
         android:label="@string/start_trip_title"
         tools:layout="@layout/fragment_new_trip">
         <action
-            android:id="@+id/action_nav_new_trip_to_nav_home"
+            android:id="@+id/action_nav_new_trip_to_nav_new_trip_create"
+            app:destination="@id/nav_new_trip_create" />
+        <action
+            android:id="@+id/action_nav_new_trip_to_nav_new_trip_active"
+            app:destination="@id/nav_new_trip_active" />
+        <action
+            android:id="@+id/action_nav_new_trip_active_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_new_trip_create"
+        android:name="com.example.travelcompanion.ui.newtrip.NewTripCreateFragment"
+        android:label="Nuovo Viaggio"
+        tools:layout="@layout/fragment_new_trip_create" >
+        <action
+            android:id="@+id/action_nav_new_trip_create_to_nav_home"
             app:destination="@id/nav_home" />
     </fragment>
 
@@ -57,24 +73,34 @@
 
     <!-- Nessun viaggio in corso -->
     <fragment
-        android:id="@+id/noTripFragment"
+        android:id="@+id/nav_home_no_trip"
         android:name="com.example.travelcompanion.ui.home.HomeNoTripFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_no_trip">
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_noTripFragment_to_nav_new_trip"
             app:destination="@id/nav_new_trip" />
     </fragment>
 
-
     <!-- Viaggio in corso -->
     <fragment
-        android:id="@+id/homeActiveTripFragment"
+        android:id="@+id/nav_home_active_trip"
         android:name="com.example.travelcompanion.ui.home.HomeActiveTripFragment"
         android:label="Viaggio Attivo"
         tools:layout="@layout/fragment_home_active_trip">
         <action
             android:id="@+id/action_homeActiveTripFragment_to_nav_my_trips"
             app:destination="@id/nav_my_trips" />
+    </fragment>
+
+    <!-- Viaggio già attivo -->
+    <fragment
+        android:id="@+id/nav_new_trip_active"
+        android:name="com.example.travelcompanion.ui.newtrip.NewTripActiveFragment"
+        android:label="Viaggio Attivo"
+        tools:layout="@layout/fragment_new_trip_active" >
+        <action
+            android:id="@+id/action_nav_new_trip_active_to_nav_home"
+            app:destination="@id/nav_home" />
     </fragment>
 </navigation>
