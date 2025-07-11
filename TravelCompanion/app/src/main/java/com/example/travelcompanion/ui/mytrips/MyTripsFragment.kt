@@ -11,10 +11,15 @@ import androidx.core.content.ContextCompat
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentMyTripsBinding
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.lifecycle.ViewModelProvider
+import com.example.travelcompanion.repository.TravelRepository
 
 class MyTripsFragment : Fragment() {
     private var _binding: FragmentMyTripsBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var viewModel: MyTripsViewModel
+    private lateinit var adapter: MyTripsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,6 +32,24 @@ class MyTripsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val repository = TravelRepository.create(requireContext())
+        val factory = MyTripsVMFactory(repository)
+        viewModel = ViewModelProvider(this, factory)[MyTripsViewModel::class.java]
+
+        adapter = MyTripsAdapter(emptyList())
+        binding.rvMyTrips.adapter = adapter
+
+        viewModel.trips.observe(viewLifecycleOwner) { trips ->
+            adapter.submitList(trips.map {
+                TripUiModel(
+                    title = it.title,
+                    destination = it.destination,
+                    imageUrl = null // eventualmente sostituibile con un campo reale
+                )
+            })
+            toggleEmptyView()
+        }
 
         // Divider tra gli elementi della lista
         binding.rvMyTrips.addItemDecoration(
@@ -57,13 +80,11 @@ class MyTripsFragment : Fragment() {
     }
 
     private fun onYearPicked(year: Int) {
-        // TODO: implementa il filtro dei viaggi per l'anno selezionato
-        toggleEmptyView()
+        viewModel.filterTripsByYear(year)
     }
 
     private fun onFilterReset() {
-        // TODO: implementa la logica di reset del filtro dei viaggi
-        toggleEmptyView()
+        viewModel.resetFilter()
     }
 
     private fun toggleEmptyView() {

@@ -27,9 +27,11 @@ class MyTripsAdapter(
         tvTripTitle.text = item.title
         tvTripDestination.text = item.destination
         if (!item.imageUrl.isNullOrBlank()) {
-          ivTripImage.setImageResource(R.drawable.missing_img)
+            // TODO: Carica immagine da URL, placeholder per ora
+            // Usa libreria come Glide/Picasso se disponibile
+            ivTripImage.setImageResource(R.drawable.missing_img)
         } else {
-          ivTripImage.setImageResource(R.drawable.missing_img)
+            ivTripImage.setImageResource(R.drawable.missing_img)
         }
       }
     }
