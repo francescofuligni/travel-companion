@@ -28,4 +28,7 @@ interface TripDao {
 
     @Query("DELETE FROM trip")
     suspend fun deleteAllTrips()
+
+    @Query("SELECT id FROM trip WHERE isActive = 1 LIMIT 1")
+    suspend fun getActiveTripId(): Long?
 }

@@ -58,7 +58,7 @@
     <!-- Nessun viaggio in corso -->
     <fragment
         android:id="@+id/noTripFragment"
-        android:name="com.example.travelcompanion.ui.home.NoTripFragment"
+        android:name="com.example.travelcompanion.ui.home.HomeNoTripFragment"
         android:label="Home"
         tools:layout="@layout/fragment_no_trip">
         <action
@@ -66,4 +66,15 @@
             app:destination="@id/nav_new_trip" />
     </fragment>
 
+
+    <!-- Viaggio in corso -->
+    <fragment
+        android:id="@+id/homeActiveTripFragment"
+        android:name="com.example.travelcompanion.ui.home.HomeActiveTripFragment"
+        android:label="Viaggio Attivo"
+        tools:layout="@layout/fragment_home_active_trip">
+        <action
+            android:id="@+id/action_homeActiveTripFragment_to_nav_my_trips"
+            app:destination="@id/nav_my_trips" />
+    </fragment>
 </navigation>

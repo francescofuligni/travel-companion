@@ -1,5 +1,7 @@
 package com.example.travelcompanion.repository
 
+import android.content.Context
+
 import com.example.travelcompanion.database.dao.LocationDao
 import com.example.travelcompanion.database.dao.UserDao
 import com.example.travelcompanion.database.dao.TripDao
@@ -66,6 +68,14 @@ class TravelRepository(
         tripDao.insertTrip(trip)
     }
 
+    suspend fun getActiveTripId(): Long? {
+        return tripDao.getActiveTripId()
+    }
+
+    suspend fun getTripById(id: Long): Trip? {
+        return tripDao.getTripById(id)
+    }
+
     suspend fun getAllTrips(): List<Trip> {
         return tripDao.getAllTrips()
     }
@@ -78,12 +88,12 @@ class TravelRepository(
         tripDao.deleteAllTrips()
     }
 
-    suspend fun completeTrip(tripId: Long, roundedDuration: Double) {
+    suspend fun endTrip(tripId: Long, roundedDuration: Double) {
         val trip = tripDao.getTripById(tripId)
         if (trip != null) {
             val updatedTrip = trip.copy(
                 duration = roundedDuration,
-                inProgress = false
+                isActive = false
             )
             tripDao.updateTrip(updatedTrip)
         }
@@ -110,5 +120,15 @@ class TravelRepository(
         imageDao.deleteImageById(id)
     }
 
-
+    companion object {
+        fun create(context: Context): TravelRepository {
+            val database = com.example.travelcompanion.database.TravelDatabase.getDatabase(context)
+            return TravelRepository(
+                userDao = database.userDao(),
+                locationDao = database.locationDao(),
+                tripDao = database.tripDao(),
+                imageDao = database.imageDao()
+            )
+        }
+    }
 }

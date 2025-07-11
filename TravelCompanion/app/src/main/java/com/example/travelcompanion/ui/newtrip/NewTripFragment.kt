@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripBinding
 import com.example.travelcompanion.ui.home.NewTripViewModel
-import com.example.travelcompanion.ui.home.NewTripViewModelFactory
+import com.example.travelcompanion.ui.home.NewTripVMFactory
 import com.example.travelcompanion.database.TravelDatabase
 import com.example.travelcompanion.repository.TravelRepository
 import java.util.Calendar
@@ -43,7 +43,7 @@ class NewTripFragment : Fragment() {
             database.tripDao(),
             database.imageDao()
         )
-        val factory = NewTripViewModelFactory(repository, requireContext())
+        val factory = NewTripVMFactory(repository, requireContext())
         viewModel = ViewModelProvider(this, factory)[NewTripViewModel::class.java]
 
         // Imposta la data minima a oggi e mantiene la selezione di default

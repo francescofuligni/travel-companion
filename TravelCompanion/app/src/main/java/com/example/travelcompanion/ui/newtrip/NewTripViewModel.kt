@@ -25,7 +25,7 @@ class NewTripViewModel(
         val trip = Trip(
             id = 0,
             title = title,
-            inProgress = true,
+            isActive = true,
             type = TripType.fromString(type) ?: TripType.LOCAL, // fallback sicuro
             destination = destination,
             startDate = startDate,

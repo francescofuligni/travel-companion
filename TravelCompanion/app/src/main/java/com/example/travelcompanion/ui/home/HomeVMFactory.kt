@@ -1,18 +1,14 @@
 package com.example.travelcompanion.ui.home
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.repository.TravelRepository
 
-class NewTripViewModelFactory(
-    private val repository: TravelRepository,
-    private val context: Context
-) : ViewModelProvider.Factory {
+class HomeVMFactory(private val repository: TravelRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(NewTripViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return NewTripViewModel(repository, context) as T
+            return HomeViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
