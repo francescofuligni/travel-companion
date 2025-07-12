@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import java.util.Calendar
-import com.example.travelcompanion.ui.mytrips.YearPickerDialog
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentMyTripsBinding
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -15,10 +14,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
-
-import androidx.lifecycle.lifecycleScope
-
-import kotlinx.coroutines.launch
 
 /**
  * Fragment per visualizzare e filtrare la lista dei viaggi dell'utente
@@ -54,7 +49,7 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupViewModel() {
         val repository = TravelRepository.create(requireContext())
-        val factory = MyTripsVMFactory(repository)
+        val factory = MyTripsViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[MyTripsViewModel::class.java]
     }
 

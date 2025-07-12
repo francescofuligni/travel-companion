@@ -11,7 +11,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripCreateBinding
-import com.example.travelcompanion.database.TravelDatabase
 import com.example.travelcompanion.repository.TravelRepository
 import com.google.android.gms.maps.model.LatLng
 import java.util.Calendar
@@ -76,7 +75,7 @@ class NewTripCreateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val repository = TravelRepository.create(requireContext())
-        val factory = NewTripCreateVMFactory(repository, requireContext())
+        val factory = NewTripCreateViewModelFactory(repository, requireContext())
         viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
 
         // Imposta la data minima a oggi e mantiene la selezione di default

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.repository.TravelRepository
 
-class NewTripCreateVMFactory(
+class NewTripCreateViewModelFactory(
     private val repository: TravelRepository,
     private val context: Context
 ) : ViewModelProvider.Factory {
