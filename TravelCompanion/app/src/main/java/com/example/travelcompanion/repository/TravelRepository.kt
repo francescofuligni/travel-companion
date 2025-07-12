@@ -1,7 +1,6 @@
 package com.example.travelcompanion.repository
 
 import android.content.Context
-
 import com.example.travelcompanion.database.dao.LocationDao
 import com.example.travelcompanion.database.dao.UserDao
 import com.example.travelcompanion.database.dao.TripDao
@@ -68,6 +67,10 @@ class TravelRepository(
         tripDao.insertTrip(trip)
     }
 
+    suspend fun getLastTripEndDate(): Long? {
+        return tripDao.getLastTripEndDate()
+    }
+
     suspend fun getActiveTripId(): Long? {
         return tripDao.getActiveTripId()
     }
@@ -97,6 +100,10 @@ class TravelRepository(
             )
             tripDao.updateTrip(updatedTrip)
         }
+    }
+    
+    suspend fun getLastTripTimestamp(): Long? {
+        return tripDao.getLastTripEndDate()
     }
     
     // Image operations

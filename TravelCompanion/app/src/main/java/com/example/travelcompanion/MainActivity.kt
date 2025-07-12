@@ -11,6 +11,11 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.travelcompanion.databinding.ActivityMainBinding
+import androidx.work.WorkManager
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.ExistingPeriodicWorkPolicy
+import java.util.concurrent.TimeUnit
+import com.example.travelcompanion.utils.NotifyRemindWorker
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,6 +46,16 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        val request = PeriodicWorkRequestBuilder<NotifyRemindWorker>(
+            1, TimeUnit.DAYS
+        ).build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "trip_reminder_worker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

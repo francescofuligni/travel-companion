@@ -31,4 +31,7 @@ interface TripDao {
 
     @Query("SELECT id FROM trip WHERE isActive = 1 LIMIT 1")
     suspend fun getActiveTripId(): Long?
+
+    @Query("SELECT endDate FROM trip ORDER BY endDate DESC LIMIT 1")
+    suspend fun getLastTripEndDate(): Long?
 }
