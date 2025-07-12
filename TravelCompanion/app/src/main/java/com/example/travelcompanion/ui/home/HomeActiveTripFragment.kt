@@ -28,12 +28,28 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.location.LocationServices
+import com.example.travelcompanion.utils.LocationUtils
+
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.maps.model.Polyline
+import com.google.android.gms.maps.model.PolylineOptions
+import android.os.Looper
+import android.graphics.Color
 
 /**
  * Fragment che mostra i dettagli di un viaggio attivo in corso
  * Include una mappa per visualizzare il percorso in tempo reale
  */
 class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+    private var userPath: Polyline? = null
+    private val userPathPoints = mutableListOf<LatLng>()
 
     private var tripId: Long = -1L
     private lateinit var viewModel: HomeActiveTripViewModel
@@ -71,6 +87,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         val repository = TravelRepository.create(requireContext())
         val factory = HomeActiveTripViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[HomeActiveTripViewModel::class.java]
+
+        // Initialize fusedLocationClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
     }
 
     override fun onCreateView(
@@ -92,6 +111,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         setupViews(view)
         setupMap()
         observeTrip()
+
+        // Setup location callback for real-time updates
+        setupLocationCallback()
     }
     
     /**
@@ -145,6 +167,11 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         
         // Configura la mappa per il viaggio attivo
         setupActiveTripMap()
+
+        // Start location updates if permission granted
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            startLocationUpdates()
+        }
     }
 
     /**
@@ -164,47 +191,107 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
      */
     private fun updateMapWithTripData(trip: com.example.travelcompanion.database.models.Trip?) {
         if (trip == null) return
-        
         googleMap?.let { map ->
-            // Pulisci la mappa precedente
             map.clear()
-            
             // Carica le fasi del viaggio per ottenere le coordinate
             viewModel.getTripPhases(trip.id).observe(viewLifecycleOwner) { phases ->
                 if (phases.isNotEmpty()) {
-                    // Prendi la prima fase come punto di partenza
                     val startPhase = phases.first()
                     viewModel.getLocationById(startPhase.locationId).observe(viewLifecycleOwner) { startLocation ->
                         startLocation?.let { location ->
                             val startLatLng = LatLng(location.latitude, location.longitude)
-                            
-                            // Aggiungi marker per il punto di partenza
                             map.addMarker(
                                 MarkerOptions()
                                     .position(startLatLng)
                                     .title("Inizio viaggio")
                                     .snippet("Partenza: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(trip.startDate))}")
                             )
-                            
-                            // Centra la mappa sul punto di partenza
                             map.animateCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 15f))
-                            
-                            // TODO: Aggiungi percorso completo se ci sono più fasi
-                            // TODO: Traccia la posizione corrente dell'utente
                         }
                     }
                 } else {
-                    // Nessuna fase trovata, usa una posizione di default
-                    val defaultLocation = LatLng(44.0043, 12.6560) // Riccione come fallback
-                    map.addMarker(
-                        MarkerOptions()
-                            .position(defaultLocation)
-                            .title("Posizione di default")
+                    // Nessuna fase trovata, usa la posizione corrente dell'utente
+                    LocationUtils.getCurrentLocation(
+                        requireContext(),
+                        onSuccess = { currentLatLng ->
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(currentLatLng)
+                                    .title("Posizione corrente")
+                                    .snippet("Punto di partenza del viaggio")
+                            )
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+                        },
+                        onFailure = { defaultLatLng ->
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(defaultLatLng)
+                                    .title("Posizione di default")
+                                    .snippet("Impossibile ottenere la posizione corrente")
+                            )
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
+                        }
                     )
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
+                }
+            }
+            // Reset user path polyline
+            userPath?.remove()
+            userPathPoints.clear()
+        }
+    }
+
+    /**
+     * Setup LocationCallback for real-time updates
+     */
+    private fun setupLocationCallback() {
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val map = googleMap ?: return
+                for (location in locationResult.locations) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    userPathPoints.add(latLng)
+                    // Draw or update polyline
+                    if (userPath == null) {
+                        userPath = map.addPolyline(
+                            PolylineOptions()
+                                .addAll(userPathPoints)
+                                .color(Color.MAGENTA)
+                                .width(7f)
+                        )
+                    } else {
+                        userPath?.points = userPathPoints
+                    }
+                    // Move camera to current location
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
+
+                    // Salva la fase e aggiorna la distanza
+                    viewModel.savePhaseAndUpdateDistance(tripId, location.latitude, location.longitude)
                 }
             }
         }
+    }
+
+    /**
+     * Start location updates for real-time tracking
+     */
+    private fun startLocationUpdates() {
+        val locationRequest = LocationRequest.create().apply {
+            interval = 30000 // 30 seconds
+            fastestInterval = 1500
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    /**
+     * Stop location updates when not needed
+     */
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     /**
@@ -236,7 +323,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             tvTripTitle.text = trip.title ?: "Viaggio in corso..."
             tvStartDate.text = dateFormat.format(Date(trip.startDate))
             tvEndDate.text = if (trip.endDate != 0L) dateFormat.format(Date(trip.endDate)) else "In corso"
-            tvDistance.text = "Distanza: ${String.format("%.1f", trip.distance)} km"
+            tvDistance.text = "Distanza: ${String.format("%.1f", trip.distance)} m"
             
             // Gestione cronometro - calcola il tempo trascorso dall'inizio del viaggio
             if (trip.isActive && !isChronoRunning) {
@@ -258,11 +345,17 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
      * Ferma il viaggio attivo
      */
     private fun stopTrip() {
-        viewModel.stopTrip(tripId)
-        Toast.makeText(requireContext(), "Viaggio terminato", Toast.LENGTH_SHORT).show()
-        
-        // Naviga indietro o alla schermata home
-        findNavController().popBackStack()
+        viewModel.stopTrip(tripId) { success ->
+            requireActivity().runOnUiThread {
+                if (success) {
+                    Toast.makeText(requireContext(), "Viaggio terminato", Toast.LENGTH_SHORT).show()
+                    // Naviga indietro o alla schermata home
+                    findNavController().popBackStack()
+                } else {
+                    Toast.makeText(requireContext(), "Errore durante la chiusura del viaggio", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     /**
@@ -317,5 +410,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         if (isChronoRunning) {
             chronometer.stop()
         }
+        stopLocationUpdates()
     }
 }

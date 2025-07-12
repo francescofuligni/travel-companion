@@ -22,6 +22,7 @@ import com.example.travelcompanion.database.models.User
 import com.example.travelcompanion.databinding.FragmentSettingsBinding
 import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.ui.common.ProfilePicturePickerFragment
+import com.example.travelcompanion.utils.LocationUtils
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -112,18 +113,26 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         googleMap?.uiSettings?.isMyLocationButtonEnabled = true
 
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (LocationUtils.hasLocationPermission(requireContext())) {
             enableUserLocation()
         } else {
             locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
-        val defaultLocation = LatLng(44.4949, 11.3426)
+        // Set initial location to Bologna as fallback, then try to get current location
+        val defaultLocation = LocationUtils.getDefaultBolognaLocation()
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
+
+        // Try to get current location first
+        LocationUtils.getCurrentLocationForSettings(
+            requireContext(),
+            onSuccess = { currentLatLng ->
+                googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+            },
+            onFailure = { _ ->
+                // Keep the default Bologna location if GPS is not available
+            }
+        )
 
         googleMap?.setOnMapClickListener { latLng ->
             viewModel.setHomeLocation(latLng)

@@ -21,6 +21,9 @@ interface TripDao {
     @Query("SELECT * FROM trip WHERE id = :id")
     suspend fun getTripById(id: Long): Trip?
 
+    @Query("SELECT * FROM trip WHERE id = :id")
+    fun getTripByIdLive(id: Long): androidx.lifecycle.LiveData<Trip?>
+
     @Update
     suspend fun updateTrip(trip: Trip)
 

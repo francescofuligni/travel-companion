@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +23,8 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.location.LocationServices
+import com.example.travelcompanion.utils.LocationUtils
 import android.graphics.Color
 import java.text.SimpleDateFormat
 import java.util.*
@@ -137,15 +141,28 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 15f))
                     }
                 } else {
-                    // No phases found, show default location
-                    val defaultLocation = LatLng(44.0043, 12.6560) // Default location
-                    map.addMarker(
-                        MarkerOptions()
-                            .position(defaultLocation)
-                            .title(trip.title)
-                            .snippet("Destinazione: ${trip.destination}")
+                    // No phases found, try to use GPS location or show trip destination
+                    LocationUtils.getCurrentLocation(
+                        requireContext(),
+                        onSuccess = { currentLatLng ->
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(currentLatLng)
+                                    .title(trip.title)
+                                    .snippet("Posizione corrente - Destinazione: ${trip.destination}")
+                            )
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+                        },
+                        onFailure = { defaultLatLng ->
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(defaultLatLng)
+                                    .title(trip.title)
+                                    .snippet("Destinazione: ${trip.destination}")
+                            )
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
+                        }
                     )
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
                 }
             }
         }

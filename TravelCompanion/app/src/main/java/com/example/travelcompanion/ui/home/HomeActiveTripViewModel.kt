@@ -20,6 +20,55 @@ class HomeActiveTripViewModel(
     application: Application,
     private val repository: TravelRepository
 ) : AndroidViewModel(application) {
+    /**
+     * Salva una nuova fase del viaggio e aggiorna la distanza totale
+     */
+    fun savePhaseAndUpdateDistance(tripId: Long, latitude: Double, longitude: Double) {
+        viewModelScope.launch {
+            try {
+                // 1. Salva la location
+                val location = com.example.travelcompanion.database.models.Location(latitude = latitude, longitude = longitude)
+                val locationId = repository.insertLocation(location)
+
+                // 2. Calcola phaseOrder
+                val lastPhase = repository.getLatestTripPhase(tripId)
+                val phaseOrder = (lastPhase?.phaseOrder ?: 0) + 1
+
+                // 3. Salva la fase
+                val phase = com.example.travelcompanion.database.models.TripPhase(
+                    tripId = tripId,
+                    locationId = locationId,
+                    phaseOrder = phaseOrder,
+                    timestamp = System.currentTimeMillis()
+                )
+                repository.insertTripPhase(phase)
+
+                // 4. Aggiorna la distanza del viaggio
+                var distanceToAdd = 0.0
+                if (lastPhase != null) {
+                    val lastLocation = repository.getLocationById(lastPhase.locationId)
+                    if (lastLocation != null) {
+                        val results = FloatArray(1)
+                        android.location.Location.distanceBetween(
+                            lastLocation.latitude, lastLocation.longitude,
+                            latitude, longitude,
+                            results
+                        )
+                        distanceToAdd = results[0].toDouble()
+                    }
+                }
+                val trip = repository.getTripById(tripId)
+                if (trip != null) {
+                    val newDistance = trip.distance + distanceToAdd
+                    val updatedTrip = trip.copy(distance = newDistance)
+                    repository.updateTrip(updatedTrip)
+                    _trip.postValue(updatedTrip)
+                }
+            } catch (e: Exception) {
+                Log.e("HomeActiveTripViewModel", "Errore salvataggio fase/aggiornamento distanza", e)
+            }
+        }
+    }
     
     private val _trip = MutableLiveData<Trip?>()
     val trip: LiveData<Trip?> = _trip
@@ -28,9 +77,11 @@ class HomeActiveTripViewModel(
      * Ottiene i dati del viaggio per ID
      * @param tripId ID del viaggio da monitorare
      */
+    /**
+     * LiveData del viaggio osservato direttamente dal database
+     */
     fun getTripById(tripId: Long): LiveData<Trip?> {
-        loadTripData(tripId)
-        return trip
+        return repository.getTripByIdLive(tripId)
     }
     
     /**
@@ -52,28 +103,27 @@ class HomeActiveTripViewModel(
      * Ferma il viaggio attivo
      * @param tripId ID del viaggio da terminare
      */
-    fun stopTrip(tripId: Long) {
+    fun stopTrip(tripId: Long, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
-                // Ferma il servizio di tracking prima di aggiornare il database
                 stopTrackingService()
-                
-                // Aggiorna il viaggio con la data/ora di fine
                 val currentTrip = repository.getTripById(tripId)
-                currentTrip?.let { trip ->
-                    val updatedTrip = trip.copy(
-                        endDate = System.currentTimeMillis(),
-                        isActive = false
-                    )
-                    repository.updateTrip(updatedTrip)
-                    
-                    // Aggiorna il LiveData
-                    _trip.value = updatedTrip
-                    
-                    Log.d("HomeActiveTripViewModel", "Viaggio terminato con successo: ID=$tripId")
+                if (currentTrip == null) {
+                    Log.e("HomeActiveTripViewModel", "Trip non trovato per ID=$tripId")
+                    onComplete(false)
+                    return@launch
                 }
+                val updatedTrip = currentTrip.copy(
+                    endDate = System.currentTimeMillis(),
+                    isActive = false
+                )
+                repository.updateTrip(updatedTrip)
+                _trip.value = updatedTrip
+                Log.d("HomeActiveTripViewModel", "Viaggio terminato con successo: ID=$tripId")
+                onComplete(true)
             } catch (e: Exception) {
                 Log.e("HomeActiveTripViewModel", "Errore terminazione viaggio", e)
+                onComplete(false)
             }
         }
     }

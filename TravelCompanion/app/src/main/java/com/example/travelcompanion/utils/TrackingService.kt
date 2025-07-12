@@ -113,15 +113,31 @@ class TrackingService : Service() {
     }
 
     private fun handleNewLocation(location: android.location.Location) {
+        val db = TravelDatabase.getDatabase(applicationContext)
         if (System.currentTimeMillis() > endDate && endDate > 0) {
             Log.d("TrackingService", "Fine viaggio raggiunta. Interrompo il tracking.")
-            stopSelf()
+            // Aggiorna il viaggio come terminato
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val trip = db.tripDao().getTripById(tripId)
+                    if (trip != null && trip.isActive) {
+                        val updatedTrip = trip.copy(
+                            isActive = false,
+                            endDate = System.currentTimeMillis()
+                        )
+                        db.tripDao().updateTrip(updatedTrip)
+                        Log.d("TrackingService", "Trip aggiornato come terminato automaticamente: ${updatedTrip.id}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("TrackingService", "Errore aggiornamento trip a fine automatica", e)
+                }
+                stopSelf()
+            }
             return
         }
         Log.d("TrackingService", "Nuova posizione: ${location.latitude}, ${location.longitude}")
 
-        val db = TravelDatabase.getDatabase(applicationContext)
-        val radius = 0.0002 // ~20m in lat/lon approssimato
+        val radius = 0.0003 // ~30m in lat/lon approssimato
 
         CoroutineScope(Dispatchers.IO).launch {
             try {

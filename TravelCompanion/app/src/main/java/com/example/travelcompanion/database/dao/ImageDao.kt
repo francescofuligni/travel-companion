@@ -14,6 +14,11 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface ImageDao {
+    /**
+     * Restituisce la prima immagine (più vecchia) associata a un viaggio
+     */
+    @Query("SELECT * FROM images WHERE tripId = :tripId ORDER BY createdAt ASC LIMIT 1")
+    suspend fun getFirstImageForTrip(tripId: Long): Image?
     
     @Insert
     suspend fun insertImage(image: Image): Long

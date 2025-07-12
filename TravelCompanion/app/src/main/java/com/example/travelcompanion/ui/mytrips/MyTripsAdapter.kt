@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.travelcompanion.R
 import com.example.travelcompanion.database.models.TripType
+import com.bumptech.glide.Glide
 
 data class TripUiModel(
     val id: Long,
@@ -35,9 +36,12 @@ class MyTripsAdapter(
         tvTripTitle.text = item.title
         tvTripDestination.text = item.destination
         if (!item.imageUrl.isNullOrBlank()) {
-            // TODO: Carica immagine da URL, placeholder per ora
-            // Usa libreria come Glide/Picasso se disponibile
-            ivTripImage.setImageResource(R.drawable.missing_img)
+            Glide.with(itemView.context)
+                .load(item.imageUrl)
+                .placeholder(R.drawable.missing_img)
+                .error(R.drawable.missing_img)
+                .centerCrop()
+                .into(ivTripImage)
         } else {
             ivTripImage.setImageResource(R.drawable.missing_img)
         }

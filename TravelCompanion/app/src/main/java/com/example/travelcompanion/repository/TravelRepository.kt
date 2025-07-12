@@ -1,4 +1,6 @@
+
 package com.example.travelcompanion.repository
+
 
 import android.content.Context
 
@@ -22,6 +24,7 @@ import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.Dispatchers
 
 class TravelRepository(
+
     private val userDao: UserDao,
     private val locationDao: LocationDao,
     private val tripDao: TripDao,
@@ -32,10 +35,6 @@ class TravelRepository(
     // Location methods
     suspend fun insertLocation(location: Location): Long {
         return locationDao.insertLocation(location)
-    }
-
-    suspend fun getAllLocations(): List<Location> {
-        return locationDao.getAllLocations()
     }
 
     suspend fun getLocationById(id: Long): Location? {
@@ -51,9 +50,6 @@ class TravelRepository(
         }
     }
 
-    suspend fun deleteLocation(location: Location) {
-        locationDao.deleteLocation(location)
-    }
 
     suspend fun deleteAllLocations() {
         locationDao.deleteAllLocations()
@@ -72,13 +68,7 @@ class TravelRepository(
         return userDao.getUserById(id)
     }
 
-    suspend fun getAllUsers(): List<User> {
-        return userDao.getAllUsers()
-    }
 
-    suspend fun deleteUser(user: User) {
-        userDao.deleteUser(user)
-    }
 
     suspend fun deleteAllUsers() {
         userDao.deleteAllUsers()
@@ -121,15 +111,23 @@ class TravelRepository(
     suspend fun getTripsByYearAndType(year: Int, type: TripType): List<Trip> {
         return tripDao.getTripsByYearAndType(year.toString(), type.name)
     }
-
-    suspend fun deleteTrip(trip: Trip) {
-        tripDao.deleteTrip(trip)
+    /**
+     * Restituisce la prima immagine (più vecchia) associata a un viaggio
+     */
+    suspend fun getFirstImageForTrip(tripId: Long): Image? {
+        return imageDao.getFirstImageForTrip(tripId)
     }
 
     suspend fun deleteAllTrips() {
         tripDao.deleteAllTrips()
     }
 
+    /**
+     * Ottiene un viaggio come LiveData per aggiornamenti real-time
+     */
+    fun getTripByIdLive(tripId: Long): androidx.lifecycle.LiveData<Trip?> {
+        return tripDao.getTripByIdLive(tripId)
+    }
     /**
      * Termina un viaggio attivo
      * @param tripId ID del viaggio da terminare
@@ -216,12 +214,6 @@ class TravelRepository(
         return noteDao.getNotesByTripIdLiveData(tripId)
     }
 
-    /**
-     * Aggiorna una nota
-     */
-    suspend fun updateNote(note: Note) {
-        noteDao.updateNote(note)
-    }
 
     /**
      * Elimina una nota

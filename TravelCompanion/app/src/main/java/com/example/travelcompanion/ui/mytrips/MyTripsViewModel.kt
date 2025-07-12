@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
+import com.example.travelcompanion.ui.mytrips.TripUiModel
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -14,9 +15,11 @@ import java.util.Calendar
  * ViewModel per gestire i dati dei viaggi con filtri per anno e tipo
  */
 class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
-    
     private val _trips = MutableLiveData<List<Trip>>()
     val trips: LiveData<List<Trip>> = _trips
+
+    private val _tripUiModels = MutableLiveData<List<TripUiModel>>()
+    val tripUiModels: LiveData<List<TripUiModel>> = _tripUiModels
 
     private val _selectedYear = MutableLiveData<Int>()
     val selectedYear: LiveData<Int> = _selectedYear
@@ -51,10 +54,27 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
      */
     private fun loadTrips(year: Int, type: TripType?) {
         viewModelScope.launch {
-            _trips.value = when {
+            val trips = when {
                 type == null -> repository.getTripsByYear(year)
                 else -> repository.getTripsByYearAndType(year, type)
             }
+            _trips.value = trips
+            // Build UI models with first image URI for each trip
+            val uiModels = trips.map { trip ->
+                val firstImage = repository.getFirstImageForTrip(trip.id)
+                TripUiModel(
+                    id = trip.id,
+                    title = trip.title,
+                    destination = trip.destination,
+                    imageUrl = firstImage?.uri,
+                    startDate = trip.startDate,
+                    endDate = trip.endDate,
+                    type = trip.type,
+                    distance = trip.distance,
+                    duration = trip.duration
+                )
+            }
+            _tripUiModels.value = uiModels
         }
     }
 

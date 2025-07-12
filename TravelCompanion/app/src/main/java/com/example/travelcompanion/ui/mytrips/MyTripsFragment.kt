@@ -16,6 +16,10 @@ import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
 
+import androidx.lifecycle.lifecycleScope
+
+import kotlinx.coroutines.launch
+
 /**
  * Fragment per visualizzare e filtrare la lista dei viaggi dell'utente
  * Permette filtri per anno e tipo di viaggio
@@ -73,8 +77,8 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupObservers() {
         // Osserva i viaggi filtrati e aggiorna la lista
-        viewModel.trips.observe(viewLifecycleOwner) { trips ->
-            adapter.submitList(trips.map { it.toUiModel() })
+        viewModel.tripUiModels.observe(viewLifecycleOwner) { tripUiModels ->
+            adapter.submitList(tripUiModels)
             toggleEmptyView()
         }
     }
@@ -150,11 +154,12 @@ class MyTripsFragment : Fragment() {
      * Extension function per convertire Trip in TripUiModel
      * Separa la logica di presentazione dal modello dati
      */
-    private fun Trip.toUiModel(): TripUiModel {
+    private fun Trip.toUiModel(imageUrl: String? = null): TripUiModel {
         return TripUiModel(
             id = this.id,
             title = this.title,
             destination = this.destination,
+            imageUrl = imageUrl,
             startDate = this.startDate,
             endDate = this.endDate,
             type = this.type,

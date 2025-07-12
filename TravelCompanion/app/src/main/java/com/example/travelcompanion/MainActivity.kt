@@ -11,6 +11,12 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.travelcompanion.databinding.ActivityMainBinding
+import android.widget.ImageView
+import com.example.travelcompanion.database.TravelDatabase
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,6 +47,29 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+        
+        // Load and display user profile picture in drawer header
+        val headerView = navView.getHeaderView(0)
+        val userPhoto = headerView.findViewById<ImageView>(R.id.user_photo)
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = TravelDatabase.getDatabase(applicationContext)
+            val user = db.userDao().getUserById(1L) // Change as needed for multi-user
+            val profilePicId = user?.profilePictureId
+            if (profilePicId != null) {
+                val image = db.imageDao().getImageById(profilePicId)
+                val uri = image?.uri
+                if (!uri.isNullOrBlank()) {
+                    launch(Dispatchers.Main) {
+                        Glide.with(this@MainActivity)
+                            .load(uri)
+                            .placeholder(R.drawable.missing_img)
+                            .error(R.drawable.missing_img)
+                            .circleCrop()
+                            .into(userPhoto)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
