@@ -5,55 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.travelcompanion.databinding.FragmentHomeBinding
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
-import android.os.Environment
-import android.provider.MediaStore
-import android.widget.Toast
-import androidx.core.content.FileProvider
-import androidx.navigation.fragment.findNavController
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
 import com.example.travelcompanion.R
-import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import android.content.pm.PackageManager
-import android.content.ActivityNotFoundException
-import android.os.SystemClock
-import java.util.concurrent.TimeUnit
+import com.example.travelcompanion.databinding.FragmentHomeBinding
+import com.example.travelcompanion.repository.TravelRepository
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var photoFile: File
-
-    private val cameraLauncher: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                Toast.makeText(requireContext(), "Foto salvata!", Toast.LENGTH_SHORT).show()
-                // Qui puoi gestire la foto salvata in photoFile
-            } else {
-                Toast.makeText(requireContext(), "Foto non scattata.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val storageDir: File? = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        )
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,70 +28,26 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Avvia il cronometro all'apertura del fragment con formato HH:MM:SS
-        binding.chronometer.base = SystemClock.elapsedRealtime()
-        binding.chronometer.setOnChronometerTickListener { chronometer ->
-            val elapsedMillis = SystemClock.elapsedRealtime() - chronometer.base
-            val hours = TimeUnit.MILLISECONDS.toHours(elapsedMillis)
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedMillis) % 60
-            val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis) % 60
-            chronometer.text = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-        }
-        binding.chronometer.start()
+        val repository = TravelRepository.create(requireContext())
+        lifecycleScope.launch {
+            val activeId = repository.getActiveTripId()
+            val trip = activeId?.let { repository.getTripById(it) }
 
-        binding.btnStop.setOnClickListener {
-            // Ferma il cronometro quando si preme "Interrompi"
-            binding.chronometer.stop()
-        }
-
-        binding.btnNote.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_home_to_nav_note)
-        }
-
-        binding.btnPhoto.setOnClickListener {
-            val pm = requireContext().packageManager
-            // Verifica presenza hardware fotocamera
-            if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-                Toast.makeText(requireContext(),
-                    "Nessuna fotocamera disponibile sul dispositivo.",
-                    Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            try {
-                // Crea il file per la foto
-                photoFile = createImageFile()
-                val photoUri = FileProvider.getUriForFile(
-                    requireContext(),
-                    "${requireContext().packageName}.fileprovider",
-                    photoFile
-                )
-
-                // Prepara e lancia l’Intent fotocamera
-                val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                    putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                    addFlags(
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
+            val fragment = if (trip != null) {
+                val bundle = Bundle().apply {
+                    putLong("tripId", trip.id)
                 }
-                cameraLauncher.launch(intent)
-
-            } catch (ex: IOException) {
-                Toast.makeText(requireContext(),
-                    "Errore durante la creazione del file per la foto.",
-                    Toast.LENGTH_SHORT).show()
-            } catch (ex: ActivityNotFoundException) {
-                Toast.makeText(requireContext(),
-                    "Nessuna app fotocamera trovata.",
-                    Toast.LENGTH_SHORT).show()
+                HomeActiveTripFragment().apply {
+                    arguments = bundle
+                }
+            } else {
+                HomeNoTripFragment()
             }
-        }
 
-        // Inserisce il MapFragment riutilizzabile
-        childFragmentManager.beginTransaction()
-            .replace(binding.mapContainer.id, MapFragment())
-            .commit()
+            childFragmentManager.beginTransaction()
+                .replace(R.id.home_container, fragment)
+                .commit()
+        }
     }
 
     override fun onDestroyView() {

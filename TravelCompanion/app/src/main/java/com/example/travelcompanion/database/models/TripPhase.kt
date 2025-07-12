@@ -23,11 +23,11 @@ import androidx.room.Index
     ],
     indices = [Index("tripId"), Index("locationId")]
 )
+
 data class TripPhase(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val tripId: Long,
     val locationId: Long,
     val phaseOrder: Int,
-    val arrivalDate: String? = null,
-    val departureDate: String? = null,
+    val timestamp: Long
 )

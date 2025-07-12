@@ -5,20 +5,30 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Delete
+import androidx.room.Update
 import com.example.travelcompanion.database.models.Trip
 
 @Dao
 interface TripDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTrip(trip: Trip)
+    suspend fun insertTrip(trip: Trip) : Long
 
     @Query("SELECT * FROM trip")
     suspend fun getAllTrips(): List<Trip>
+
+    @Query("SELECT * FROM trip WHERE id = :id")
+    suspend fun getTripById(id: Long): Trip?
+
+    @Update
+    suspend fun updateTrip(trip: Trip)
 
     @Delete
     suspend fun deleteTrip(trip: Trip)
 
     @Query("DELETE FROM trip")
     suspend fun deleteAllTrips()
+
+    @Query("SELECT id FROM trip WHERE isActive = 1 LIMIT 1")
+    suspend fun getActiveTripId(): Long?
 }

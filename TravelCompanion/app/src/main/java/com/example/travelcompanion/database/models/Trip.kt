@@ -7,7 +7,11 @@ import androidx.room.PrimaryKey
 data class Trip(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
-    val destination: String? = null,
-    val startDate: String,
-    val endDate: String
+    val isActive: Boolean,
+    val type: TripType,
+    val destination: String,
+    val startDate: Long,
+    val endDate: Long,
+    val duration: Double,
+    val distance: Double
 )

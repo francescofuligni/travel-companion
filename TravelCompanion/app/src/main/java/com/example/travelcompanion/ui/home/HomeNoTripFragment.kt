@@ -1,3 +1,5 @@
+
+
 package com.example.travelcompanion.ui.home
 
 import android.os.Bundle
@@ -9,7 +11,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentHomeNoTripBinding
 
-class NoTripFragment : Fragment() {
+class HomeNoTripFragment : Fragment() {
 
     private var _binding: FragmentHomeNoTripBinding? = null
     private val binding get() = _binding!!
@@ -26,7 +28,7 @@ class NoTripFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnStartNewTrip.setOnClickListener {
-            findNavController().navigate(R.id.action_noTripFragment_to_nav_new_trip)
+            requireParentFragment().findNavController().navigate(R.id.nav_new_trip)
         }
     }
 

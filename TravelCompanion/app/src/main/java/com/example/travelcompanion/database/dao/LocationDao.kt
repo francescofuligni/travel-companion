@@ -18,6 +18,9 @@ interface LocationDao {
     @Query("SELECT * FROM location WHERE id = :id")
     suspend fun getLocationById(id: Long): Location?
 
+    @Query("SELECT * FROM location WHERE latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax LIMIT 1")
+    suspend fun findWithinRadius(latMin: Double, latMax: Double, lonMin: Double, lonMax: Double): Location?
+
     @Delete
     suspend fun deleteLocation(location: Location)
 
