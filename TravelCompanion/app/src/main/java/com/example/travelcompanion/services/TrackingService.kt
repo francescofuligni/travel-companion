@@ -1,4 +1,4 @@
-package com.example.travelcompanion.utils
+package com.example.travelcompanion.services
 
 import android.Manifest
 import android.app.*
@@ -17,23 +17,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.google.android.gms.location.*
 
-class TrackingService : Service() {
+class TrackingService : BaseLocationService() {
 
     private var phaseOrderCounter = 0
     private var endDate: Long = -1L
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private var tripId: Long = -1L
 
     override fun onCreate() {
         super.onCreate()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        initFusedLocationClient()
 
-        locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 30000L)
-            .setMinUpdateIntervalMillis(30000L)
-            .build()
+        locationRequest = buildHighAccuracyRequest(
+            intervalMillis = 30_000L,
+            minUpdateMillis = 30_000L
+        )
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
@@ -158,15 +158,12 @@ class TrackingService : Service() {
             val previousLocation = previousPhase?.let { db.locationDao().getLocationById(it.locationId) }
 
             if (previousLocation != null) {
-                val results = FloatArray(1)
-                if (location != null) {
-                    android.location.Location.distanceBetween(
+                val distance = if (location != null) {
+                    calculateDistance(
                         previousLocation.latitude, previousLocation.longitude,
-                        location.latitude, location.longitude,
-                        results
+                        location.latitude, location.longitude
                     )
-                }
-                val distance = results[0].toDouble() // in metri
+                } else 0.0
 
                 val trip = db.tripDao().getTripById(tripId)
                 if (trip != null) {

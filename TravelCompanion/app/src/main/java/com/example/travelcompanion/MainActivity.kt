@@ -1,5 +1,6 @@
 package com.example.travelcompanion
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import com.google.android.material.navigation.NavigationView
@@ -15,7 +16,8 @@ import androidx.work.WorkManager
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.ExistingPeriodicWorkPolicy
 import java.util.concurrent.TimeUnit
-import com.example.travelcompanion.utils.NotifyRemindWorker
+import com.example.travelcompanion.services.NotificationRemindWorker
+import com.example.travelcompanion.services.HomeGeofenceService
 
 class MainActivity : AppCompatActivity() {
 
@@ -47,15 +49,9 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        val request = PeriodicWorkRequestBuilder<NotifyRemindWorker>(
-            1, TimeUnit.DAYS
-        ).build()
-
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "trip_reminder_worker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            request
-        )
+        scheduleTripReminderWorker()
+        startLocationService()
+        registerHomeGeofenceIfSet()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -67,5 +63,36 @@ class MainActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    private fun scheduleTripReminderWorker() {
+        val request = PeriodicWorkRequestBuilder<NotificationRemindWorker>(
+            1, TimeUnit.DAYS
+        ).build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "trip_reminder_worker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+
+    private fun startLocationService() {
+        val locationServiceIntent = Intent(this, com.example.travelcompanion.services.LocationUpdatesService::class.java)
+        startService(locationServiceIntent)
+    }
+
+    private fun registerHomeGeofenceIfSet() {
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val homeLat = prefs.getFloat("home_latitude", Float.MIN_VALUE)
+        val homeLon = prefs.getFloat("home_longitude", Float.MIN_VALUE)
+
+        if (homeLat != Float.MIN_VALUE && homeLon != Float.MIN_VALUE) {
+            HomeGeofenceService.registerHomeGeofence(
+                context = this,
+                latitude = homeLat.toDouble(),
+                longitude = homeLon.toDouble()
+            )
+        }
     }
 }

@@ -47,5 +47,8 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <receiver
+            android:name=".services.geofence.HomeGeofenceReceiver"
+            android:exported="true" />
     </application>
 </manifest>

@@ -8,7 +8,7 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.repository.TravelRepository
-import com.example.travelcompanion.utils.TrackingService
+import com.example.travelcompanion.services.TrackingService
 import kotlinx.coroutines.launch
 
 class HomeActiveTripViewModel(
