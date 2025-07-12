@@ -6,19 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripCreateBinding
 import com.example.travelcompanion.repository.TravelRepository
+import com.example.travelcompanion.ui.common.AddressSearchFragment
 import com.google.android.gms.maps.model.LatLng
 import java.util.Calendar
-
 import android.widget.Toast
 
 class NewTripCreateFragment : Fragment() {
-    // Permission launchers
+
     private lateinit var foregroundServiceLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private lateinit var fineLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private var pendingTripData: PendingTripData? = null
@@ -28,7 +28,7 @@ class NewTripCreateFragment : Fragment() {
         val destination: String,
         val type: String,
         val endDate: java.util.Date,
-        val selectedDestinationLatLng: com.google.android.gms.maps.model.LatLng?
+        val selectedDestinationLatLng: LatLng?
     )
 
     private var _binding: FragmentNewTripCreateBinding? = null
@@ -47,18 +47,22 @@ class NewTripCreateFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Register permission launchers
+        val fragment = AddressSearchFragment()
+        childFragmentManager.beginTransaction()
+            .replace(R.id.addressSearchContainer, fragment)
+            .commit()
+
         foregroundServiceLocationPermissionLauncher = registerForActivityResult(
             androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             if (isGranted) {
-                // Now check fine location
                 pendingTripData?.let { requestFineLocationPermissionAndStartTrip(it) }
             } else {
                 Toast.makeText(requireContext(), "Permesso FOREGROUND_SERVICE_LOCATION negato", Toast.LENGTH_LONG).show()
                 pendingTripData = null
             }
         }
+
         fineLocationPermissionLauncher = registerForActivityResult(
             androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
         ) { isGranted ->
@@ -72,55 +76,53 @@ class NewTripCreateFragment : Fragment() {
             }
             pendingTripData = null
         }
-        super.onViewCreated(view, savedInstanceState)
 
         val repository = TravelRepository.create(requireContext())
         val factory = NewTripCreateViewModelFactory(repository, requireContext())
         viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
 
-        // Imposta la data minima a oggi e mantiene la selezione di default
         val datePicker = binding.datePickerEnd
         datePicker.minDate = System.currentTimeMillis()
 
-        // Gestione abilitazione/disabilitazione campi in base al tipo di viaggio
         val toggleGroup = binding.toggleTripType
         val today = Calendar.getInstance()
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             when (checkedId) {
                 binding.btnLocal.id -> {
-                    binding.etDestination.isEnabled = false
-                    binding.addressSearchView.visibility = View.GONE
+                    binding.etDestination.isEnabled = true
+                    viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                        fragment.setInputEnabled(true)
+                    }
                     binding.datePickerEnd.isEnabled = false
-                    binding.datePickerEnd.updateDate(
-                        today.get(Calendar.YEAR),
-                        today.get(Calendar.MONTH),
-                        today.get(Calendar.DAY_OF_MONTH)
-                    )
+                    datePicker.updateDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
                 }
                 binding.btnOneDay.id -> {
-                    binding.etDestination.isEnabled = true
-                    binding.addressSearchView.visibility = View.VISIBLE
+                    binding.etDestination.isEnabled = false
+                    viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                        fragment.setInputEnabled(false)
+                    }
                     binding.datePickerEnd.isEnabled = false
-                    binding.datePickerEnd.updateDate(
-                        today.get(Calendar.YEAR),
-                        today.get(Calendar.MONTH),
-                        today.get(Calendar.DAY_OF_MONTH)
-                    )
+                    datePicker.updateDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
+                    // Imposta valore simulato (sostituire con localizzazione reale)
+                    binding.etDestination.setText("Posizione corrente")
                 }
                 binding.btnMultiDays.id -> {
                     binding.etDestination.isEnabled = true
-                    binding.addressSearchView.visibility = View.VISIBLE
+                    viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                        fragment.setInputEnabled(true)
+                    }
                     binding.datePickerEnd.isEnabled = true
                 }
             }
         }
 
-        // Setup address search listener
-        binding.addressSearchView.setOnAddressSelectedListener { address, latLng ->
-            binding.etDestination.setText(address)
-            selectedDestinationLatLng = latLng
-            updateBtnStartTripState()
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            fragment.setOnAddressSelectedListener { address, latLng ->
+                binding.etDestination.setText(address)
+                selectedDestinationLatLng = latLng
+                updateBtnStartTripState()
+            }
         }
 
         binding.btnStartTrip.isEnabled = false
@@ -128,9 +130,7 @@ class NewTripCreateFragment : Fragment() {
         binding.etTripTitle.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
         binding.etDestination.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
 
-        toggleGroup.addOnButtonCheckedListener { _, _, _ ->
-            updateBtnStartTripState()
-        }
+        toggleGroup.addOnButtonCheckedListener { _, _, _ -> updateBtnStartTripState() }
 
         binding.btnStartTrip.setOnClickListener {
             val title = binding.etTripTitle.text.toString()
@@ -157,20 +157,16 @@ class NewTripCreateFragment : Fragment() {
             binding.etDestination.text.toString().isNotBlank()
         } else true
 
-        binding.btnStartTrip.isEnabled = titleNotEmpty
-            && destinationNotEmpty
-            && selectedType != View.NO_ID
+        binding.btnStartTrip.isEnabled = titleNotEmpty && destinationNotEmpty && selectedType != View.NO_ID
     }
 
     private fun checkAndRequestPermissionsThenStartTrip(tripData: PendingTripData) {
-        // Check FOREGROUND_SERVICE_LOCATION
         val foregroundServiceLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(),
-            android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            requireContext(), android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(),
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (foregroundServiceLocationGranted && fineLocationGranted) {
@@ -188,9 +184,9 @@ class NewTripCreateFragment : Fragment() {
 
     private fun requestFineLocationPermissionAndStartTrip(tripData: PendingTripData) {
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(),
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
         if (fineLocationGranted) {
             viewModel.startTrip(tripData.title, tripData.destination, tripData.type, tripData.endDate, tripData.selectedDestinationLatLng)
             findNavController().navigate(R.id.nav_home)

@@ -40,4 +40,9 @@
         android:textSize="14sp"
         android:layout_marginBottom="8dp" />
 
+    <FrameLayout
+        android:id="@+id/mapContainer"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
+
 </LinearLayout>
