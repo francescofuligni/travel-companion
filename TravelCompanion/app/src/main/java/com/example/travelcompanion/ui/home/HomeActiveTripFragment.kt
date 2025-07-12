@@ -369,8 +369,8 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             requireActivity().runOnUiThread {
                 if (success) {
                     Toast.makeText(requireContext(), "Viaggio terminato", Toast.LENGTH_SHORT).show()
-                    // Naviga indietro o alla schermata home
-                    findNavController().popBackStack()
+                    // Naviga alla schermata "I miei viaggi"
+                    findNavController().navigate(R.id.nav_my_trips)
                 } else {
                     Toast.makeText(requireContext(), "Errore durante la chiusura del viaggio", Toast.LENGTH_LONG).show()
                 }

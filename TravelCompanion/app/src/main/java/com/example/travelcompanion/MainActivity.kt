@@ -53,7 +53,23 @@ class MainActivity : AppCompatActivity() {
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        navView.setNavigationItemSelectedListener { item ->
+            val fragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+            if (fragment is androidx.navigation.fragment.NavHostFragment) {
+                val current = fragment.childFragmentManager.fragments.firstOrNull()
+                if (item.itemId == R.id.nav_home && current is com.example.travelcompanion.ui.home.HomeFragment) {
+                    (current as com.example.travelcompanion.ui.home.HomeFragment).forceReload()
+                    binding.drawerLayout.closeDrawers()
+                    return@setNavigationItemSelectedListener true
+                }
+            }
+
+            val handled = androidx.navigation.ui.NavigationUI.onNavDestinationSelected(item, navController)
+            if (handled) {
+                binding.drawerLayout.closeDrawers()
+            }
+            true
+        }
         
         loadUserProfilePicture(navView.getHeaderView(0))
         scheduleTripReminderWorker()

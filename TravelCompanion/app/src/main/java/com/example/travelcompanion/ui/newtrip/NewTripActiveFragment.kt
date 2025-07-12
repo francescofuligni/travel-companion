@@ -26,7 +26,7 @@ class NewTripActiveFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnStartNewTrip.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+            findNavController().navigate(R.id.nav_home)
         }
     }
 

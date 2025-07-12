@@ -65,7 +65,7 @@ class NewTripCreateFragment : Fragment() {
             if (isGranted) {
                 pendingTripData?.let {
                     viewModel.startTrip(it.title, it.destination, it.type, it.endDate, it.selectedDestinationLatLng)
-                    findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+                    findNavController().navigate(R.id.nav_home)
                 }
             } else {
                 Toast.makeText(requireContext(), "Permesso ACCESS_FINE_LOCATION negato", Toast.LENGTH_LONG).show()
@@ -175,7 +175,7 @@ class NewTripCreateFragment : Fragment() {
 
         if (foregroundServiceLocationGranted && fineLocationGranted) {
             viewModel.startTrip(tripData.title, tripData.destination, tripData.type, tripData.endDate, tripData.selectedDestinationLatLng)
-            findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+            findNavController().navigate(R.id.nav_home)
         } else {
             pendingTripData = tripData
             if (!foregroundServiceLocationGranted) {
@@ -193,7 +193,7 @@ class NewTripCreateFragment : Fragment() {
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         if (fineLocationGranted) {
             viewModel.startTrip(tripData.title, tripData.destination, tripData.type, tripData.endDate, tripData.selectedDestinationLatLng)
-            findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+            findNavController().navigate(R.id.nav_home)
             pendingTripData = null
         } else {
             fineLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)

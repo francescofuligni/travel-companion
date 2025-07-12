@@ -40,6 +40,10 @@ class HomeFragment : Fragment() {
         loadActiveTrip()
     }
 
+    fun forceReload() {
+        loadActiveTrip()  // o qualunque metodo tu usi per caricare dinamicamente il fragment figlio
+    }
+
     /**
      * Carica il viaggio attivo se presente
      */
