@@ -7,15 +7,24 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.travelcompanion.R
+import com.example.travelcompanion.database.models.TripType
+import com.bumptech.glide.Glide
 
 data class TripUiModel(
+    val id: Long,
     val title: String,
     val destination: String,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val startDate: Long? = null,
+    val endDate: Long? = null,
+    val duration: Double? = null,
+    val distance: Double? = null,
+    val type: TripType? = null
 )
 
 class MyTripsAdapter(
-    private var items: List<TripUiModel>
+    private var items: List<TripUiModel>,
+    private val onTripClicked: (Long) -> Unit
 ) : RecyclerView.Adapter<MyTripsAdapter.TripViewHolder>() {
 
     inner class TripViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -27,11 +36,19 @@ class MyTripsAdapter(
         tvTripTitle.text = item.title
         tvTripDestination.text = item.destination
         if (!item.imageUrl.isNullOrBlank()) {
-            // TODO: Carica immagine da URL, placeholder per ora
-            // Usa libreria come Glide/Picasso se disponibile
-            ivTripImage.setImageResource(R.drawable.missing_img)
+            Glide.with(itemView.context)
+                .load(item.imageUrl)
+                .placeholder(R.drawable.missing_img)
+                .error(R.drawable.missing_img)
+                .centerCrop()
+                .into(ivTripImage)
         } else {
             ivTripImage.setImageResource(R.drawable.missing_img)
+        }
+        
+        // Handle click
+        itemView.setOnClickListener {
+            onTripClicked(item.id)
         }
       }
     }

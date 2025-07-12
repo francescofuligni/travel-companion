@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.travelcompanion.R
+import com.example.travelcompanion.utils.LocationUtils
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -58,15 +59,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         googleMap?.uiSettings?.isMyLocationButtonEnabled = true
 
-        // Marker fisso (es. Riccione)
-        val riccione = LatLng(44.0043, 12.6560)
-        googleMap.addMarker(MarkerOptions().position(riccione).title("Sei a Riccione"))
-
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (LocationUtils.hasLocationPermission(requireContext())) {
             enableUserLocation()
         } else {
             locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -76,12 +69,30 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun enableUserLocation() {
         try {
             googleMap?.isMyLocationEnabled = true
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    val currentLatLng = LatLng(location.latitude, location.longitude)
+            
+            LocationUtils.getCurrentLocation(
+                requireContext(),
+                onSuccess = { currentLatLng ->
                     googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
+                    // Add a marker at the current location
+                    googleMap?.addMarker(
+                        MarkerOptions()
+                            .position(currentLatLng)
+                            .title("La tua posizione")
+                            .snippet("Posizione corrente")
+                    )
+                },
+                onFailure = { defaultLatLng ->
+                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
+                    googleMap?.addMarker(
+                        MarkerOptions()
+                            .position(defaultLatLng)
+                            .title("Posizione di default")
+                            .snippet("Impossibile ottenere la posizione corrente")
+                    )
+                    Toast.makeText(requireContext(), "Impossibile ottenere la posizione corrente", Toast.LENGTH_SHORT).show()
                 }
-            }
+            )
         } catch (e: SecurityException) {
             e.printStackTrace()
         }

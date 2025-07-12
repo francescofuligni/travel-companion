@@ -34,8 +34,8 @@ class SettingsViewModel(private val repository: TravelRepository) : ViewModel() 
                 // Load profile picture separately
                 user?.profilePictureId?.let { imageId ->
                     val image = repository.getImageById(imageId)
-                    image?.let {
-                        _profilePictureUri.value = Uri.parse(it.uri)
+                    image?.let { img ->
+                        _profilePictureUri.value = Uri.parse(img.uri)
                     }
                 }
 
@@ -93,6 +93,7 @@ class SettingsViewModel(private val repository: TravelRepository) : ViewModel() 
                 if (profilePictureUri != null) {
                     try {
                         val image = Image(
+                            tripId = null, // Profile picture not associated with a trip
                             uri = profilePictureUri.toString(),
                             createdAt = System.currentTimeMillis()
                         )
@@ -168,7 +169,7 @@ class SettingsViewModel(private val repository: TravelRepository) : ViewModel() 
                 repository.deleteAllTrips()
                 // Clear all images
                 val images = repository.imageDao.getAllImages()
-                images.forEach { repository.deleteImage(it) }
+                images.forEach { image -> repository.deleteImage(image) }
                 
                 _user.value = null
                 _homeLocation.value = null
