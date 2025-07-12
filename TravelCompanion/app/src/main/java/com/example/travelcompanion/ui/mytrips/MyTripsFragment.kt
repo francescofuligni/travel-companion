@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import java.util.Calendar
 import com.example.travelcompanion.ui.mytrips.YearPickerDialog
 import com.example.travelcompanion.R
@@ -57,7 +58,10 @@ class MyTripsFragment : Fragment() {
      * Configura la RecyclerView con adapter e decorazioni
      */
     private fun setupRecyclerView() {
-        adapter = MyTripsAdapter(emptyList())
+        adapter = MyTripsAdapter(emptyList()) { tripId ->
+            // Navigate to trip details
+            navigateToTripDetails(tripId)
+        }
         binding.rvMyTrips.adapter = adapter
         binding.rvMyTrips.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
@@ -148,6 +152,7 @@ class MyTripsFragment : Fragment() {
      */
     private fun Trip.toUiModel(): TripUiModel {
         return TripUiModel(
+            id = this.id,
             title = this.title,
             destination = this.destination,
             startDate = this.startDate,
@@ -156,5 +161,15 @@ class MyTripsFragment : Fragment() {
             distance = this.distance,
             duration = this.duration,
         )
+    }
+
+    /**
+     * Naviga ai dettagli del viaggio
+     */
+    private fun navigateToTripDetails(tripId: Long) {
+        val bundle = Bundle().apply {
+            putLong("tripId", tripId)
+        }
+        findNavController().navigate(R.id.action_nav_my_trips_to_nav_trip_details, bundle)
     }
 }

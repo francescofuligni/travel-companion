@@ -1,10 +1,15 @@
 package com.example.travelcompanion.ui.home
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Chronometer
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.repository.TravelRepository
@@ -16,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import java.text.SimpleDateFormat
 import java.util.*
 import android.util.Log
+import com.example.travelcompanion.ui.common.AddNoteDialogFragment
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -34,6 +40,28 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     private lateinit var chronometer: Chronometer
     private var isChronoRunning = false
     private var googleMap: GoogleMap? = null
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            takePicture()
+        } else {
+            Toast.makeText(requireContext(), "Permesso fotocamera negato", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            imageUri?.let { uri ->
+                saveImageToCurrentPhase(uri)
+            }
+        }
+    }
+
+    private var imageUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +103,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         val tvStartDate = view.findViewById<TextView>(R.id.tv_start_date)
         val tvEndDate = view.findViewById<TextView>(R.id.tv_end_date)
         val tvDistance = view.findViewById<TextView>(R.id.tv_distance)
-        val tvDuration = view.findViewById<TextView>(R.id.tv_duration_label)
         chronometer = view.findViewById(R.id.chronometer)
         
         // Bottoni
@@ -92,15 +119,13 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         // Photo button
         photoButton.setOnClickListener {
             Log.d("HomeActiveTripFragment", "Photo button clicked")
-            // TODO: Implementare cattura foto
-            Toast.makeText(requireContext(), "Funzione foto in sviluppo", Toast.LENGTH_SHORT).show()
+            checkCameraPermissionAndTakePicture()
         }
         
         // Note button
         noteButton.setOnClickListener {
             Log.d("HomeActiveTripFragment", "Note button clicked")
-            // TODO: Implementare aggiunta nota
-            Toast.makeText(requireContext(), "Funzione note in sviluppo", Toast.LENGTH_SHORT).show()
+            showAddNoteDialog()
         }
     }
     
@@ -137,7 +162,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     /**
      * Aggiorna la mappa con i dati del viaggio
      */
-    private fun updateMapWithTripData(trip: com.example.travelcompanion.database.models.Trip) {
+    private fun updateMapWithTripData(trip: com.example.travelcompanion.database.models.Trip?) {
+        if (trip == null) return
+        
         googleMap?.let { map ->
             // Pulisci la mappa precedente
             map.clear()
@@ -195,13 +222,14 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     /**
      * Aggiorna la UI con i dati del viaggio
      */
-    private fun updateUI(trip: com.example.travelcompanion.database.models.Trip) {
+    private fun updateUI(trip: com.example.travelcompanion.database.models.Trip?) {
+        if (trip == null) return
+        
         view?.let { view ->
             val tvTripTitle = view.findViewById<TextView>(R.id.tvHomeTripTitle)
             val tvStartDate = view.findViewById<TextView>(R.id.tv_start_date)
             val tvEndDate = view.findViewById<TextView>(R.id.tv_end_date)
             val tvDistance = view.findViewById<TextView>(R.id.tv_distance)
-            val tvDuration = view.findViewById<TextView>(R.id.tv_duration_label)
             
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             
@@ -210,27 +238,18 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             tvEndDate.text = if (trip.endDate != 0L) dateFormat.format(Date(trip.endDate)) else "In corso"
             tvDistance.text = "Distanza: ${String.format("%.1f", trip.distance)} km"
             
-            // Calcola la durata
-            val duration = if (trip.endDate != 0L) {
-                trip.endDate - trip.startDate
-            } else {
-                System.currentTimeMillis() - trip.startDate
-            }
-            
-            val hours = duration / (1000 * 60 * 60)
-            val minutes = (duration % (1000 * 60 * 60)) / (1000 * 60)
-            val seconds = (duration % (1000 * 60)) / 1000
-            
-            tvDuration.text = "Durata: ${String.format("%02d:%02d:%02d", hours, minutes, seconds)}"
-            
-            // Gestione cronometro
-            if (trip.endDate == 0L && !isChronoRunning) {
-                chronometer.base = android.os.SystemClock.elapsedRealtime() - duration
+            // Gestione cronometro - calcola il tempo trascorso dall'inizio del viaggio
+            if (trip.isActive && !isChronoRunning) {
+                val currentTime = System.currentTimeMillis()
+                val elapsedTime = currentTime - trip.startDate
+                chronometer.base = android.os.SystemClock.elapsedRealtime() - elapsedTime
                 chronometer.start()
                 isChronoRunning = true
-            } else if (trip.endDate != 0L && isChronoRunning) {
+                Log.d("HomeActiveTripFragment", "Chronometer started - elapsed time: ${elapsedTime}ms")
+            } else if (!trip.isActive && isChronoRunning) {
                 chronometer.stop()
                 isChronoRunning = false
+                Log.d("HomeActiveTripFragment", "Chronometer stopped")
             }
         }
     }
@@ -244,6 +263,53 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         
         // Naviga indietro o alla schermata home
         findNavController().popBackStack()
+    }
+
+    /**
+     * Verifica il permesso della fotocamera e scatta una foto
+     */
+    private fun checkCameraPermissionAndTakePicture() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                takePicture()
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    /**
+     * Scatta una foto
+     */
+    private fun takePicture() {
+        imageUri = viewModel.createImageUri(requireContext())
+        imageUri?.let { uri ->
+            takePictureLauncher.launch(uri)
+        }
+    }
+
+    /**
+     * Salva l'immagine al viaggio corrente
+     */
+    private fun saveImageToCurrentPhase(uri: Uri) {
+        viewModel.saveImageToTrip(tripId, uri.toString())
+        Toast.makeText(requireContext(), "Foto salvata!", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Mostra il dialog per aggiungere una nota
+     */
+    private fun showAddNoteDialog() {
+        val dialog = AddNoteDialogFragment()
+        dialog.setOnNoteAddedListener { note ->
+            viewModel.saveNoteToTrip(tripId, note)
+            Toast.makeText(requireContext(), "Nota salvata!", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show(childFragmentManager, "AddNoteDialog")
     }
 
     override fun onDestroy() {

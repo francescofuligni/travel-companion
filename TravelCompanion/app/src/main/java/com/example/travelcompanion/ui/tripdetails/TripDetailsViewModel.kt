@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.switchMap
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripPhase
+import com.example.travelcompanion.database.models.Note
+import com.example.travelcompanion.database.models.Image
 import com.example.travelcompanion.repository.TravelRepository
 import kotlinx.coroutines.launch
 
@@ -24,6 +26,21 @@ class TripDetailsViewModel(
     val tripPhases: LiveData<List<TripPhase>> = _tripId.switchMap { tripId ->
         Log.d("TripDetailsViewModel", "Loading phases for trip ID: $tripId")
         repository.getTripPhases(tripId)
+    }
+
+    val tripPhasesWithLocations: LiveData<List<com.example.travelcompanion.database.models.TripPhaseWithLocation>> = _tripId.switchMap { tripId ->
+        Log.d("TripDetailsViewModel", "Loading phases with locations for trip ID: $tripId")
+        repository.getTripPhasesWithLocations(tripId)
+    }
+
+    val tripNotes: LiveData<List<Note>> = _tripId.switchMap { tripId ->
+        Log.d("TripDetailsViewModel", "Loading notes for trip ID: $tripId")
+        repository.getNotesByTripId(tripId)
+    }
+
+    val tripImages: LiveData<List<Image>> = _tripId.switchMap { tripId ->
+        Log.d("TripDetailsViewModel", "Loading images for trip ID: $tripId")
+        repository.getImagesByTripId(tripId)
     }
 
     fun loadTripDetails(tripId: Long) {

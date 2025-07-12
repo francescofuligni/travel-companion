@@ -10,6 +10,7 @@ import com.example.travelcompanion.R
 import com.example.travelcompanion.database.models.TripType
 
 data class TripUiModel(
+    val id: Long,
     val title: String,
     val destination: String,
     val imageUrl: String? = null,
@@ -21,7 +22,8 @@ data class TripUiModel(
 )
 
 class MyTripsAdapter(
-    private var items: List<TripUiModel>
+    private var items: List<TripUiModel>,
+    private val onTripClicked: (Long) -> Unit
 ) : RecyclerView.Adapter<MyTripsAdapter.TripViewHolder>() {
 
     inner class TripViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -38,6 +40,11 @@ class MyTripsAdapter(
             ivTripImage.setImageResource(R.drawable.missing_img)
         } else {
             ivTripImage.setImageResource(R.drawable.missing_img)
+        }
+        
+        // Handle click
+        itemView.setOnClickListener {
+            onTripClicked(item.id)
         }
       }
     }

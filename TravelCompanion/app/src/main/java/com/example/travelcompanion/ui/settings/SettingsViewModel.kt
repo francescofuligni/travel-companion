@@ -93,6 +93,7 @@ class SettingsViewModel(private val repository: TravelRepository) : ViewModel() 
                 if (profilePictureUri != null) {
                     try {
                         val image = Image(
+                            tripId = null, // Profile picture not associated with a trip
                             uri = profilePictureUri.toString(),
                             createdAt = System.currentTimeMillis()
                         )

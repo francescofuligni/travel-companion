@@ -50,8 +50,12 @@ class TrackingService : Service() {
         val tripIdString = intent?.getStringExtra("TRIP_ID")
         tripId = tripIdString?.toLongOrNull() ?: -1L
         endDate = intent?.getLongExtra("END_DATE", -1L) ?: -1L
+        
         if (tripId != -1L) {
+            // Initialize phase order counter
+            phaseOrderCounter = 0
             startLocationUpdates()
+            Log.d("TrackingService", "Tracking iniziato per trip ID: $tripId")
         } else {
             Log.e("TrackingService", "Trip ID non valido")
             stopSelf()
@@ -120,34 +124,43 @@ class TrackingService : Service() {
         val radius = 0.0002 // ~20m in lat/lon approssimato
 
         CoroutineScope(Dispatchers.IO).launch {
-            val existingLocation = db.locationDao().findWithinRadius(
-                location.latitude - radius, location.latitude + radius,
-                location.longitude - radius, location.longitude + radius
-            )
-
-            val locationId = if (existingLocation != null) {
-                existingLocation.id
-            } else {
-                db.locationDao().insertLocation(
-                    Location(
-                        id = 0,
-                        latitude = location.latitude,
-                        longitude = location.longitude
-                    )
+            try {
+                val existingLocation = db.locationDao().findWithinRadius(
+                    location.latitude - radius, location.latitude + radius,
+                    location.longitude - radius, location.longitude + radius
                 )
+
+                val locationId = if (existingLocation != null) {
+                    Log.d("TrackingService", "Using existing location ID: ${existingLocation.id}")
+                    existingLocation.id
+                } else {
+                    val newLocationId = db.locationDao().insertLocation(
+                        Location(
+                            id = 0,
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
+                    )
+                    Log.d("TrackingService", "Created new location ID: $newLocationId")
+                    newLocationId
+                }
+
+                val tripPhase = TripPhase(
+                    id = 0,
+                    tripId = tripId,
+                    locationId = locationId,
+                    timestamp = System.currentTimeMillis(),
+                    phaseOrder = phaseOrderCounter
+                )
+                
+                val insertedPhaseId = db.tripPhaseDao().insertPhase(tripPhase)
+                Log.d("TrackingService", "Fase inserita con ID: $insertedPhaseId, order: $phaseOrderCounter, tripId: $tripId")
+                
+                phaseOrderCounter++
+                updateDistanceAndDuration(db, tripPhase.copy(id = insertedPhaseId))
+            } catch (e: Exception) {
+                Log.e("TrackingService", "Errore durante l'inserimento fase", e)
             }
-
-            val tripPhase = TripPhase(
-                id = 0,
-                tripId = tripId,
-                locationId = locationId,
-                timestamp = System.currentTimeMillis(),
-                phaseOrder = phaseOrderCounter
-            )
-            phaseOrderCounter++
-            db.tripPhaseDao().insertPhase(tripPhase)
-
-            updateDistanceAndDuration(db, tripPhase)
         }
     }
 

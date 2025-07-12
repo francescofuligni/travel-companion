@@ -48,7 +48,22 @@
         android:id="@+id/nav_my_trips"
         android:name="com.example.travelcompanion.ui.mytrips.MyTripsFragment"
         android:label="@string/menu_my_trips"
-        tools:layout="@layout/fragment_my_trips" />
+        tools:layout="@layout/fragment_my_trips">
+        <action
+            android:id="@+id/action_nav_my_trips_to_nav_trip_details"
+            app:destination="@id/nav_trip_details" />
+    </fragment>
+
+    <!-- Dettagli viaggio -->
+    <fragment
+        android:id="@+id/nav_trip_details"
+        android:name="com.example.travelcompanion.ui.tripdetails.TripDetailsFragment"
+        android:label="Dettagli Viaggio"
+        tools:layout="@layout/fragment_trip_details">
+        <argument
+            android:name="tripId"
+            app:argType="long" />
+    </fragment>
 
     <!-- Statistiche -->
     <fragment

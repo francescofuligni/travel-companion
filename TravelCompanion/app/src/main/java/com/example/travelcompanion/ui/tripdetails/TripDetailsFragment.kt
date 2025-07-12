@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentTripDetailsBinding
 import com.example.travelcompanion.repository.TravelRepository
@@ -16,7 +17,11 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLngBounds
+import android.graphics.Color
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,7 +31,8 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
     private val binding get() = _binding!!
 
     private lateinit var viewModel: TripDetailsViewModel
-    private lateinit var adapter: TripPhasesAdapter
+    private lateinit var imagesAdapter: TripImagesAdapter
+    private lateinit var notesAdapter: TripNotesAdapter
     private var tripId: Long = -1L
     private var googleMap: GoogleMap? = null
 
@@ -52,7 +58,8 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         
         setupMap()
-        setupRecyclerView()
+        setupImagesRecyclerView()
+        setupNotesRecyclerView()
         observeViewModel()
         
         if (tripId != -1L) {
@@ -80,16 +87,57 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         googleMap?.let { map ->
             map.clear()
             
-            // Load trip phases to show route
-            viewModel.tripPhases.observe(viewLifecycleOwner) { phases ->
-                if (phases.isNotEmpty()) {
-                    // Show all phase locations on the map
-                    phases.forEach { phase ->
-                        // You can add phase locations to the map here if you have location data
-                        // For now, we'll show a simple marker for the trip
+            // Load trip phases with locations to show route
+            viewModel.tripPhasesWithLocations.observe(viewLifecycleOwner) { phasesWithLocations ->
+                if (phasesWithLocations.isNotEmpty()) {
+                    val boundsBuilder = LatLngBounds.Builder()
+                    val routePoints = mutableListOf<LatLng>()
+                    
+                    // Add markers for each phase location
+                    phasesWithLocations.forEachIndexed { index, phaseWithLocation ->
+                        val location = phaseWithLocation.location
+                        val phase = phaseWithLocation.phase
+                        val latLng = LatLng(location.latitude, location.longitude)
+                        
+                        // Add marker
+                        val markerOptions = MarkerOptions()
+                            .position(latLng)
+                            .title("Fase ${phase.phaseOrder}")
+                            .snippet("${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(phase.timestamp))}")
+                        
+                        // Use different colors for start, middle, and end points
+                        when {
+                            index == 0 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            index == phasesWithLocations.size - 1 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                            else -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                        }
+                        
+                        map.addMarker(markerOptions)
+                        routePoints.add(latLng)
+                        boundsBuilder.include(latLng)
                     }
                     
-                    // Center map on the first phase location or default location
+                    // Add polyline to connect all points
+                    if (routePoints.size > 1) {
+                        val polylineOptions = PolylineOptions()
+                            .addAll(routePoints)
+                            .color(Color.BLUE)
+                            .width(5f)
+                        map.addPolyline(polylineOptions)
+                    }
+                    
+                    // Adjust camera to show all markers
+                    try {
+                        val bounds = boundsBuilder.build()
+                        val padding = 100 // padding in pixels
+                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
+                    } catch (e: Exception) {
+                        // If bounds building fails, center on first location
+                        val firstLocation = routePoints.first()
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 15f))
+                    }
+                } else {
+                    // No phases found, show default location
                     val defaultLocation = LatLng(44.0043, 12.6560) // Default location
                     map.addMarker(
                         MarkerOptions()
@@ -103,12 +151,22 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun setupRecyclerView() {
-        adapter = TripPhasesAdapter { phase ->
-            // Handle phase click if needed
+    private fun setupImagesRecyclerView() {
+        imagesAdapter = TripImagesAdapter { image ->
+            // TODO: Handle image click - could open full screen image viewer
+            Log.d("TripDetailsFragment", "Image clicked: ${image.uri}")
         }
-        binding.rvTripPhases.layoutManager = LinearLayoutManager(context)
-        binding.rvTripPhases.adapter = adapter
+        binding.rvTripImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvTripImages.adapter = imagesAdapter
+    }
+
+    private fun setupNotesRecyclerView() {
+        notesAdapter = TripNotesAdapter { note ->
+            // TODO: Handle note click - could open note editor
+            Log.d("TripDetailsFragment", "Note clicked: ${note.content}")
+        }
+        binding.rvTripNotes.layoutManager = LinearLayoutManager(context)
+        binding.rvTripNotes.adapter = notesAdapter
     }
 
     private fun observeViewModel() {
@@ -121,10 +179,39 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
 
         viewModel.tripPhases.observe(viewLifecycleOwner) { phases ->
             Log.d("TripDetailsFragment", "Phases loaded: ${phases.size} phases")
-            phases.forEach { phase ->
-                Log.d("TripDetailsFragment", "Phase ${phase.phaseOrder}: note=${phase.note}, image=${phase.imageUri}")
-            }
-            adapter.updatePhases(phases)
+            // Phases are now only used for the map display
+        }
+
+        viewModel.tripNotes.observe(viewLifecycleOwner) { notes ->
+            Log.d("TripDetailsFragment", "Notes loaded: ${notes.size} notes")
+            updateNotesSection(notes)
+        }
+
+        viewModel.tripImages.observe(viewLifecycleOwner) { images ->
+            Log.d("TripDetailsFragment", "Images loaded: ${images.size} images")
+            updateImagesSection(images)
+        }
+    }
+
+    private fun updateNotesSection(notes: List<com.example.travelcompanion.database.models.Note>) {
+        if (notes.isEmpty()) {
+            binding.tvNoNotes.visibility = View.VISIBLE
+            binding.rvTripNotes.visibility = View.GONE
+        } else {
+            binding.tvNoNotes.visibility = View.GONE
+            binding.rvTripNotes.visibility = View.VISIBLE
+            notesAdapter.updateNotes(notes)
+        }
+    }
+
+    private fun updateImagesSection(images: List<com.example.travelcompanion.database.models.Image>) {
+        if (images.isEmpty()) {
+            binding.tvNoImages.visibility = View.VISIBLE
+            binding.rvTripImages.visibility = View.GONE
+        } else {
+            binding.tvNoImages.visibility = View.GONE
+            binding.rvTripImages.visibility = View.VISIBLE
+            imagesAdapter.updateImages(images)
         }
     }
 

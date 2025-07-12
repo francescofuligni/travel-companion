@@ -33,28 +33,10 @@ class TripPhaseDetailsView @JvmOverloads constructor(
         binding.tvPhaseTimestamp.text = dateFormat.format(Date(phase.timestamp))
         binding.tvPhaseOrder.text = "Fase ${phase.phaseOrder}"
 
-        // Mostra la nota se presente
-        if (!phase.note.isNullOrEmpty()) {
-            binding.tvPhaseNote.text = phase.note
-            binding.tvPhaseNote.visibility = View.VISIBLE
-            binding.tvNoteLabel.visibility = View.VISIBLE
-        } else {
-            binding.tvPhaseNote.visibility = View.GONE
-            binding.tvNoteLabel.visibility = View.GONE
-        }
-
-        // Mostra l'immagine se presente
-        if (!phase.imageUri.isNullOrEmpty()) {
-            try {
-                val imageUri = Uri.parse(phase.imageUri)
-                binding.ivPhaseImage.setImageURI(imageUri)
-                binding.ivPhaseImage.visibility = View.VISIBLE
-            } catch (e: Exception) {
-                binding.ivPhaseImage.visibility = View.GONE
-            }
-        } else {
-            binding.ivPhaseImage.visibility = View.GONE
-        }
+        // Hide note and image sections since they're now separate
+        binding.tvPhaseNote.visibility = View.GONE
+        binding.tvNoteLabel.visibility = View.GONE
+        binding.ivPhaseImage.visibility = View.GONE
     }
 
     fun setOnEditClickListener(onEditNote: () -> Unit, onEditImage: () -> Unit) {

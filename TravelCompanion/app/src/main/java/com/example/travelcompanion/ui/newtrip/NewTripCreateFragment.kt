@@ -13,6 +13,7 @@ import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripCreateBinding
 import com.example.travelcompanion.database.TravelDatabase
 import com.example.travelcompanion.repository.TravelRepository
+import com.google.android.gms.maps.model.LatLng
 import java.util.Calendar
 
 class NewTripCreateFragment : Fragment() {
@@ -21,6 +22,7 @@ class NewTripCreateFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var viewModel: NewTripCreateViewModel
+    private var selectedDestinationLatLng: LatLng? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,6 +52,7 @@ class NewTripCreateFragment : Fragment() {
             when (checkedId) {
                 binding.btnLocal.id -> {
                     binding.etDestination.isEnabled = false
+                    binding.addressSearchView.visibility = View.GONE
                     binding.datePickerEnd.isEnabled = false
                     binding.datePickerEnd.updateDate(
                         today.get(Calendar.YEAR),
@@ -59,6 +62,7 @@ class NewTripCreateFragment : Fragment() {
                 }
                 binding.btnOneDay.id -> {
                     binding.etDestination.isEnabled = true
+                    binding.addressSearchView.visibility = View.VISIBLE
                     binding.datePickerEnd.isEnabled = false
                     binding.datePickerEnd.updateDate(
                         today.get(Calendar.YEAR),
@@ -68,9 +72,17 @@ class NewTripCreateFragment : Fragment() {
                 }
                 binding.btnMultiDays.id -> {
                     binding.etDestination.isEnabled = true
+                    binding.addressSearchView.visibility = View.VISIBLE
                     binding.datePickerEnd.isEnabled = true
                 }
             }
+        }
+
+        // Setup address search listener
+        binding.addressSearchView.setOnAddressSelectedListener { address, latLng ->
+            binding.etDestination.setText(address)
+            selectedDestinationLatLng = latLng
+            updateBtnStartTripState()
         }
 
         binding.btnStartTrip.isEnabled = false
@@ -96,7 +108,7 @@ class NewTripCreateFragment : Fragment() {
             calendar.set(binding.datePickerEnd.year, binding.datePickerEnd.month, binding.datePickerEnd.dayOfMonth)
             val endDate = calendar.time
 
-            viewModel.startTrip(title, destination, type, endDate)
+            viewModel.startTrip(title, destination, type, endDate, selectedDestinationLatLng)
 
             findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
         }

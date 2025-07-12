@@ -6,31 +6,23 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 /**
- * Entità per le fasi del viaggio (tracking GPS)
- * Ogni fase rappresenta un punto del percorso
+ * Entità per le note associate ai viaggi
  */
 @Entity(
-    tableName = "trip_phases",
+    tableName = "notes",
     foreignKeys = [
         ForeignKey(
             entity = Trip::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Location::class,
-            parentColumns = ["id"],
-            childColumns = ["locationId"],
-            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("tripId"), Index("locationId")]
+    indices = [Index("tripId")]
 )
-data class TripPhase(
+data class Note(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val tripId: Long,
-    val locationId: Long,
-    val phaseOrder: Int,
-    val timestamp: Long
+    val content: String,
+    val timestamp: Long = System.currentTimeMillis()
 )
