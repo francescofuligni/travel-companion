@@ -6,7 +6,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import androidx.activity.result.contract.ActivityResultContracts
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -75,8 +74,14 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        val repository = TravelRepository.create(requireContext())
-        val factory = SettingsViewModelFactory(repository)
+        val database = TravelDatabase.getDatabase(requireContext())
+        val repository = TravelRepository(
+            database.userDao(),
+            database.locationDao(),
+            database.tripDao(),
+            database.imageDao()
+        )
+        val factory = SettingsViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
 
         setupProfilePicturePicker()

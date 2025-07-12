@@ -44,4 +44,6 @@ interface TripDao {
 
     @Query("SELECT * FROM trip WHERE strftime('%Y', datetime(startDate / 1000, 'unixepoch')) = :year AND type = :type")
     suspend fun getTripsByYearAndType(year: String, type: String): List<Trip>
+    @Query("SELECT endDate FROM trip ORDER BY endDate DESC LIMIT 1")
+    suspend fun getLastTripEndDate(): Long?
 }

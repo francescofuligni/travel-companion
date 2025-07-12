@@ -1,5 +1,6 @@
 package com.example.travelcompanion.ui.settings
 
+import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
@@ -7,10 +8,13 @@ import com.example.travelcompanion.database.models.Location
 import com.example.travelcompanion.database.models.User
 import com.example.travelcompanion.database.models.Image
 import com.example.travelcompanion.repository.TravelRepository
+import com.example.travelcompanion.services.HomeGeofenceService
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val repository: TravelRepository) : ViewModel() {
+class SettingsViewModel(application: Application, private val repository: TravelRepository) : AndroidViewModel(application) {
+
+    private val appContext = application.applicationContext
 
     private val _user = MutableLiveData<User?>()
     val user: LiveData<User?> = _user
@@ -81,6 +85,11 @@ class SettingsViewModel(private val repository: TravelRepository) : ViewModel() 
                         )
                         homeLocationId = repository.insertLocation(location)
                         Log.d("SettingsViewModel", "Saved location with ID: $homeLocationId")
+                        HomeGeofenceService.registerHomeGeofence(
+                            context = appContext,
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
                     } catch (e: Exception) {
                         Log.e("SettingsViewModel", "Error saving location", e)
                         _message.value = "Error saving location: ${e.message}"
