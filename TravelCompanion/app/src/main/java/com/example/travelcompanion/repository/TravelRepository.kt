@@ -6,16 +6,25 @@ import com.example.travelcompanion.database.dao.LocationDao
 import com.example.travelcompanion.database.dao.UserDao
 import com.example.travelcompanion.database.dao.TripDao
 import com.example.travelcompanion.database.dao.ImageDao
+import com.example.travelcompanion.database.dao.TripPhaseDao
 import com.example.travelcompanion.database.models.Location
 import com.example.travelcompanion.database.models.User
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.Image
+import com.example.travelcompanion.database.models.TripType
+import com.example.travelcompanion.database.models.TripPhase
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
+import androidx.lifecycle.asLiveData
+import kotlinx.coroutines.Dispatchers
 
 class TravelRepository(
     private val userDao: UserDao,
     private val locationDao: LocationDao,
     private val tripDao: TripDao,
-    val imageDao: ImageDao
+    val imageDao: ImageDao,
+    private val tripPhaseDao: TripPhaseDao
 ) {
     // Location methods
     suspend fun insertLocation(location: Location): Long {
@@ -28,6 +37,15 @@ class TravelRepository(
 
     suspend fun getLocationById(id: Long): Location? {
         return locationDao.getLocationById(id)
+    }
+
+    /**
+     * Ottiene una location per ID come LiveData
+     */
+    fun getLocationByIdLiveData(id: Long): LiveData<Location?> {
+        return liveData(Dispatchers.IO) {
+            emit(locationDao.getLocationById(id))
+        }
     }
 
     suspend fun deleteLocation(location: Location) {
@@ -63,6 +81,20 @@ class TravelRepository(
         userDao.deleteAllUsers()
     }
 
+    // Image methods
+    suspend fun insertImage(image: Image): Long {
+        return imageDao.insertImage(image)
+    }
+
+    suspend fun getImageById(id: Long): Image? {
+        return imageDao.getImageById(id)
+    }
+
+    suspend fun deleteImage(image: Image) {
+        imageDao.deleteImage(image)
+    }
+
+
     // Trip methods
     suspend fun insertTrip(trip: Trip) {
         tripDao.insertTrip(trip)
@@ -80,6 +112,18 @@ class TravelRepository(
         return tripDao.getAllTrips()
     }
 
+    suspend fun updateTrip(trip: Trip) {
+        tripDao.updateTrip(trip)
+    }
+
+    suspend fun getTripsByType(type: TripType): List<Trip> {
+        return tripDao.getTripsByType(type.name)
+    }
+
+    suspend fun getTripsByYearAndType(year: Int, type: TripType): List<Trip> {
+        return tripDao.getTripsByYearAndType(year.toString(), type.name)
+    }
+
     suspend fun deleteTrip(trip: Trip) {
         tripDao.deleteTrip(trip)
     }
@@ -88,38 +132,42 @@ class TravelRepository(
         tripDao.deleteAllTrips()
     }
 
-    suspend fun endTrip(tripId: Long, roundedDuration: Double) {
+    /**
+     * Termina un viaggio attivo
+     * @param tripId ID del viaggio da terminare
+     * @param duration Durata finale del viaggio in secondi
+     */
+    suspend fun endTrip(tripId: Long, duration: Double) {
         val trip = tripDao.getTripById(tripId)
         if (trip != null) {
             val updatedTrip = trip.copy(
-                duration = roundedDuration,
-                isActive = false
+                isActive = false,
+                duration = duration,
+                endDate = System.currentTimeMillis()
             )
             tripDao.updateTrip(updatedTrip)
         }
     }
-    
-    // Image operations
-    suspend fun insertImage(image: Image): Long {
-        return imageDao.insertImage(image)
-    }
-    
-    suspend fun getImageById(id: Long): Image? {
-        return imageDao.getImageById(id)
-    }
-    
-    suspend fun updateImage(image: Image) {
-        imageDao.updateImage(image)
-    }
-    
-    suspend fun deleteImage(image: Image) {
-        imageDao.deleteImage(image)
-    }
-    
-    suspend fun deleteImageById(id: Long) {
-        imageDao.deleteImageById(id)
+
+    suspend fun getTripsByYear(year: Int): List<Trip> {
+        return tripDao.getTripsByYear(year.toString())
     }
 
+    // TripPhase methods
+    /**
+     * Ottiene le fasi di un viaggio come LiveData
+     */
+    fun getTripPhases(tripId: Long): LiveData<List<TripPhase>> {
+        return tripPhaseDao.getPhasesByTripId(tripId).asLiveData()
+    }
+
+    /**
+     * Inserisce una nuova fase del viaggio
+     */
+    suspend fun insertTripPhase(phase: TripPhase): Long {
+        return tripPhaseDao.insertPhase(phase)
+    }
+    
     companion object {
         fun create(context: Context): TravelRepository {
             val database = com.example.travelcompanion.database.TravelDatabase.getDatabase(context)
@@ -127,7 +175,8 @@ class TravelRepository(
                 userDao = database.userDao(),
                 locationDao = database.locationDao(),
                 tripDao = database.tripDao(),
-                imageDao = database.imageDao()
+                imageDao = database.imageDao(),
+                tripPhaseDao = database.tripPhaseDao()
             )
         }
     }

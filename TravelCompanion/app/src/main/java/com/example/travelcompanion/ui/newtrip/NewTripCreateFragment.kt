@@ -34,13 +34,7 @@ class NewTripCreateFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val database = TravelDatabase.getDatabase(requireContext())
-        val repository = TravelRepository(
-            database.userDao(),
-            database.locationDao(),
-            database.tripDao(),
-            database.imageDao()
-        )
+        val repository = TravelRepository.create(requireContext())
         val factory = NewTripCreateVMFactory(repository, requireContext())
         viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
 

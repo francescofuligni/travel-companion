@@ -74,13 +74,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        val database = TravelDatabase.getDatabase(requireContext())
-        val repository = TravelRepository(
-            database.userDao(),
-            database.locationDao(),
-            database.tripDao(),
-            database.imageDao()
-        )
+        val repository = TravelRepository.create(requireContext())
         val factory = SettingsViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
 

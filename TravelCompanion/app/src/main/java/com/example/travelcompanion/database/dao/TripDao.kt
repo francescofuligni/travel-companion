@@ -1,3 +1,4 @@
+
 package com.example.travelcompanion.database.dao
 
 import androidx.room.Dao
@@ -31,4 +32,13 @@ interface TripDao {
 
     @Query("SELECT id FROM trip WHERE isActive = 1 LIMIT 1")
     suspend fun getActiveTripId(): Long?
+
+    @Query("SELECT * FROM trip WHERE strftime('%Y', datetime(startDate / 1000, 'unixepoch')) = :year")
+    suspend fun getTripsByYear(year: String): List<Trip>
+
+    @Query("SELECT * FROM trip WHERE type = :type")
+    suspend fun getTripsByType(type: String): List<Trip>
+
+    @Query("SELECT * FROM trip WHERE strftime('%Y', datetime(startDate / 1000, 'unixepoch')) = :year AND type = :type")
+    suspend fun getTripsByYearAndType(year: String, type: String): List<Trip>
 }

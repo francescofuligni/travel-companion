@@ -7,11 +7,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.travelcompanion.R
+import com.example.travelcompanion.database.models.TripType
 
 data class TripUiModel(
     val title: String,
     val destination: String,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val startDate: Long? = null,
+    val endDate: Long? = null,
+    val duration: Double? = null,
+    val distance: Double? = null,
+    val type: TripType? = null
 )
 
 class MyTripsAdapter(

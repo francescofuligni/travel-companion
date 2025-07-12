@@ -157,24 +157,22 @@ class TrackingService : Service() {
             val previousPhase = db.tripPhaseDao().getLastPhaseBefore(tripId, phaseOrderCounter - 1)
             val previousLocation = previousPhase?.let { db.locationDao().getLocationById(it.locationId) }
 
-            if (previousLocation != null) {
+            if (previousLocation != null && location != null) {
                 val results = FloatArray(1)
-                if (location != null) {
-                    android.location.Location.distanceBetween(
-                        previousLocation.latitude, previousLocation.longitude,
-                        location.latitude, location.longitude,
-                        results
-                    )
-                }
+                android.location.Location.distanceBetween(
+                    previousLocation.latitude, previousLocation.longitude,
+                    location.latitude, location.longitude,
+                    results
+                )
                 val distance = results[0].toDouble() // in metri
 
                 val trip = db.tripDao().getTripById(tripId)
                 if (trip != null) {
                     val updatedDistance = trip.distance + distance
-                    val updatedDuration = trip.duration + 0.5
-                    db.tripDao().updateTrip(
-                        trip.copy(distance = updatedDistance, duration = updatedDuration)
-                    )
+                    val updatedDuration = trip.duration + 30.0 // 30 seconds per update
+                    val updatedTrip = trip.copy(distance = updatedDistance, duration = updatedDuration)
+                    db.tripDao().updateTrip(updatedTrip)
+                    Log.d("TrackingService", "Trip updated: distance=${updatedDistance}m, duration=${updatedDuration}s")
                 }
             }
         }
