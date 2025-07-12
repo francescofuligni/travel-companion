@@ -18,41 +18,85 @@
         android:id="@+id/textPredictedTrips"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Aspettativa viaggi: #5"
+        android:text="Aspettativa numero viaggi: ..."
         android:layout_marginTop="8dp"
         android:textSize="16sp" />
 
-    <TextView
-        android:id="@+id/textEstimatedKm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stima KM: 400 KM"
-        android:textSize="16sp" />
-
-    <ImageView
-        android:id="@+id/trendChart"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/futureTripsChart"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:layout_marginTop="16dp"
-        android:contentDescription="Grafico del trend futuro"
-        android:src="@drawable/missing_img" />
+        android:layout_marginTop="8dp" />
+
+    <LinearLayout
+        android:id="@+id/trendTripsBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/holo_red_light">
+
+        <TextView
+            android:id="@+id/textTrendTripsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trend: in calo"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/textTrendTripsMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cerca nuove esperienze e viaggia di più!"
+            android:textSize="14sp"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="24dp" />
 
     <TextView
-        android:id="@+id/textTrend"
+        android:id="@+id/textPredictedKm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Trend: in calo"
-        android:layout_marginTop="12dp"
-        android:textSize="16sp"
-        android:textColor="@android:color/holo_red_dark" />
+        android:text="Aspettativa distanza da percorrere: ..."
+        android:layout_marginTop="24dp"
+        android:textSize="16sp" />
 
-    <TextView
-        android:id="@+id/textSuggestion"
-        android:layout_width="wrap_content"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/futureKmChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp" />
+
+    <LinearLayout
+        android:id="@+id/trendKmBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Suggerimento: viaggia di più!"
-        android:textStyle="italic"
-        android:layout_marginTop="4dp"
-        android:textSize="16sp"
-        android:textColor="@android:color/holo_red_dark" />
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/holo_red_light">
+
+        <TextView
+            android:id="@+id/textTrendKmTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trend: in calo"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/textTrendKmMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Non ti arrendere, guarda oltre i tuoi orizzonti!"
+            android:textSize="14sp"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
 </LinearLayout>
