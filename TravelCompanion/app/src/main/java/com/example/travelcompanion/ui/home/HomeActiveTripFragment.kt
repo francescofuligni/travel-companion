@@ -34,11 +34,16 @@ import com.example.travelcompanion.utils.LocationUtils
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.Priority
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import android.os.Looper
 import android.graphics.Color
+
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import androidx.core.app.ActivityCompat
 
 /**
  * Fragment che mostra i dettagli di un viaggio attivo in corso
@@ -110,7 +115,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         
         setupViews(view)
         setupMap()
-        observeTrip()
+        viewLifecycleOwner.lifecycleScope.launch {
+            observeTrip()
+        }
 
         // Setup location callback for real-time updates
         setupLocationCallback()
@@ -275,10 +282,22 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
      * Start location updates for real-time tracking
      */
     private fun startLocationUpdates() {
-        val locationRequest = LocationRequest.create().apply {
-            interval = 30000 // 30 seconds
-            fastestInterval = 1500
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 30000L
+        ).apply {
+            setMinUpdateIntervalMillis(1500L)
+        }.build()
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Permesso non concesso.
+            return
         }
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
@@ -297,7 +316,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     /**
      * Osserva i dati del viaggio e aggiorna la UI
      */
-    private fun observeTrip() {
+    private suspend fun observeTrip() {
         // Carica i dati del viaggio usando il viewModel
         viewModel.getTripById(tripId).observe(viewLifecycleOwner) { trip ->
             trip?.let {
@@ -317,14 +336,14 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             val tvStartDate = view.findViewById<TextView>(R.id.tv_start_date)
             val tvEndDate = view.findViewById<TextView>(R.id.tv_end_date)
             val tvDistance = view.findViewById<TextView>(R.id.tv_distance)
-            
+
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            
-            tvTripTitle.text = trip.title ?: "Viaggio in corso..."
+
+            tvTripTitle.text = trip.title
             tvStartDate.text = dateFormat.format(Date(trip.startDate))
             tvEndDate.text = if (trip.endDate != 0L) dateFormat.format(Date(trip.endDate)) else "In corso"
             tvDistance.text = "Distanza: ${String.format("%.1f", trip.distance)} m"
-            
+
             // Gestione cronometro - calcola il tempo trascorso dall'inizio del viaggio
             if (trip.isActive && !isChronoRunning) {
                 val currentTime = System.currentTimeMillis()
@@ -333,7 +352,8 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
                 chronometer.start()
                 isChronoRunning = true
                 Log.d("HomeActiveTripFragment", "Chronometer started - elapsed time: ${elapsedTime}ms")
-            } else if (!trip.isActive && isChronoRunning) {
+            }
+            if (!trip.isActive && isChronoRunning) {
                 chronometer.stop()
                 isChronoRunning = false
                 Log.d("HomeActiveTripFragment", "Chronometer stopped")

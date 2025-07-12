@@ -23,6 +23,7 @@ import androidx.room.Index
     ],
     indices = [Index(value = ["homeLocationId"]), Index(value = ["profilePictureId"])]
 )
+
 data class User(
     @PrimaryKey
     val id: Long,

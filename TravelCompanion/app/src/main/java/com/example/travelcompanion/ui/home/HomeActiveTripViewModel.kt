@@ -77,10 +77,7 @@ class HomeActiveTripViewModel(
      * Ottiene i dati del viaggio per ID
      * @param tripId ID del viaggio da monitorare
      */
-    /**
-     * LiveData del viaggio osservato direttamente dal database
-     */
-    fun getTripById(tripId: Long): LiveData<Trip?> {
+    suspend fun getTripById(tripId: Long): LiveData<Trip?> {
         return repository.getTripByIdLive(tripId)
     }
     

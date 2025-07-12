@@ -9,9 +9,8 @@ import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.database.models.Location
 import com.example.travelcompanion.repository.TravelRepository
-import com.example.travelcompanion.utils.TrackingService
-import com.google.android.gms.maps.model.LatLng
 import com.example.travelcompanion.services.TrackingService
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.launch
 import java.util.Date
 

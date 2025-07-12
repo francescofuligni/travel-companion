@@ -1,8 +1,6 @@
 package com.example.travelcompanion.ui.settings
 
 import android.net.Uri
-import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,9 +13,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.travelcompanion.BuildConfig
-import com.example.travelcompanion.database.TravelDatabase
-import com.example.travelcompanion.database.models.Location
-import com.example.travelcompanion.database.models.User
 import com.example.travelcompanion.databinding.FragmentSettingsBinding
 import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.ui.common.ProfilePicturePickerFragment
@@ -38,12 +33,10 @@ import java.net.URL
 class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var viewModel: SettingsViewModel
     private var googleMap: GoogleMap? = null
     private var selectedLocation: LatLng? = null
     private var currentProfilePictureUri: Uri? = null
-
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private val locationPermissionRequest = registerForActivityResult(
@@ -70,17 +63,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        val database = TravelDatabase.getDatabase(requireContext())
-        val repository = TravelRepository(
-            database.userDao(),
-            database.locationDao(),
-            database.tripDao(),
-            database.imageDao()
-        )
+        val repository = TravelRepository.create(requireContext())
         val factory = SettingsViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
 

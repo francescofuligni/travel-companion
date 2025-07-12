@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
         
-        loadUserProfilePicture()
+        loadUserProfilePicture(navView.getHeaderView(0))
         scheduleTripReminderWorker()
         startLocationService()
         registerHomeGeofenceIfSet()
@@ -103,8 +103,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    loadUserProfilePicture() {
-        val headerView = navView.getHeaderView(0)
+    private fun loadUserProfilePicture(headerView: android.view.View) {
         val userPhoto = headerView.findViewById<ImageView>(R.id.user_photo)
         CoroutineScope(Dispatchers.IO).launch {
             val db = TravelDatabase.getDatabase(applicationContext)
