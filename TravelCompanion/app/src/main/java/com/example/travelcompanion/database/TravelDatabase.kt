@@ -6,11 +6,10 @@ import androidx.room.RoomDatabase
 import android.content.Context
 import com.example.travelcompanion.database.dao.*
 import com.example.travelcompanion.database.models.*
-import com.example.travelcompanion.database.models.TripPhase
 
 @Database(
-    entities = [User::class, Location::class, Trip::class, Image::class, TripPhase::class],
-    version = 2,
+    entities = [User::class, Location::class, Trip::class, Image::class, TripPhase::class, Note::class],
+    version = 4,
     exportSchema = false
 )
 abstract class TravelDatabase : RoomDatabase() {
@@ -19,6 +18,7 @@ abstract class TravelDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
     abstract fun imageDao(): ImageDao
     abstract fun tripPhaseDao(): TripPhaseDao
+    abstract fun noteDao(): NoteDao
 
     companion object {
         @Volatile
