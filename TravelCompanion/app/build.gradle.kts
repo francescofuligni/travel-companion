@@ -58,12 +58,12 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("com.google.android.gms:play-services-maps:19.2.0")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.google.maps.android:android-maps-utils:3.14.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     kapt(libs.room.compiler)
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    kapt("com.github.bumptech.glide:compiler:4.16.0") // Changed to kapt
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
