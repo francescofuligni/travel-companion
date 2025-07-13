@@ -14,7 +14,7 @@
             android:id="@+id/tripsTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chart 1"
+            android:text="@string/chart_1"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -33,7 +33,7 @@
             android:id="@+id/distanceTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chart 2"
+            android:text="@string/chart_2"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />

@@ -8,6 +8,7 @@
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
+
     <string name="default_address">Indirizzo non inserito</string>
     <string name="default_user_name">Nome utente non inserito</string>
     <string name="start_trip_title">Avvia un nuovo viaggio</string>
@@ -52,7 +53,6 @@
     <string name="in_progress">In corso</string>
     <string name="filter_by_year">Filtra per anno</string>
     <string name="year_format">%1$d</string>
-
     <string name="add_note_title">Aggiungi una nota</string>
     <string name="add_note_hint">Scrivi la tua nota qui…</string>
     <string name="cancel">Annulla</string>
@@ -76,5 +76,45 @@
     <string name="clear">Azzera</string>
     <string name="clear_filter_desc">Pulisci filtri</string>
     <string name="empty_trips_full_message">Nessun viaggio trovato&#10;Inizia un nuovo viaggio per vederlo qui!</string>
-    
+    <string name="already_active_trip">Hai già un viaggio in corso</string>
+    <string name="go_to_trip">Vai al viaggio</string>
+    <string name="dest">Destinazione</string>
+    <string name="end_trip_date">Data di fine viaggio</string>
+    <string name="profile_img">Immagine profilo</string>
+    <string name="gallery">Galleria</string>
+    <string name="take_pic">Scatta Foto</string>
+    <string name="remove_img">Rimuovi immagine</string>
+    <string name="save_settings">Salva Impostazioni</string>
+    <string name="reset_app">INIZIALIZZA APP</string>
+    <string name="no_pos_selected">Nessuna posizione selezionata</string>
+    <string name="search_address">Cerca indirizzo</string>
+    <string name="house">Casa</string>
+    <string name="email">Email</string>
+    <string name="username">Username</string>
+    <string name="chart_1">Grafico 1</string>
+    <string name="chart_2">Grafico 2</string>
+    <string name="next_month">Prossimo mese:</string>
+    <string name="exp_trips_num">Aspettativa numero viaggi: …</string>
+    <string name="trend_low">Trend: in calo</string>
+    <string name="sugg_1">Cerca nuove esperienze e viaggia di più!</string>
+    <string name="exp_km">Aspettativa distanza da percorrere: …</string>
+    <string name="sugg_2">Non ti arrendere, guarda oltre i tuoi orizzonti!</string>
+    <string name="heatmap">HEATMAP</string>
+    <string name="trends">TRENDS</string>
+    <string name="trip_title">Nome del viaggio</string>
+    <string name="start_date">Inizio: —/—/----</string>
+    <string name="end_date">Fine: —/—/----</string>
+    <string name="dist">Distanza: 0.0 km</string>
+    <string name="dur">Durata: 00:00</string>
+    <string name="trip_images">Immagini del viaggio</string>
+    <string name="no_img">Nessuna immagine disponibile</string>
+    <string name="trip_notes">Note del viaggio</string>
+    <string name="no_notes">Nessuna nota disponibile</string>
+    <string name="phase_1">Fase 1</string>
+    <string name="date_mock">01/01/2023 12:00</string>
+    <string name="note">Nota:</string>
+    <string name="note_text">Testo della nota…</string>
+    <string name="trip_phase_img">Immagine fase viaggio</string>
+    <string name="trip_img">Immagine del viaggio</string>
+    <string name="note_body">Contenuto della nota</string>
 </resources>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -10,7 +9,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Profile Picture Section -->
         <FrameLayout
             android:id="@+id/profilePictureContainer"
             android:layout_width="match_parent"
@@ -26,7 +24,7 @@
                 android:id="@+id/etUsername"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Username" />
+                android:hint="@string/username" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -39,16 +37,15 @@
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Email"
+                android:hint="@string/email"
                 android:inputType="textEmailAddress" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Home Location Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Casa"
+            android:text="@string/house"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp"
@@ -70,7 +67,7 @@
                     android:id="@+id/etAddressSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Cerca indirizzo" />
+                    android:hint="@string/search_address" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -78,7 +75,7 @@
                 android:id="@+id/btnSearchAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cerca" />
+                android:text="@string/search" />
 
         </LinearLayout>
 
@@ -86,7 +83,7 @@
             android:id="@+id/tvSelectedCoordinates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nessuna posizione selezionata"
+            android:text="@string/no_pos_selected"
             android:textSize="14sp"
             android:layout_marginBottom="16dp" />
 
@@ -96,23 +93,21 @@
             android:layout_height="300dp"
             android:layout_marginBottom="24dp" />
 
-        <!-- Action Buttons -->
         <Button
             android:id="@+id/btnSaveSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Salva Impostazioni"
+            android:text="@string/save_settings"
             android:layout_marginBottom="16dp" />
 
         <Button
             android:id="@+id/btnResetApp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="INIZIALIZZA APP"
+            android:text="@string/reset_app"
             android:backgroundTint="@android:color/holo_red_dark"
             android:textColor="@android:color/white"
             android:textAllCaps="false" />
 
     </LinearLayout>
-
 </ScrollView>

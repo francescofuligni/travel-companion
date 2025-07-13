@@ -18,7 +18,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMap"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="HEATMAP"
+            android:text="@string/heatmap"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -28,7 +28,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCharts"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:text="TRENDS"
+            android:text="@string/trends"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:strokeWidth="2dp"

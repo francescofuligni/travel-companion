@@ -25,7 +25,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Fase 1"
+                android:text="@string/phase_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -33,7 +33,7 @@
                 android:id="@+id/tvPhaseTimestamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="01/01/2023 12:00"
+                android:text="@string/date_mock"
                 android:textSize="14sp"
                 android:textColor="@android:color/darker_gray" />
 
@@ -43,7 +43,7 @@
             android:id="@+id/tvNoteLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nota:"
+            android:text="@string/note"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginTop="8dp"
@@ -53,7 +53,7 @@
             android:id="@+id/tvPhaseNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Testo della nota..."
+            android:text="@string/note_text"
             android:textSize="14sp"
             android:layout_marginTop="4dp"
             android:visibility="gone" />
@@ -65,7 +65,7 @@
             android:layout_marginTop="8dp"
             android:scaleType="centerCrop"
             android:visibility="gone"
-            android:contentDescription="Immagine fase viaggio" />
+            android:contentDescription="@string/trip_img" />
 
     </LinearLayout>
 

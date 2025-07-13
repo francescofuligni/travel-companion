@@ -14,7 +14,7 @@
             android:id="@+id/textNextMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Prossimo mese:"
+            android:text="@string/next_month"
             android:textStyle="bold"
             android:textSize="18sp"
             android:textColor="@android:color/black" />
@@ -23,7 +23,7 @@
             android:id="@+id/textPredictedTrips"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aspettativa numero viaggi: ..."
+            android:text="@string/exp_trips_num"
             android:layout_marginTop="8dp"
             android:textSize="16sp" />
 
@@ -46,7 +46,7 @@
                 android:id="@+id/textTrendTripsTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trend: in calo"
+                android:text="@string/trend_low"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
@@ -55,7 +55,7 @@
                 android:id="@+id/textTrendTripsMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cerca nuove esperienze e viaggia di più!"
+                android:text="@string/sugg_1"
                 android:textSize="14sp"
                 android:textColor="@android:color/black" />
         </LinearLayout>
@@ -68,7 +68,7 @@
             android:id="@+id/textPredictedKm"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aspettativa distanza da percorrere: ..."
+            android:text="@string/exp_km"
             android:layout_marginTop="24dp"
             android:textSize="16sp" />
 
@@ -91,7 +91,7 @@
                 android:id="@+id/textTrendKmTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trend: in calo"
+                android:text="@string/trend_low"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
@@ -100,12 +100,12 @@
                 android:id="@+id/textTrendKmMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Non ti arrendere, guarda oltre i tuoi orizzonti!"
+                android:text="@string/sugg_2"
                 android:textSize="14sp"
                 android:textColor="@android:color/black" />
         </LinearLayout>
 
-        <!-- Aggiungo un po' di spazio alla fine per evitare che il contenuto sia troppo vicino al bordo -->
+        <!-- Spazio -->
         <View
             android:layout_width="match_parent"
             android:layout_height="16dp" />
