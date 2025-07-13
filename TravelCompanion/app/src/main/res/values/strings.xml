@@ -43,7 +43,7 @@
     <string name="location_error">Errore nel recupero della posizione: %1$s</string>
     <string name="location_permission_denied">Permesso posizione non concesso</string>
     <string name="camera_permission_required">È necessario il permesso fotocamera</string>
-    <string name="error_saving_image">Errore nel salvataggio dell'immagine: %1$s</string>
+    <string name="error_saving_image">Errore nel salvataggio dell\'immagine: %1$s</string>
     <string name="default_position">Posizione di default</string>
     <string name="cannot_get_current_position">Impossibile ottenere la posizione corrente</string>
     <string name="your_position">La tua posizione</string>
