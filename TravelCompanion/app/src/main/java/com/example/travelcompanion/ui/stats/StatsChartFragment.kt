@@ -23,6 +23,10 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.components.XAxis
 
+/**
+ * Fragment per la visualizzazione dei grafici storici
+ * Mostra grafici a linea per viaggi e distanze negli ultimi 6 mesi
+ */
 class StatsChartFragment : Fragment() {
 
     override fun onCreateView(
@@ -33,48 +37,87 @@ class StatsChartFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val lineChart = view.findViewById<LineChart>(R.id.lineChart)
-        val distanceChart = view.findViewById<LineChart>(R.id.distanceChart)
+        super.onViewCreated(view, savedInstanceState)
+        
+        setupViews(view)
+        loadChartData()
+    }
 
-        val tripsTitle = view.findViewById<TextView>(R.id.tripsTitle)
-        val distanceTitle = view.findViewById<TextView>(R.id.distanceTitle)
+    /**
+     * Configura i riferimenti alle view
+     */
+    private fun setupViews(view: View) {
+        // Le view verranno aggiornate nel metodo loadChartData
+    }
 
-        // Popola i dati del grafico dagli ultimi 6 mesi
+    /**
+     * Carica i dati dal database e popola i grafici
+     */
+    private fun loadChartData() {
         lifecycleScope.launch {
             val db = TravelDatabase.getDatabase(requireContext())
             val trips = db.tripDao().getAllTrips()
 
-            val monthLabels = mutableListOf<String>()
-            val tripsData = mutableListOf<Float>()
-            val kmData = mutableListOf<Float>()
-            val now = LocalDate.now()
-
-            for (i in 5 downTo 0) {
-                val month = now.minusMonths(i.toLong())
-                monthLabels.add(month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
-
-                // Filtra i viaggi iniziati in questo mese
-                val tripsInMonth = trips.filter { trip ->
-                    val tripDate = Instant.ofEpochMilli(trip.startDate)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    tripDate.year == month.year && tripDate.month == month.month
-                }
-                tripsData.add(tripsInMonth.size.toFloat())
-
-                // Somma le distanze (assumendo campo `distance` su Trip)
-                val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat()/1000
-                kmData.add(distanceSum)
+            val chartData = generateChartData(trips)
+            
+            view?.let { view ->
+                updateChartsAndTitles(view, chartData)
             }
-
-            // Aggiorna titoli e grafici
-            tripsTitle.text = "Viaggi negli ultimi 6 mesi: ${tripsData.sum()}"
-            distanceTitle.text = "Distanza percorsa negli ultimi 6 mesi: ${kmData.sum()} km"
-            setupChart(lineChart, tripsData, monthLabels, "Viaggi per mese")
-            setupChart(distanceChart, kmData, monthLabels, "Km per mese")
         }
     }
 
+    /**
+     * Genera i dati per i grafici dagli ultimi 6 mesi
+     */
+    private fun generateChartData(trips: List<com.example.travelcompanion.database.models.Trip>): ChartData {
+        val monthLabels = mutableListOf<String>()
+        val tripsData = mutableListOf<Float>()
+        val kmData = mutableListOf<Float>()
+        val now = LocalDate.now()
+
+        for (i in 5 downTo 0) {
+            val month = now.minusMonths(i.toLong())
+            monthLabels.add(month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
+
+            // Filtra i viaggi iniziati in questo mese
+            val tripsInMonth = trips.filter { trip ->
+                val tripDate = Instant.ofEpochMilli(trip.startDate)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                tripDate.year == month.year && tripDate.month == month.month
+            }
+            
+            tripsData.add(tripsInMonth.size.toFloat())
+
+            // Somma le distanze convertite in km
+            val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat() / 1000
+            kmData.add(distanceSum)
+        }
+
+        return ChartData(monthLabels, tripsData, kmData)
+    }
+
+    /**
+     * Aggiorna i grafici e i titoli con i dati generati
+     */
+    private fun updateChartsAndTitles(view: View, chartData: ChartData) {
+        val lineChart = view.findViewById<LineChart>(R.id.lineChart)
+        val distanceChart = view.findViewById<LineChart>(R.id.distanceChart)
+        val tripsTitle = view.findViewById<TextView>(R.id.tripsTitle)
+        val distanceTitle = view.findViewById<TextView>(R.id.distanceTitle)
+
+        // Aggiorna i titoli con i totali
+        tripsTitle.text = "Viaggi negli ultimi 6 mesi: ${chartData.tripsData.sum().toInt()}"
+        distanceTitle.text = "Distanza percorsa negli ultimi 6 mesi: ${chartData.kmData.sum().toInt()} km"
+
+        // Configura i grafici
+        setupChart(lineChart, chartData.tripsData, chartData.monthLabels, "Viaggi per mese")
+        setupChart(distanceChart, chartData.kmData, chartData.monthLabels, "Km per mese")
+    }
+
+    /**
+     * Configura un grafico a linea con i dati forniti
+     */
     private fun setupChart(chart: LineChart, values: List<Float>, labels: List<String>, label: String) {
         val entries = values.mapIndexed { index, value ->
             Entry(index.toFloat(), value)
@@ -86,17 +129,33 @@ class StatsChartFragment : Fragment() {
             setCircleColor(Color.RED)
             circleRadius = 4f
             lineWidth = 2f
+            setDrawValues(true)
+            valueTextSize = 10f
         }
 
-        chart.data = LineData(dataSet)
-        chart.xAxis.apply {
-            valueFormatter = IndexAxisValueFormatter(labels)
-            granularity = 1f
-            position = XAxis.XAxisPosition.BOTTOM
-            labelRotationAngle = -45f
+        chart.apply {
+            data = LineData(dataSet)
+            
+            xAxis.apply {
+                valueFormatter = IndexAxisValueFormatter(labels)
+                granularity = 1f
+                position = XAxis.XAxisPosition.BOTTOM
+                labelRotationAngle = -45f
+            }
+            
+            axisRight.isEnabled = false
+            description.isEnabled = false
+            
+            invalidate()
         }
-        chart.axisRight.isEnabled = false
-        chart.description.isEnabled = false
-        chart.invalidate()
     }
+
+    /**
+     * Classe per contenere i dati dei grafici
+     */
+    private data class ChartData(
+        val monthLabels: List<String>,
+        val tripsData: List<Float>,
+        val kmData: List<Float>
+    )
 }
