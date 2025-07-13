@@ -252,8 +252,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
             val jsonObject = JSONObject(response)
             val results = jsonObject.getJSONArray("results")
             if (results.length() > 0) {
-                val location =
-                    results.getJSONObject(0).getJSONObject("geometry").getJSONObject("location")
+                val location = results.getJSONObject(0).getJSONObject("geometry").getJSONObject("location")
                 val lat = location.getDouble("lat")
                 val lng = location.getDouble("lng")
                 return@withContext LatLng(lat, lng)

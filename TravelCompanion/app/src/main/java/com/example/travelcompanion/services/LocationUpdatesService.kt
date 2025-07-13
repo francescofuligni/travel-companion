@@ -15,15 +15,32 @@ import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.example.travelcompanion.services.BaseLocationService
 import com.example.travelcompanion.utils.NotificationUtils
+import com.google.android.libraries.places.api.model.PlaceLikelihood
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
+/**
+ * Servizio per il monitoraggio della posizione e notifiche POI
+ */
 class LocationUpdatesService : BaseLocationService() {
 
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private lateinit var placesClient: PlacesClient
-
+    
+    // Cache per evitare notifiche duplicate
+    private val notifiedPlaces = mutableSetOf<String>()
+    private var lastPlaceCheckTime = 0L
+    private val PLACE_CHECK_INTERVAL = 3 * 60 * 1000L // 3 minuti tra controlli
+    private val NOTIFICATION_COOLDOWN = 20 * 60 * 1000L // 20 minuti tra notifiche stesso posto
+    
     override fun onCreate() {
         super.onCreate()
+
+        // Avvia foreground service con notifica persistente
+        startForegroundServiceWithNotification()
 
         if (!Places.isInitialized()) {
             Places.initialize(applicationContext, getString(R.string.google_maps_key))
@@ -33,18 +50,61 @@ class LocationUpdatesService : BaseLocationService() {
         initFusedLocationClient()
 
         locationRequest = buildHighAccuracyRequest(
-            intervalMillis = 5 * 60 * 1000L,
-            minUpdateMillis = 60 * 1000L
+            intervalMillis = 2 * 60 * 1000L, // 2 minuti
+            minUpdateMillis = 60 * 1000L // 1 minuto
         )
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { location ->
-                    checkNearbyPlaces(location)
+                    android.util.Log.d("LocationService", "Nuova posizione: ${location.latitude}, ${location.longitude}")
+                    // Controlla i luoghi solo ogni 3 minuti per ridurre le chiamate API
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastPlaceCheckTime > PLACE_CHECK_INTERVAL) {
+                        checkNearbyPlaces(location)
+                        lastPlaceCheckTime = currentTime
+                    }
                 }
             }
         }
 
+        startLocationUpdates()
+    }
+
+    /**
+     * Avvia il servizio in foreground con notifica persistente
+     */
+    private fun startForegroundServiceWithNotification() {
+        val channelId = "location_foreground"
+        val channelName = "Monitoraggio posizione"
+        val notificationId = 10001
+
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                channelId,
+                channelName,
+                android.app.NotificationManager.IMPORTANCE_LOW
+            )
+            channel.description = "Notifica persistente per il monitoraggio della posizione e POI"
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Travel Companion attivo")
+            .setContentText("Monitoraggio posizione per notifiche POI e geofence attivo")
+            .setSmallIcon(android.R.drawable.star_on)
+            .setOngoing(true)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .build()
+
+        startForeground(notificationId, notification)
+    }
+
+    /**
+     * Avvia gli aggiornamenti di localizzazione
+     */
+    private fun startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -53,47 +113,135 @@ class LocationUpdatesService : BaseLocationService() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // I permessi di localizzazione non sono stati concessi.
+            android.util.Log.e("LocationService", "Permessi di localizzazione non concessi")
             return
         }
+        
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
             Looper.getMainLooper()
         )
+        android.util.Log.d("LocationService", "Aggiornamenti di localizzazione avviati")
     }
 
+    /**
+     * Controlla i luoghi interessanti nelle vicinanze
+     */
     private fun checkNearbyPlaces(location: Location) {
-        val placeFields = listOf(Place.Field.NAME, Place.Field.LAT_LNG)
+        android.util.Log.d("LocationService", "=== CONTROLLO LUOGHI NELLE VICINANZE ===")
+        android.util.Log.d("LocationService", "Posizione corrente: ${location.latitude}, ${location.longitude}")
+        
+        val placeFields = listOf(
+            Place.Field.NAME, 
+            Place.Field.LAT_LNG,
+            Place.Field.TYPES,
+            Place.Field.ID,
+            Place.Field.RATING
+        )
 
         val request = FindCurrentPlaceRequest.newInstance(placeFields)
 
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // I permessi di localizzazione non sono stati concessi.
+            android.util.Log.e("LocationService", "Permessi non concessi per findCurrentPlace")
             return
         }
+        
         placesClient.findCurrentPlace(request)
             .addOnSuccessListener { response ->
-                for (placeLikelihood in response.placeLikelihoods) {
-                    val place = placeLikelihood.place
-                    val poiLocation = place.latLng ?: continue
-                    val distance = calculateDistance(
-                        location.latitude, location.longitude,
-                        poiLocation.latitude, poiLocation.longitude
-                    )
-                    if (distance < 10) {
-                        NotificationUtils.sendPoiNotification(applicationContext, place.name ?: "Un luogo interessante")
-                        break
-                    }
-                }
+                android.util.Log.d("LocationService", "Luoghi trovati: ${response.placeLikelihoods.size}")
+                processFindPlaceResults(response.placeLikelihoods, location)
             }
+            .addOnFailureListener { exception ->
+                android.util.Log.e("LocationService", "Errore findCurrentPlace: ${exception.message}")
+                android.util.Log.e("LocationService", "Exception details: ", exception)
+            }
+    }
+
+    /**
+     * Processa i risultati dei luoghi trovati
+     */
+    private fun processFindPlaceResults(
+        placeLikelihoods: List<PlaceLikelihood>,
+        userLocation: Location
+    ) {
+        for (placeLikelihood in placeLikelihoods) {
+            val place = placeLikelihood.place
+            val poiLocation = place.latLng ?: continue
+            val placeId = place.id ?: continue
+            
+            // Calcola distanza
+            val distance = calculateDistance(
+                userLocation.latitude, userLocation.longitude,
+                poiLocation.latitude, poiLocation.longitude
+            )
+            
+            android.util.Log.d("LocationService", "Posto: ${place.name}, distanza: $distance metri")
+            
+            // Controlla se il posto è interessante e vicino
+            if (distance < 100 && // Aumentata soglia a 100 metri
+                isInterestingPlace(place) && 
+                shouldNotifyForPlace(placeId)
+            ) {
+                val placeName = place.name ?: "Un luogo interessante"
+                android.util.Log.d("LocationService", "Invio notifica per: $placeName")
+                
+                NotificationUtils.sendPoiNotification(applicationContext, placeName)
+                
+                // Aggiungi alla cache per evitare spam
+                notifiedPlaces.add(placeId)
+                
+                // Pulisci la cache dopo il cooldown
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(NOTIFICATION_COOLDOWN)
+                    notifiedPlaces.remove(placeId)
+                }
+                
+                break // Solo una notifica per volta
+            }
+        }
+    }
+
+    /**
+     * Determina se un luogo è interessante per il viaggiatore
+     */
+    private fun isInterestingPlace(place: Place): Boolean {
+        val interestingTypes = setOf(
+            Place.Type.TOURIST_ATTRACTION,
+            Place.Type.MUSEUM,
+            Place.Type.RESTAURANT,
+            Place.Type.NATURAL_FEATURE,
+            Place.Type.PARK,
+            Place.Type.POINT_OF_INTEREST,
+            Place.Type.ESTABLISHMENT,
+            Place.Type.CHURCH,
+            Place.Type.STORE,
+            Place.Type.SHOPPING_MALL
+        )
+        
+        val hasInterestingType = place.types?.any { type -> 
+            interestingTypes.contains(type) 
+        } ?: false
+        
+        android.util.Log.d("LocationService", "Posto: ${place.name}, tipi: ${place.types}, interessante: $hasInterestingType")
+        return hasInterestingType
+    }
+
+    /**
+     * Controlla se dobbiamo notificare per questo luogo
+     */
+    private fun shouldNotifyForPlace(placeId: String): Boolean {
+        return !notifiedPlaces.contains(placeId)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        android.util.Log.d("LocationService", "Servizio LocationUpdatesService terminato")
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

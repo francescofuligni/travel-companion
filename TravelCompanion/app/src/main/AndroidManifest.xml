@@ -6,12 +6,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Features hardware -->
     <uses-feature android:name="android.hardware.camera" android:required="true" />
@@ -59,12 +60,30 @@
         <service
             android:name=".services.TrackingService"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:foregroundServiceType="location" />
 
+        <!-- LocationUpdatesService for POI notifications -->
+        <service
+            android:name=".services.LocationUpdatesService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="location" />
+
+        <!-- GeofenceService for geofencing -->
         <receiver
             android:name=".services.HomeGeofenceReceiver"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="true" />
+
+        <!-- Receiver per BOOT_COMPLETED: re-registra geofence casa dopo riavvio -->
+        <receiver
+            android:name=".services.BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

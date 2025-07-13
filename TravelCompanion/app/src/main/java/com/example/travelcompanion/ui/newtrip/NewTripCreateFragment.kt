@@ -184,9 +184,14 @@ class NewTripCreateFragment : Fragment() {
     }
 
     private fun checkAndRequestPermissionsThenStartTrip(tripData: PendingTripData) {
-        val foregroundServiceLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(), android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val isAndroid14OrAbove = android.os.Build.VERSION.SDK_INT >= 34
+        val foregroundServiceLocationGranted = if (isAndroid14OrAbove) {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                requireContext(), android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            true // Not needed on Android < 14
+        }
 
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
             requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -197,7 +202,7 @@ class NewTripCreateFragment : Fragment() {
             findNavController().navigate(R.id.nav_home)
         } else {
             pendingTripData = tripData
-            if (!foregroundServiceLocationGranted) {
+            if (isAndroid14OrAbove && !foregroundServiceLocationGranted) {
                 foregroundServiceLocationPermissionLauncher.launch(android.Manifest.permission.FOREGROUND_SERVICE_LOCATION)
             } else {
                 requestFineLocationPermissionAndStartTrip(tripData)
