@@ -34,7 +34,7 @@ abstract class TravelDatabase : RoomDatabase() {
                     TravelDatabase::class.java,
                     "travel_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(false)
                     .build()
                 INSTANCE = instance
                 instance

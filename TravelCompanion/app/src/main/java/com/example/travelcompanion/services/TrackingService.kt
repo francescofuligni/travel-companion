@@ -163,7 +163,7 @@ class TrackingService : BaseLocationService() {
                     existingLocation.id
                 } else {
                     val newLocationId = db.locationDao().insertLocation(
-                        com.example.travelcompanion.database.models.Location(
+                        Location(
                             id = 0,
                             latitude = location.latitude,
                             longitude = location.longitude

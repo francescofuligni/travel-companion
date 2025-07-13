@@ -29,4 +29,10 @@
     <string name="error_too_long">Hai inserito troppi caratteri</string>
     <string name="error_empty">Il campo non può essere vuoto</string>
     <string name="error_invalid_email">Inserisci un indirizzo email valido\n</string>
+    <string name="notification_title_active">Travel Companion attivo</string>
+    <string name="notification_text_tracking_active">Monitoraggio posizione per notifiche POI e geofence attivo</string>
+    <string name="notification_channel_name">Monitoraggio posizione</string>
+    <string name="notification_channel_description">Notifica persistente per il monitoraggio della posizione e POI</string>
+    <string name="notification_default_place">Un luogo interessante</string>
+
 </resources>

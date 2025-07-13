@@ -10,14 +10,10 @@ import android.location.LocationManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.example.travelcompanion.utils.NotificationUtils
-import com.example.travelcompanion.repository.TravelRepository
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * Servizio per la gestione del geofencing della casa dell'utente
@@ -128,17 +124,6 @@ object HomeGeofenceService {
                     channelDescription = "Errore geofence generico"
                 )
             }
-    }
-
-    /**
-     * Rimuove il geofence della casa
-     */
-    fun removeHomeGeofence(context: Context) {
-        Log.d(TAG, "Rimozione geofence casa")
-        val geofencingClient = LocationServices.getGeofencingClient(context)
-        geofencingClient.removeGeofences(listOf(GEOFENCE_ID))
-            .addOnSuccessListener { Log.d(TAG, "Home geofence rimosso") }
-            .addOnFailureListener { Log.e(TAG, "Errore rimozione geofence", it) }
     }
 
     /**

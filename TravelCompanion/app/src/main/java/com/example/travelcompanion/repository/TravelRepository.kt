@@ -30,7 +30,8 @@ class TravelRepository(
     private val tripPhaseDao: TripPhaseDao,
     private val noteDao: NoteDao
 ) {
-    
+
+
     /**
      * Metodi per gestire le location geografiche
      */
@@ -52,6 +53,7 @@ class TravelRepository(
         locationDao.deleteAllLocations()
     }
 
+
     /**
      * Metodi per gestire gli utenti
      */
@@ -70,6 +72,7 @@ class TravelRepository(
     suspend fun deleteAllUsers() {
         userDao.deleteAllUsers()
     }
+
 
     /**
      * Metodi per gestire i viaggi
@@ -143,6 +146,7 @@ class TravelRepository(
         }
     }
 
+
     /**
      * Metodi per gestire le note
      */
@@ -154,9 +158,6 @@ class TravelRepository(
         return noteDao.getNotesByTripIdLiveData(tripId)
     }
 
-    suspend fun deleteNote(note: Note) {
-        noteDao.deleteNote(note)
-    }
 
     /**
      * Metodi per gestire le immagini
@@ -185,6 +186,7 @@ class TravelRepository(
     suspend fun deleteImage(image: Image) {
         imageDao.deleteImage(image)
     }
+
 
     companion object {
         fun create(context: Context): TravelRepository {

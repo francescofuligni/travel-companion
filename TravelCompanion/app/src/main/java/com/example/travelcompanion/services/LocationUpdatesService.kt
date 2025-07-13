@@ -13,7 +13,6 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.example.travelcompanion.services.BaseLocationService
 import com.example.travelcompanion.utils.NotificationUtils
 import com.google.android.libraries.places.api.model.PlaceLikelihood
 import kotlinx.coroutines.CoroutineScope
@@ -34,8 +33,8 @@ class LocationUpdatesService : BaseLocationService() {
     // Cache per evitare notifiche duplicate
     private val notifiedPlaces = mutableSetOf<String>()
     private var lastPlaceCheckTime = 0L
-    private val PLACE_CHECK_INTERVAL = 3 * 60 * 1000L // 3 minuti
-    private val NOTIFICATION_COOLDOWN = 20 * 60 * 1000L // 20 minuti per stessi posti
+    private val placeCheckInterval = 3 * 60 * 1000L // 3 minuti
+    private val notificationCooldown = 20 * 60 * 1000L // 20 minuti per stessi posti
 
     override fun onCreate() {
         super.onCreate()
@@ -59,7 +58,7 @@ class LocationUpdatesService : BaseLocationService() {
                 result.lastLocation?.let { location ->
                     android.util.Log.d("LocationService", "Nuova posizione: ${location.latitude}, ${location.longitude}")
                     val currentTime = System.currentTimeMillis()
-                    if (currentTime - lastPlaceCheckTime > PLACE_CHECK_INTERVAL) {
+                    if (currentTime - lastPlaceCheckTime > placeCheckInterval) {
                         checkNearbyPlaces(location)
                         lastPlaceCheckTime = currentTime
                     }
@@ -75,7 +74,7 @@ class LocationUpdatesService : BaseLocationService() {
      */
     private fun startForegroundServiceWithNotification() {
         val channelId = "location_foreground"
-        val channelName = "Monitoraggio posizione"
+        val channelName = getString(R.string.notification_channel_name)
         val notificationId = 10001
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
@@ -85,13 +84,13 @@ class LocationUpdatesService : BaseLocationService() {
                 channelName,
                 android.app.NotificationManager.IMPORTANCE_LOW
             )
-            channel.description = "Notifica persistente per il monitoraggio della posizione e POI"
+            channel.description = getString(R.string.notification_channel_description)
             notificationManager.createNotificationChannel(channel)
         }
 
         val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Travel Companion attivo")
-            .setContentText("Monitoraggio posizione per notifiche POI e geofence attivo")
+            .setContentTitle(getString(R.string.notification_title_active))
+            .setContentText(getString(R.string.notification_text_tracking_active))
             .setSmallIcon(android.R.drawable.star_on)
             .setOngoing(true)
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
@@ -172,30 +171,30 @@ class LocationUpdatesService : BaseLocationService() {
             val place = placeLikelihood.place
             val poiLocation = place.latLng ?: continue
             val placeId = place.id ?: continue
-            
+
             val distance = calculateDistance(
                 userLocation.latitude, userLocation.longitude,
                 poiLocation.latitude, poiLocation.longitude
             )
-            
+
             android.util.Log.d("LocationService", "Posto: ${place.name}, distanza: $distance metri")
-            
+
             if (distance < 100 &&
-                isInterestingPlace(place) && 
+                isInterestingPlace(place) &&
                 shouldNotifyForPlace(placeId)
             ) {
-                val placeName = place.name ?: "Un luogo interessante"
+                val placeName = place.name ?: getString(R.string.notification_default_place)
                 android.util.Log.d("LocationService", "Invio notifica per: $placeName")
-                
+
                 NotificationUtils.sendPoiNotification(applicationContext, placeName)
-                
+
                 notifiedPlaces.add(placeId)
-                
+
                 CoroutineScope(Dispatchers.IO).launch {
-                    delay(NOTIFICATION_COOLDOWN)
+                    delay(notificationCooldown)
                     notifiedPlaces.remove(placeId)
                 }
-                
+
                 break
             }
         }
