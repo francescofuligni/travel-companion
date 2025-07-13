@@ -5,9 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
-
 import com.google.android.libraries.places.api.model.Place
 
 object NotificationUtils {
@@ -83,7 +81,6 @@ object NotificationUtils {
 
     fun checkDistanceAndNotify(context: Context, distance: Double, place: Place) {
         if (distance < 10) {
-            Log.d("POI", "Triggering POI notification for: ${place.name}")
             sendPoiNotification(context, place.name ?: "Un luogo interessante")
         }
     }
