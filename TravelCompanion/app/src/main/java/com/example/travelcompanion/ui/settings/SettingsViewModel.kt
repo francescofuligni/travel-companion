@@ -13,7 +13,14 @@ import com.example.travelcompanion.services.HomeGeofenceService
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(application: Application, private val repository: TravelRepository) : AndroidViewModel(application) {
+/**
+ * ViewModel per la gestione delle impostazioni utente
+ * Gestisce profilo, posizione casa, foto profilo e reset app
+ */
+class SettingsViewModel(
+    application: Application, 
+    private val repository: TravelRepository
+) : AndroidViewModel(application) {
 
     private val appContext = application.applicationContext
 
@@ -29,14 +36,17 @@ class SettingsViewModel(application: Application, private val repository: Travel
     private val _profilePictureUri = MutableLiveData<Uri?>()
     val profilePictureUri: LiveData<Uri?> = _profilePictureUri
 
+    /**
+     * Carica i dati dell'utente dal database
+     */
     fun loadUserData() {
         viewModelScope.launch {
             try {
-                // Load user
+                // Carica l'utente
                 val user = repository.getUserById(1)
                 _user.value = user
 
-                // Load profile picture separately
+                // Carica la foto profilo separatamente
                 user?.profilePictureId?.let { imageId ->
                     val image = repository.getImageById(imageId)
                     image?.let { img ->
@@ -44,7 +54,7 @@ class SettingsViewModel(application: Application, private val repository: Travel
                     }
                 }
 
-                // Load home location
+                // Carica la posizione casa
                 user?.homeLocationId?.let { id ->
                     try {
                         val location = repository.getLocationById(id)
@@ -62,10 +72,18 @@ class SettingsViewModel(application: Application, private val repository: Travel
         }
     }
 
-    fun saveUser(username: String, email: String, homeLocation: LatLng?, profilePictureUri: Uri? = null) {
+    /**
+     * Salva i dati dell'utente nel database
+     */
+    fun saveUser(
+        username: String, 
+        email: String, 
+        homeLocation: LatLng?, 
+        profilePictureUri: Uri? = null
+    ) {
         viewModelScope.launch {
             try {
-                // Validate input data
+                // Validazione dati input
                 if (username.isBlank()) {
                     _message.value = "Username cannot be empty"
                     return@launch
@@ -76,7 +94,7 @@ class SettingsViewModel(application: Application, private val repository: Travel
                     return@launch
                 }
 
-                // Handle home location
+                // Gestione posizione casa
                 var homeLocationId: Long? = null
                 if (homeLocation != null) {
                     try {
@@ -86,6 +104,8 @@ class SettingsViewModel(application: Application, private val repository: Travel
                         )
                         homeLocationId = repository.insertLocation(location)
                         Log.d("SettingsViewModel", "Saved location with ID: $homeLocationId")
+                        
+                        // Registra il geofence per la casa
                         HomeGeofenceService.registerHomeGeofence(
                             context = appContext,
                             latitude = location.latitude,
@@ -98,12 +118,12 @@ class SettingsViewModel(application: Application, private val repository: Travel
                     }
                 }
 
-                // Handle profile picture
+                // Gestione foto profilo
                 var profilePictureId: Long? = null
                 if (profilePictureUri != null) {
                     try {
                         val image = Image(
-                            tripId = null, // Profile picture not associated with a trip
+                            tripId = null, // Foto profilo non associata a un viaggio
                             uri = profilePictureUri.toString(),
                             createdAt = System.currentTimeMillis()
                         )
@@ -116,11 +136,11 @@ class SettingsViewModel(application: Application, private val repository: Travel
                     }
                 }
 
-                // Get current user
+                // Ottieni utente corrente
                 val currentUser = repository.getUserById(1)
 
                 if (currentUser != null) {
-                    // Update existing user
+                    // Aggiorna utente esistente
                     val updatedUser = currentUser.copy(
                         name = username,
                         email = email,
@@ -138,7 +158,7 @@ class SettingsViewModel(application: Application, private val repository: Travel
                         return@launch
                     }
                 } else {
-                    // Create new user
+                    // Crea nuovo utente
                     val newUser = User(
                         id = 1,
                         name = username,
@@ -167,17 +187,24 @@ class SettingsViewModel(application: Application, private val repository: Travel
         }
     }
 
+    /**
+     * Aggiorna l'URI della foto profilo
+     */
     fun updateProfilePicture(uri: Uri?) {
         _profilePictureUri.value = uri
     }
 
+    /**
+     * Resetta completamente l'app eliminando tutti i dati
+     */
     fun resetApp() {
         viewModelScope.launch {
             try {
                 repository.deleteAllUsers()
                 repository.deleteAllLocations()
                 repository.deleteAllTrips()
-                // Clear all images
+                
+                // Elimina tutte le immagini
                 val images = repository.imageDao.getAllImages()
                 images.forEach { image -> repository.deleteImage(image) }
                 
@@ -192,6 +219,9 @@ class SettingsViewModel(application: Application, private val repository: Travel
         }
     }
 
+    /**
+     * Imposta la posizione casa selezionata
+     */
     fun setHomeLocation(latLng: LatLng) {
         _homeLocation.value = latLng
     }

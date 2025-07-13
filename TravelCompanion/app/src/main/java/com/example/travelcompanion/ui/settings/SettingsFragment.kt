@@ -33,6 +33,10 @@ import android.util.Patterns
 import androidx.core.widget.addTextChangedListener
 import com.example.travelcompanion.R
 
+/**
+ * Fragment per le impostazioni dell'utente
+ * Gestisce profilo utente, posizione casa e configurazioni app
+ */
 class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
@@ -42,6 +46,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var currentProfilePictureUri: Uri? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+    /**
+     * Launcher per la richiesta del permesso di localizzazione
+     */
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -52,6 +59,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Chiave API per il servizio di geocoding di Google
+     */
     private val geocodingApiKey: String
         get() = BuildConfig.MAPS_API_KEY
 
@@ -68,26 +78,31 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        val repository = TravelRepository.create(requireContext())
-        val factory = SettingsViewModelFactory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
-
+        setupViewModel()
         setupProfilePicturePicker()
         setupMap()
         setupViews()
         
-        // IMPORTANTE: Osserva ViewModel PRIMA di caricare i dati
         observeViewModel()
         
-        // Imposta listeners per validazione
         binding.etUsername.addTextChangedListener { updateSaveButtonState() }
         binding.etEmail.addTextChangedListener { updateSaveButtonState() }
         
-        // Carica i dati DOPO aver impostato gli observer
         viewModel.loadUserData()
-
     }
 
+    /**
+     * Configura il ViewModel
+     */
+    private fun setupViewModel() {
+        val repository = TravelRepository.create(requireContext())
+        val factory = SettingsViewModelFactory(requireActivity().application, repository)
+        viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
+    }
+
+    /**
+     * Configura il fragment per la selezione della foto profilo
+     */
     private fun setupProfilePicturePicker() {
         val profilePicturePickerFragment = ProfilePicturePickerFragment()
 
@@ -101,6 +116,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Configura la mappa per la selezione della posizione casa
+     */
     private fun setupMap() {
         val mapFragment = SupportMapFragment.newInstance()
         childFragmentManager.beginTransaction()
@@ -109,6 +127,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
     }
 
+    /**
+     * Callback chiamato quando la mappa è pronta
+     */
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
@@ -120,18 +141,18 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
             locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
-        // Set initial location to Bologna as fallback, then try to get current location
+        // Imposta Bologna come posizione di default
         val defaultLocation = LocationUtils.getDefaultBolognaLocation()
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
 
-        // Try to get current location first
+        // Prova a ottenere la posizione corrente
         LocationUtils.getCurrentLocationForSettings(
             requireContext(),
             onSuccess = { currentLatLng ->
                 googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
             },
             onFailure = { _ ->
-                // Keep the default Bologna location if GPS is not available
+                // Mantiene la posizione di default Bologna se il GPS non è disponibile
             }
         )
 
@@ -140,6 +161,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Abilita la visualizzazione della posizione utente sulla mappa
+     */
     private fun enableUserLocation() {
         try {
             googleMap?.isMyLocationEnabled = true
@@ -154,12 +178,14 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Configura i listener per i pulsanti e la validazione
+     */
     private fun setupViews() {
         binding.btnSaveSettings.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
             val email = binding.etEmail.text.toString().trim()
 
-            // Validazione email
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(requireContext(), getString(R.string.error_invalid_email), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -183,6 +209,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Configura gli observer per i dati del ViewModel
+     */
     private fun observeViewModel() {
         viewModel.user.observe(viewLifecycleOwner) { user ->
             binding.etUsername.setText(user?.name ?: "")
@@ -205,7 +234,6 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
         viewModel.profilePictureUri.observe(viewLifecycleOwner) { uri ->
             currentProfilePictureUri = uri
-            // Update the profile picture picker fragment
             val profilePictureFragment = childFragmentManager.findFragmentById(binding.profilePictureContainer.id) as? ProfilePicturePickerFragment
             profilePictureFragment?.setCurrentImage(uri)
         }
@@ -216,8 +244,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     }
 
     /**
-     * Cerca un indirizzo e aggiorna la posizione home
-     * @param address indirizzo da cercare
+     * Cerca un indirizzo e aggiorna la posizione casa
      */
     private fun searchAddress(address: String) {
         lifecycleScope.launch {
@@ -226,7 +253,6 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 // Aggiorna il ViewModel con la nuova posizione
                 viewModel.setHomeLocation(latLng)
 
-                // Aggiorna la mappa (questo verrà fatto automaticamente dall'observer)
                 googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
 
                 Toast.makeText(requireContext(), "Indirizzo trovato e selezionato", Toast.LENGTH_SHORT).show()
@@ -237,9 +263,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     }
 
     /**
-     * Geocodifica un indirizzo in coordinate geografiche
-     * @param address indirizzo da geocodificare
-     * @return coordinate LatLng o null se non trovato
+     * Geocodifica un indirizzo in coordinate geografiche usando Google Geocoding API
      */
     private suspend fun geocodeAddress(address: String): LatLng? = withContext(Dispatchers.IO) {
         try {
@@ -261,7 +285,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         return@withContext null
     }
 
-    /** Abilita/disabilita il bottone Salva in base alle condizioni */
+    /**
+     * Abilita/disabilita il bottone Salva in base alle condizioni di validazione
+     */
     private fun updateSaveButtonState() {
         val usernameValid = binding.etUsername.text.toString().trim().isNotEmpty()
         val emailText = binding.etEmail.text.toString().trim()
