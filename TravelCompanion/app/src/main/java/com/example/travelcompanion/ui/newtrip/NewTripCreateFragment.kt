@@ -90,16 +90,16 @@ class NewTripCreateFragment : Fragment() {
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             val today = Calendar.getInstance()
-            val fragment = childFragmentManager.findFragmentById(R.id.addressSearchContainer) as? AddressSearchFragment
+            val addressSearchFragment = childFragmentManager.findFragmentById(R.id.addressSearchContainer) as? AddressSearchFragment
 
             when (checkedId) {
                 binding.btnLocal.id -> {
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        fragment?.setInputEnabled(false)
-                        fragment?.getUserLocation { address, latLng ->
+                        addressSearchFragment?.setInputEnabled(false)
+                        addressSearchFragment?.getUserLocation { address, latLng ->
                             selectedDestinationLatLng = latLng
                             selectedAddressText = address
-                            fragment.setAddressText(address)
+                            addressSearchFragment.setAddressText(address)
                             updateBtnStartTripState()
                         }
                     }
@@ -109,21 +109,21 @@ class NewTripCreateFragment : Fragment() {
                 }
                 binding.btnOneDay.id -> {
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        fragment?.setInputEnabled(true)
+                        addressSearchFragment?.setInputEnabled(true)
                     }
 
-                    val today = Calendar.getInstance()
+                    val todayDate = Calendar.getInstance()
                     binding.datePickerEnd.isEnabled = false
-                    binding.datePickerEnd.minDate = today.timeInMillis
+                    binding.datePickerEnd.minDate = todayDate.timeInMillis
                     binding.datePickerEnd.updateDate(
-                        today.get(Calendar.YEAR),
-                        today.get(Calendar.MONTH),
-                        today.get(Calendar.DAY_OF_MONTH)
+                        todayDate.get(Calendar.YEAR),
+                        todayDate.get(Calendar.MONTH),
+                        todayDate.get(Calendar.DAY_OF_MONTH)
                     )
                 }
                 binding.btnMultiDays.id -> {
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        fragment?.setInputEnabled(true)
+                        addressSearchFragment?.setInputEnabled(true)
                     }
                     binding.datePickerEnd.isEnabled = true
 

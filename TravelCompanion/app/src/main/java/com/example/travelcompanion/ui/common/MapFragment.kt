@@ -54,8 +54,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        googleMap?.uiSettings?.isZoomControlsEnabled = true
-        googleMap?.uiSettings?.isMyLocationButtonEnabled = true
+        googleMap.uiSettings.isZoomControlsEnabled = true
+        googleMap.uiSettings.isMyLocationButtonEnabled = true
 
         if (LocationUtils.hasLocationPermission(requireContext())) {
             enableUserLocation()
@@ -66,14 +66,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun enableUserLocation() {
         try {
-            googleMap?.isMyLocationEnabled = true
+            googleMap.isMyLocationEnabled = true
             
             LocationUtils.getCurrentLocation(
                 requireContext(),
                 onSuccess = { currentLatLng ->
-                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
                     // Add a marker at the current location
-                    googleMap?.addMarker(
+                    googleMap.addMarker(
                         MarkerOptions()
                             .position(currentLatLng)
                             .title("La tua posizione")
@@ -81,8 +81,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     )
                 },
                 onFailure = { defaultLatLng ->
-                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
-                    googleMap?.addMarker(
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
+                    googleMap.addMarker(
                         MarkerOptions()
                             .position(defaultLatLng)
                             .title("Posizione di default")

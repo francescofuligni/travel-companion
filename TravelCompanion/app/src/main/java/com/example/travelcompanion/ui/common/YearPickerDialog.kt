@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.mytrips
+package com.example.travelcompanion.ui.common
 
 import android.app.Dialog
 import android.os.Bundle

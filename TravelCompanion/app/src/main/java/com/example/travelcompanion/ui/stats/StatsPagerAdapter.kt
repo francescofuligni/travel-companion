@@ -1,7 +1,7 @@
+package com.example.travelcompanion.ui.stats
+
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.travelcompanion.ui.stats.StatsFutureFragment
-import com.example.travelcompanion.ui.stats.StatsMyTrips
 
 class StatsPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
     override fun getItemCount(): Int = 2

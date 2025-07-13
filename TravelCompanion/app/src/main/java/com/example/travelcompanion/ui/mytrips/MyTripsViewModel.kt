@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
-import com.example.travelcompanion.ui.mytrips.TripUiModel
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -16,16 +15,13 @@ import java.util.Calendar
  */
 class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
     private val _trips = MutableLiveData<List<Trip>>()
-    val trips: LiveData<List<Trip>> = _trips
 
     private val _tripUiModels = MutableLiveData<List<TripUiModel>>()
     val tripUiModels: LiveData<List<TripUiModel>> = _tripUiModels
 
     private val _selectedYear = MutableLiveData<Int>()
-    val selectedYear: LiveData<Int> = _selectedYear
 
     private val _selectedType = MutableLiveData<TripType?>(null)
-    val selectedType: LiveData<TripType?> = _selectedType
 
     init {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)

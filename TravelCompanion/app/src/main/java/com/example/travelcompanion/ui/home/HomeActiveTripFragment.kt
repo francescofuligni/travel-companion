@@ -127,11 +127,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
      * Configura le view e i listener
      */
     private fun setupViews(view: View) {
-        // Initialize views
-        val tvTripTitle = view.findViewById<TextView>(R.id.tvHomeTripTitle)
-        val tvStartDate = view.findViewById<TextView>(R.id.tv_start_date)
-        val tvEndDate = view.findViewById<TextView>(R.id.tv_end_date)
-        val tvDistance = view.findViewById<TextView>(R.id.tv_distance)
         chronometer = view.findViewById(R.id.chronometer)
         
         // Bottoni

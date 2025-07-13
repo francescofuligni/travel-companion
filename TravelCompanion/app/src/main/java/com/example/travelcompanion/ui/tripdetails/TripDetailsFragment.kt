@@ -103,12 +103,12 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
                         val markerOptions = MarkerOptions()
                             .position(latLng)
                             .title("Fase ${phase.phaseOrder}")
-                            .snippet("${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(phase.timestamp))}")
+                            .snippet(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(phase.timestamp)))
                         
                         // Use different colors for start, middle, and end points
-                        when {
-                            index == 0 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                            index == phasesWithLocations.size - 1 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                        when (index) {
+                            0 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            phasesWithLocations.size - 1 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                             else -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                         }
                         

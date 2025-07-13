@@ -16,10 +16,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
-import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentProfilePicturePickerBinding
 import com.example.travelcompanion.utils.ProfilePictureUtils
-import java.io.File
 
 class ProfilePicturePickerFragment : Fragment() {
     

@@ -11,9 +11,9 @@ import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentMyTripsBinding
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.lifecycle.ViewModelProvider
-import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
+import com.example.travelcompanion.ui.common.YearPickerDialog
 
 /**
  * Fragment per visualizzare e filtrare la lista dei viaggi dell'utente
@@ -143,24 +143,6 @@ class MyTripsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    /**
-     * Extension function per convertire Trip in TripUiModel
-     * Separa la logica di presentazione dal modello dati
-     */
-    private fun Trip.toUiModel(imageUrl: String? = null): TripUiModel {
-        return TripUiModel(
-            id = this.id,
-            title = this.title,
-            destination = this.destination,
-            imageUrl = imageUrl,
-            startDate = this.startDate,
-            endDate = this.endDate,
-            type = this.type,
-            distance = this.distance,
-            duration = this.duration,
-        )
     }
 
     /**

@@ -82,21 +82,6 @@ class HomeActiveTripViewModel(
     }
     
     /**
-     * Carica i dati del viaggio dal repository
-     * @param tripId ID del viaggio
-     */
-    private fun loadTripData(tripId: Long) {
-        viewModelScope.launch {
-            try {
-                val tripData = repository.getTripById(tripId)
-                _trip.value = tripData
-            } catch (e: Exception) {
-                Log.e("HomeActiveTripViewModel", "Errore caricamento viaggio", e)
-            }
-        }
-    }
-    
-    /**
      * Ferma il viaggio attivo
      * @param tripId ID del viaggio da terminare
      */

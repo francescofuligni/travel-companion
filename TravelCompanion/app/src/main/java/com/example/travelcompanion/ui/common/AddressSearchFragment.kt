@@ -117,7 +117,7 @@ class AddressSearchFragment : Fragment() {
                     val latLng = LatLng(location.latitude, location.longitude)
                     val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
                     val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                    val addressText = if (addresses != null && addresses.isNotEmpty()) {
+                    val addressText = if (!addresses.isNullOrEmpty()) {
                         val address = addresses[0]
                         listOfNotNull(
                             address.thoroughfare,

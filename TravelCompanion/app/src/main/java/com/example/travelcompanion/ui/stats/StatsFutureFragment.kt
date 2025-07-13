@@ -53,8 +53,8 @@ class StatsFutureFragment : Fragment() {
         val textTrendKmTitle = view.findViewById<TextView>(R.id.textTrendKmTitle)
         val textTrendKmMessage = view.findViewById<TextView>(R.id.textTrendKmMessage)
 
-        val chartTrips = view.findViewById<com.github.mikephil.charting.charts.LineChart>(R.id.futureTripsChart)
-        val chartKm = view.findViewById<com.github.mikephil.charting.charts.LineChart>(R.id.futureKmChart)
+        val chartTrips = view.findViewById<LineChart>(R.id.futureTripsChart)
+        val chartKm = view.findViewById<LineChart>(R.id.futureKmChart)
 
         // Carica dati storici dal DB e calcola previsioni future
         lifecycleScope.launch {
@@ -88,11 +88,6 @@ class StatsFutureFragment : Fragment() {
             val predictedKm = (kmDataList.sum() / kmDataList.size.toFloat()).roundToInt()
             val isTrendDownTrips = predictedTrips < tripsDataList.last()
             val isTrendDownKm = predictedKm < kmDataList.last()
-
-            // Determina mese successivo
-            val lastMonthLabel = monthsLabels.last()
-            val allMonthLabels = listOf("Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic")
-            val nextMonth = allMonthLabels[(allMonthLabels.indexOf(lastMonthLabel) + 1) % 12]
 
             val nextMonthDate = now.plusMonths(1)
             val nextMonthLabel = nextMonthDate.month

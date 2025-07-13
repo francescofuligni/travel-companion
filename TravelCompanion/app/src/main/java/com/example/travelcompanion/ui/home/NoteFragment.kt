@@ -34,8 +34,6 @@ class NoteFragment : Fragment() {
         binding.etNoteContent.addTextChangedListener { updateSaveButtonState() }
 
         binding.btnSaveNote.setOnClickListener {
-            val title = binding.etNoteTitle.text.toString()
-            val content = binding.etNoteContent.text.toString()
             // TODO: gestire il salvataggio della nota
             findNavController().navigateUp()
         }

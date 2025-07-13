@@ -232,6 +232,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 return@withContext LatLng(lat, lng)
             }
         } catch (e: Exception) {
+            // Impossibile trovare indirizzo
         }
         return@withContext null
     }
