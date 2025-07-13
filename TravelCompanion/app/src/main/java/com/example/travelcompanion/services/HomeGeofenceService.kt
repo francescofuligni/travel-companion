@@ -181,8 +181,6 @@ object HomeGeofenceService {
  */
 class HomeGeofenceReceiver : BroadcastReceiver() {
 
-    private val TAG = "HomeGeofenceReceiver"
-
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent?.hasError() == true) {
@@ -194,8 +192,8 @@ class HomeGeofenceReceiver : BroadcastReceiver() {
             context = context,
             channelId = "geofence_channel",
             channelName = "Geofence Event",
-            title = "Sei uscito da casa?",
-            message = "Ricordati di monitorare i tuoi viaggi!",
+            title = "Sei passato da casa?",
+            message = "Ricordati di monitorare tutti i tuoi viaggi!",
             notificationId = System.currentTimeMillis().toInt(),
             iconRes = android.R.drawable.ic_dialog_info,
             channelDescription = "Notifica evento geofence generica"
