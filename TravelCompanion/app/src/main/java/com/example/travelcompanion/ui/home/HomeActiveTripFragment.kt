@@ -21,7 +21,7 @@ import androidx.navigation.fragment.findNavController
 import java.text.SimpleDateFormat
 import java.util.*
 import android.util.Log
-import com.example.travelcompanion.ui.common.AddNoteDialogFragment
+import com.example.travelcompanion.ui.common.AddNoteDialog
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -309,7 +309,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
      * Mostra il dialog per aggiungere una nota
      */
     private fun showAddNoteDialog() {
-        val dialog = AddNoteDialogFragment()
+        val dialog = AddNoteDialog()
         dialog.setOnNoteAddedListener { note ->
             viewModel.saveNoteToTrip(tripId, note)
             Toast.makeText(requireContext(), "Nota salvata!", Toast.LENGTH_SHORT).show()

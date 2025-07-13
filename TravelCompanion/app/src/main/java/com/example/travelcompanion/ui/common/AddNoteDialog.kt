@@ -11,7 +11,7 @@ import androidx.fragment.app.DialogFragment
 import com.example.travelcompanion.R
 import com.google.android.material.textfield.TextInputEditText
 
-class AddNoteDialogFragment : DialogFragment() {
+class AddNoteDialog : DialogFragment() {
     
     private var listener: ((String) -> Unit)? = null
     private var existingNote: String? = null
