@@ -13,6 +13,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 /**
  * Adapter per visualizzare le immagini del viaggio in una griglia/lista orizzontale
+ * Utilizza Glide per il caricamento efficiente delle immagini
  */
 class TripImagesAdapter(
     private val onImageClick: (Image) -> Unit
@@ -20,6 +21,9 @@ class TripImagesAdapter(
 
     private var images: List<Image> = emptyList()
 
+    /**
+     * Aggiorna la lista delle immagini e notifica i cambiamenti
+     */
     fun updateImages(newImages: List<Image>) {
         images = newImages
         notifyDataSetChanged()
@@ -37,11 +41,17 @@ class TripImagesAdapter(
 
     override fun getItemCount(): Int = images.size
 
+    /**
+     * ViewHolder per gli elementi immagine
+     */
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imageView: ImageView = itemView.findViewById(R.id.ivTripImage)
 
+        /**
+         * Collega l'immagine alla view usando Glide
+         */
         fun bind(image: Image) {
-            // Usa Glide per caricare l'immagine
+            // Usa Glide per caricare l'immagine con cache e placeholder
             Glide.with(itemView.context)
                 .load(Uri.parse(image.uri))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
