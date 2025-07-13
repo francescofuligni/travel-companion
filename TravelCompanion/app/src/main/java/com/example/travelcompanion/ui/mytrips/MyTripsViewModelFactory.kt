@@ -11,7 +11,7 @@ import com.example.travelcompanion.repository.TravelRepository
 class MyTripsViewModelFactory(private val repository: TravelRepository) : ViewModelProvider.Factory {
     
     /**
-     * Crea un'istanza del ViewModel con il repository iniettato
+     * Crea un'istanza del ViewModel
      */
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MyTripsViewModel::class.java)) {
