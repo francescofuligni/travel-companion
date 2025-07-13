@@ -58,7 +58,6 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupRecyclerView() {
         adapter = MyTripsAdapter(emptyList()) { tripId ->
-            // Navigate to trip details
             navigateToTripDetails(tripId)
         }
         binding.rvMyTrips.adapter = adapter
@@ -71,7 +70,6 @@ class MyTripsFragment : Fragment() {
      * Configura gli observer per i dati del ViewModel
      */
     private fun setupObservers() {
-        // Osserva i viaggi filtrati e aggiorna la lista
         viewModel.tripUiModels.observe(viewLifecycleOwner) { tripUiModels ->
             adapter.submitList(tripUiModels)
             toggleEmptyView()
@@ -84,11 +82,9 @@ class MyTripsFragment : Fragment() {
     private fun setupFilters() {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         
-        // Imposta filtro anno corrente di default
         binding.filterButton.text = currentYear.toString()
         viewModel.setYear(currentYear)
 
-        // Bottone selezione anno
         binding.filterButton.setOnClickListener {
             YearPickerDialog(
                 minYear = currentYear - 150,
@@ -100,7 +96,6 @@ class MyTripsFragment : Fragment() {
             }.show(childFragmentManager, "yearPicker")
         }
 
-        // Filtro tipo viaggio (MaterialButtonToggleGroup)
         binding.toggleTripType.addOnButtonCheckedListener { group, checkedId, isChecked ->
             if (isChecked) {
                 val type = when (checkedId) {
@@ -111,12 +106,10 @@ class MyTripsFragment : Fragment() {
                 }
                 viewModel.setType(type)
             } else if (group.checkedButtonId == View.NO_ID) {
-                // Nessun bottone selezionato - rimuovi filtro tipo
                 viewModel.setType(null)
             }
         }
 
-        // Bottone cancella filtri
         binding.ivClearFilter.setOnClickListener {
             clearAllFilters()
         }
@@ -140,18 +133,18 @@ class MyTripsFragment : Fragment() {
         binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     /**
-     * Naviga ai dettagli del viaggio
+     * Naviga ai dettagli del viaggio selezionato
      */
     private fun navigateToTripDetails(tripId: Long) {
         val bundle = Bundle().apply {
             putLong("tripId", tripId)
         }
         findNavController().navigate(R.id.action_nav_my_trips_to_nav_trip_details, bundle)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
