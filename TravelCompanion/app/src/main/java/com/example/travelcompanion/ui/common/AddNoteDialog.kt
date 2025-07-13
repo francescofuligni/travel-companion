@@ -11,11 +11,18 @@ import androidx.fragment.app.DialogFragment
 import com.example.travelcompanion.R
 import com.google.android.material.textfield.TextInputEditText
 
+/**
+ * Dialog per l'aggiunta o modifica di una nota
+ * Permette all'utente di inserire testo con limite massimo di caratteri
+ */
 class AddNoteDialog : DialogFragment() {
     
     private var listener: ((String) -> Unit)? = null
     private var existingNote: String? = null
     
+    /**
+     * Imposta il listener per quando viene aggiunta una nota
+     */
     fun setOnNoteAddedListener(listener: (String) -> Unit) {
         this.listener = listener
     }
@@ -32,7 +39,6 @@ class AddNoteDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         
         val etNote = view.findViewById<TextInputEditText>(R.id.etNote)
-        // Limite massimo di 500 caratteri
         etNote.filters = arrayOf(InputFilter.LengthFilter(500))
         val btnSave = view.findViewById<Button>(R.id.btnSaveNote)
         val btnCancel = view.findViewById<Button>(R.id.btnCancelNote)

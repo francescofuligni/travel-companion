@@ -20,6 +20,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.text.InputFilter
 
+/**
+ * Fragment per la ricerca di indirizzi e la visualizzazione su mappa
+ * Permette di cercare indirizzi tramite Google API e ottenere la posizione corrente
+ */
 class AddressSearchFragment : Fragment() {
 
     private var _binding: FragmentAddressSearchBinding? = null
@@ -38,10 +42,8 @@ class AddressSearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Limite massimo di 200 caratteri per l'indirizzo
         binding.etAddressSearch.filters = arrayOf(InputFilter.LengthFilter(200))
 
-        // Carica MapFragment nel container
         childFragmentManager.beginTransaction()
             .replace(R.id.mapContainer, MapFragment())
             .commit()
@@ -62,6 +64,9 @@ class AddressSearchFragment : Fragment() {
         }
     }
 
+    /**
+     * Cerca un indirizzo utilizzando Google Geocoding API
+     */
     private fun searchAddress(address: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             val latLng = geocodeAddress(address)
@@ -76,6 +81,9 @@ class AddressSearchFragment : Fragment() {
         }
     }
 
+    /**
+     * Converte un indirizzo in coordinate geografiche tramite Google Geocoding API
+     */
     private suspend fun geocodeAddress(address: String): LatLng? = withContext(Dispatchers.IO) {
         try {
             val encodedAddress = URLEncoder.encode(address, "UTF-8")
@@ -100,6 +108,9 @@ class AddressSearchFragment : Fragment() {
         _binding = null
     }
 
+    /**
+     * Abilita o disabilita l'input dell'utente
+     */
     fun setInputEnabled(enabled: Boolean) {
         binding.etAddressSearch.isEnabled = enabled
         binding.btnSearchAddress.isEnabled = enabled
@@ -107,10 +118,16 @@ class AddressSearchFragment : Fragment() {
         binding.mapContainer.isFocusable = enabled
     }
 
+    /**
+     * Imposta il listener per quando viene selezionato un indirizzo
+     */
     fun setOnAddressSelectedListener(listener: (String, LatLng) -> Unit) {
         onAddressSelectedListener = listener
     }
 
+    /**
+     * Imposta il testo dell'indirizzo nell'input
+     */
     fun setAddressText(address: String) {
         binding.etAddressSearch.setText(address)
         binding.tvSelectedAddress.text = "Indirizzo selezionato: $address"
@@ -118,7 +135,6 @@ class AddressSearchFragment : Fragment() {
 
     /**
      * Ottiene la posizione corrente dell'utente e la converte in un indirizzo leggibile
-     * @param onLocationReady callback chiamato quando la posizione è pronta
      */
     fun getUserLocation(onLocationReady: (String, LatLng) -> Unit) {
         val fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -134,30 +150,22 @@ class AddressSearchFragment : Fragment() {
                     val geocoder = Geocoder(context, java.util.Locale.getDefault())
                     
                     try {
+                        @Suppress("DEPRECATION")
                         val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
                         val addressText = if (!addresses.isNullOrEmpty()) {
                             val address = addresses[0]
                             
-                            // Costruisci l'indirizzo pezzo per pezzo, controllando che ogni campo non sia null o vuoto
                             val addressParts = mutableListOf<String>()
                             
-                            // Numero civico e via
                             val street = listOfNotNull(
                                 address.thoroughfare?.takeIf { it.isNotBlank() },
                                 address.subThoroughfare?.takeIf { it.isNotBlank() }
                             ).joinToString(" ")
                             if (street.isNotBlank()) addressParts.add(street)
                             
-                            // Località
                             address.locality?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
-                            
-                            // Provincia/Stato
                             address.adminArea?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
-                            
-                            // CAP
                             address.postalCode?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
-                            
-                            // Paese
                             address.countryName?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
                             
                             if (addressParts.isNotEmpty()) {
@@ -176,7 +184,6 @@ class AddressSearchFragment : Fragment() {
                         onAddressSelectedListener?.invoke(addressText, latLng)
                         onLocationReady(addressText, latLng)
                     } catch (e: Exception) {
-                        // Fallback se il geocoding fallisce
                         val fallbackAddress = "Posizione: ${location.latitude}, ${location.longitude}"
                         binding.etAddressSearch.setText(fallbackAddress)
                         binding.tvSelectedAddress.text = "Indirizzo selezionato: $fallbackAddress"

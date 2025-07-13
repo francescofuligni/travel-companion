@@ -18,12 +18,18 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MarkerOptions
 
+/**
+ * Fragment per la visualizzazione di una mappa Google
+ * Gestisce la posizione dell'utente e la visualizzazione di marker
+ */
 class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    // Gestione richiesta permessi runtime
+    /**
+     * Launcher per la richiesta permessi di localizzazione
+     */
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -52,6 +58,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
     }
 
+    /**
+     * Callback chiamato quando la mappa è pronta
+     */
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         googleMap.uiSettings.isZoomControlsEnabled = true
@@ -64,6 +73,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Abilita la localizzazione dell'utente sulla mappa
+     */
     private fun enableUserLocation() {
         try {
             googleMap.isMyLocationEnabled = true
@@ -72,7 +84,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 requireContext(),
                 onSuccess = { currentLatLng ->
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
-                    // Add a marker at the current location
                     googleMap.addMarker(
                         MarkerOptions()
                             .position(currentLatLng)
@@ -96,6 +107,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Mostra una posizione specifica sulla mappa con un marker
+     */
     fun showLocation(latLng: LatLng, label: String) {
         if (::googleMap.isInitialized) {
             googleMap.clear()
