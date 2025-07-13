@@ -5,12 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.GridLayoutManager
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentTripDetailsBinding
 import com.example.travelcompanion.repository.TravelRepository
@@ -23,7 +20,6 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.location.LocationServices
 import com.example.travelcompanion.utils.LocationUtils
 import android.graphics.Color
 import java.text.SimpleDateFormat

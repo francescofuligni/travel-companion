@@ -19,6 +19,8 @@ import android.widget.Toast
 
 class NewTripCreateFragment : Fragment() {
 
+    private var selectedAddressText: String? = null
+
     private lateinit var foregroundServiceLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private lateinit var fineLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private var pendingTripData: PendingTripData? = null
@@ -85,42 +87,57 @@ class NewTripCreateFragment : Fragment() {
         datePicker.minDate = System.currentTimeMillis()
 
         val toggleGroup = binding.toggleTripType
-        val today = Calendar.getInstance()
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
+            val today = Calendar.getInstance()
+            val fragment = childFragmentManager.findFragmentById(R.id.addressSearchContainer) as? AddressSearchFragment
+
             when (checkedId) {
                 binding.btnLocal.id -> {
-                    binding.etDestination.isEnabled = true
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        fragment.setInputEnabled(true)
+                        fragment?.setInputEnabled(false)
+                        fragment?.getUserLocation { address, latLng ->
+                            selectedDestinationLatLng = latLng
+                            selectedAddressText = address
+                            fragment.setAddressText(address)
+                            updateBtnStartTripState()
+                        }
                     }
                     binding.datePickerEnd.isEnabled = false
-                    datePicker.updateDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
+                    binding.datePickerEnd.updateDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
+                    binding.datePickerEnd.minDate = today.timeInMillis
                 }
                 binding.btnOneDay.id -> {
-                    binding.etDestination.isEnabled = false
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        fragment.setInputEnabled(false)
+                        fragment?.setInputEnabled(true)
                     }
+
+                    val today = Calendar.getInstance()
                     binding.datePickerEnd.isEnabled = false
-                    datePicker.updateDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
-                    // Imposta valore simulato (sostituire con localizzazione reale)
-                    binding.etDestination.setText("Posizione corrente")
+                    binding.datePickerEnd.minDate = today.timeInMillis
+                    binding.datePickerEnd.updateDate(
+                        today.get(Calendar.YEAR),
+                        today.get(Calendar.MONTH),
+                        today.get(Calendar.DAY_OF_MONTH)
+                    )
                 }
                 binding.btnMultiDays.id -> {
-                    binding.etDestination.isEnabled = true
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        fragment.setInputEnabled(true)
+                        fragment?.setInputEnabled(true)
                     }
                     binding.datePickerEnd.isEnabled = true
+
+                    val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, 1) }
+                    binding.datePickerEnd.minDate = tomorrow.timeInMillis
+                    binding.datePickerEnd.updateDate(tomorrow.get(Calendar.YEAR), tomorrow.get(Calendar.MONTH), tomorrow.get(Calendar.DAY_OF_MONTH))
                 }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
             fragment.setOnAddressSelectedListener { address, latLng ->
-                binding.etDestination.setText(address)
                 selectedDestinationLatLng = latLng
+                selectedAddressText = address
                 updateBtnStartTripState()
             }
         }
@@ -128,13 +145,12 @@ class NewTripCreateFragment : Fragment() {
         binding.btnStartTrip.isEnabled = false
 
         binding.etTripTitle.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
-        binding.etDestination.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
 
         toggleGroup.addOnButtonCheckedListener { _, _, _ -> updateBtnStartTripState() }
 
         binding.btnStartTrip.setOnClickListener {
             val title = binding.etTripTitle.text.toString()
-            val destination = binding.etDestination.text.toString()
+            val destination = selectedAddressText ?: ""
             val type = when (binding.toggleTripType.checkedButtonId) {
                 binding.btnLocal.id -> "local"
                 binding.btnOneDay.id -> "one_day"
@@ -152,12 +168,12 @@ class NewTripCreateFragment : Fragment() {
     private fun updateBtnStartTripState() {
         val titleNotEmpty = binding.etTripTitle.text.toString().isNotBlank()
         val selectedType = binding.toggleTripType.checkedButtonId
-        val destinationRequired = selectedType != binding.btnLocal.id
-        val destinationNotEmpty = if (destinationRequired) {
-            binding.etDestination.text.toString().isNotBlank()
-        } else true
+        val addressSelected = selectedDestinationLatLng != null
 
-        binding.btnStartTrip.isEnabled = titleNotEmpty && destinationNotEmpty && selectedType != View.NO_ID
+        val dataValida = binding.datePickerEnd.year >= Calendar.getInstance().get(Calendar.YEAR) // semplice validazione
+
+        binding.btnStartTrip.isEnabled =
+            titleNotEmpty && selectedType != View.NO_ID && addressSelected && dataValida
     }
 
     private fun checkAndRequestPermissionsThenStartTrip(tripData: PendingTripData) {

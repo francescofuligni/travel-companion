@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.mytrips
+package com.example.travelcompanion.ui.tripdetails
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,21 +6,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import com.example.travelcompanion.database.models.TripPhase
-import com.example.travelcompanion.databinding.FragmentMyTripsDetailBinding
+import com.example.travelcompanion.databinding.FragmentTripPhasesDetailBinding
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class MyTripsDetailFragment @JvmOverloads constructor(
+class TripPhasesDetailFragment @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    private val binding: FragmentMyTripsDetailBinding
+    private val binding: FragmentTripPhasesDetailBinding
 
     init {
-        binding = FragmentMyTripsDetailBinding.inflate(LayoutInflater.from(context), this, true)
+        binding = FragmentTripPhasesDetailBinding.inflate(LayoutInflater.from(context), this, true)
         orientation = VERTICAL
     }
 

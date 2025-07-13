@@ -98,4 +98,51 @@ class AddressSearchFragment : Fragment() {
     fun setOnAddressSelectedListener(listener: (String, LatLng) -> Unit) {
         onAddressSelectedListener = listener
     }
+
+    fun setAddressText(address: String) {
+        binding.etAddressSearch.setText(address)
+        binding.tvSelectedAddress.text = "Indirizzo selezionato: $address"
+    }
+
+    fun getUserLocation(onLocationReady: (String, LatLng) -> Unit) {
+        val fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity())
+
+        val context = requireContext()
+        val permission = android.Manifest.permission.ACCESS_FINE_LOCATION
+        val permissionGranted = androidx.core.content.ContextCompat.checkSelfPermission(context, permission) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (permissionGranted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    val addressText = if (addresses != null && addresses.isNotEmpty()) {
+                        val address = addresses[0]
+                        listOfNotNull(
+                            address.thoroughfare,
+                            address.subThoroughfare,
+                            address.locality,
+                            address.adminArea,
+                            address.postalCode,
+                            address.countryName
+                        ).joinToString(", ")
+                    } else {
+                        "Indirizzo non disponibile"
+                    }
+
+                    binding.etAddressSearch.setText(addressText)
+                    binding.tvSelectedAddress.text = "Indirizzo selezionato: $addressText"
+                    val mapFragment = childFragmentManager.findFragmentById(com.example.travelcompanion.R.id.mapContainer) as? MapFragment
+                    mapFragment?.showLocation(latLng, addressText)
+                    onAddressSelectedListener?.invoke(addressText, latLng)
+                    onLocationReady(addressText, latLng)
+                } else {
+                    Toast.makeText(context, "Posizione non disponibile", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Permesso posizione non concesso", Toast.LENGTH_SHORT).show()
+        }
+    }
 }

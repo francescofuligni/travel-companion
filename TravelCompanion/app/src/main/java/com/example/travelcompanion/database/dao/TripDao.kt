@@ -1,4 +1,3 @@
-
 package com.example.travelcompanion.database.dao
 
 import androidx.room.Dao

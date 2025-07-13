@@ -9,6 +9,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.NavOptions
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.travelcompanion.databinding.ActivityMainBinding
@@ -53,22 +54,32 @@ class MainActivity : AppCompatActivity() {
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
+        // Collega NavigationView al NavController
+        navView.setupWithNavController(navController)
+
+        // Gestisci selezione e reselezione dei menu
         navView.setNavigationItemSelectedListener { item ->
-            val fragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
-            if (fragment is androidx.navigation.fragment.NavHostFragment) {
-                val current = fragment.childFragmentManager.fragments.firstOrNull()
-                if (item.itemId == R.id.nav_home && current is com.example.travelcompanion.ui.home.HomeFragment) {
-                    (current as com.example.travelcompanion.ui.home.HomeFragment).forceReload()
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    // Torna a Home e ricarica se già in Home
+                    val navOptions = NavOptions.Builder()
+                        .setPopUpTo(navController.graph.id, false)
+                        .build()
+                    navController.navigate(R.id.nav_home, null, navOptions)
+                    val hostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+                    if (hostFragment is androidx.navigation.fragment.NavHostFragment) {
+                        val current = hostFragment.childFragmentManager.fragments.firstOrNull()
+                        if (current is com.example.travelcompanion.ui.home.HomeFragment) current.forceReload()
+                    }
                     binding.drawerLayout.closeDrawers()
-                    return@setNavigationItemSelectedListener true
+                    true
+                }
+                else -> {
+                    val handled = androidx.navigation.ui.NavigationUI.onNavDestinationSelected(item, navController)
+                    if (handled) binding.drawerLayout.closeDrawers()
+                    handled
                 }
             }
-
-            val handled = androidx.navigation.ui.NavigationUI.onNavDestinationSelected(item, navController)
-            if (handled) {
-                binding.drawerLayout.closeDrawers()
-            }
-            true
         }
         
         loadUserProfilePicture(navView.getHeaderView(0))

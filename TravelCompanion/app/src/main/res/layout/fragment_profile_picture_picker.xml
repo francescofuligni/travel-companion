@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:text="Gallery"
+            android:text="Galleria"
             android:textSize="12sp" />
 
         <Button
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Camera"
+            android:text="Scatta Foto"
             android:textSize="12sp" />
 
     </LinearLayout>
