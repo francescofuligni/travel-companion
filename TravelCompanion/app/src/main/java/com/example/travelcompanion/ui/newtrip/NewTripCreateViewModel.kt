@@ -1,7 +1,6 @@
 package com.example.travelcompanion.ui.newtrip
 
 import android.app.Application
-import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
@@ -16,10 +15,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 
+/**
+ * ViewModel per la creazione di nuovi viaggi
+ * Gestisce la logica di business per l'avvio dei viaggi e del tracking GPS
+ */
 class NewTripCreateViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = TravelRepository.create(getApplication())
 
+    /**
+     * Avvia un nuovo viaggio con i parametri specificati
+     * Crea il viaggio nel database e avvia il servizio di tracking
+     */
     fun startTrip(
         title: String,
         destination: String,
@@ -30,37 +37,40 @@ class NewTripCreateViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             val appContext = getApplication<Application>()
 
-            // Compute auto-stop timestamp
             val plannedEndDateMillis = endDate.time
             val tripTypeEnum = TripType.fromString(type) ?: TripType.LOCAL
-            val actualEndDateMillis: Long = when (tripTypeEnum) {
-                TripType.MULTI_DAYS -> plannedEndDateMillis
-                TripType.ONE_DAY, TripType.LOCAL -> {
-                    val cal = Calendar.getInstance().apply { timeInMillis = System.currentTimeMillis() }
-                    cal.add(Calendar.DAY_OF_MONTH, 1)
-                    cal.set(Calendar.HOUR_OF_DAY, 0)
-                    cal.set(Calendar.MINUTE, 0)
-                    cal.set(Calendar.SECOND, 0)
-                    cal.set(Calendar.MILLISECOND, 0)
-                    cal.timeInMillis
-                }
-                else -> -1L
-            }
+            
+            val actualEndDateMillis: Long = calculateActualEndDate(tripTypeEnum, plannedEndDateMillis)
 
-            // Create trip in DB
             val tripId = withContext(Dispatchers.IO) {
                 createTripAndGetId(title, destination, type, endDate, destinationLatLng)
             }
 
-            // Start tracking service
-            val serviceIntent = Intent(appContext, TrackingService::class.java).apply {
-                putExtra("TRIP_ID", tripId.toString())
-                if (actualEndDateMillis > 0) putExtra("END_DATE", actualEndDateMillis)
-            }
-            ContextCompat.startForegroundService(appContext, serviceIntent)
+            startTrackingService(appContext, tripId, actualEndDateMillis)
         }
     }
 
+    /**
+     * Calcola la data di fine effettiva basandosi sul tipo di viaggio
+     */
+    private fun calculateActualEndDate(tripType: TripType, plannedEndDateMillis: Long): Long {
+        return when (tripType) {
+            TripType.MULTI_DAYS -> plannedEndDateMillis
+            TripType.ONE_DAY, TripType.LOCAL -> {
+                val cal = Calendar.getInstance().apply { timeInMillis = System.currentTimeMillis() }
+                cal.add(Calendar.DAY_OF_MONTH, 1)
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                cal.timeInMillis
+            }
+        }
+    }
+
+    /**
+     * Crea il viaggio nel database e restituisce l'ID
+     */
     private suspend fun createTripAndGetId(
         title: String,
         destination: String,
@@ -82,5 +92,16 @@ class NewTripCreateViewModel(application: Application) : AndroidViewModel(applic
             distance = 0.0
         )
         return repository.insertTrip(trip)
+    }
+
+    /**
+     * Avvia il servizio di tracking GPS per il viaggio
+     */
+    private fun startTrackingService(appContext: Application, tripId: Long, endDateMillis: Long) {
+        val serviceIntent = Intent(appContext, TrackingService::class.java).apply {
+            putExtra("TRIP_ID", tripId.toString())
+            if (endDateMillis > 0) putExtra("END_DATE", endDateMillis)
+        }
+        ContextCompat.startForegroundService(appContext, serviceIntent)
     }
 }
