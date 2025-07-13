@@ -81,8 +81,7 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupFilters() {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        
-        binding.filterButton.text = currentYear.toString()
+        binding.filterButton.text = getString(R.string.year_format, currentYear)
         viewModel.setYear(currentYear)
 
         binding.filterButton.setOnClickListener {
@@ -90,7 +89,7 @@ class MyTripsFragment : Fragment() {
                 minYear = currentYear - 150,
                 maxYear = currentYear
             ) { year ->
-                binding.filterButton.text = year.toString()
+                binding.filterButton.text = getString(R.string.year_format, year)
                 binding.ivClearFilter.visibility = View.VISIBLE
                 viewModel.setYear(year)
             }.show(childFragmentManager, "yearPicker")
@@ -119,7 +118,7 @@ class MyTripsFragment : Fragment() {
      * Cancella tutti i filtri attivi e ripristina lo stato iniziale
      */
     private fun clearAllFilters() {
-        binding.filterButton.text = "Filtra per anno"
+        binding.filterButton.text = getString(R.string.filter_by_year)
         binding.ivClearFilter.visibility = View.GONE
         binding.toggleTripType.clearChecked()
         viewModel.resetFilters()

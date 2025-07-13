@@ -52,4 +52,7 @@
     <string name="distance_format">Distanza: %1$.1f m</string>
     <string name="in_progress">In corso</string>
 
+    <string name="filter_by_year">Filtra per anno</string>
+    <string name="year_format">%1$d</string>
+
 </resources>
