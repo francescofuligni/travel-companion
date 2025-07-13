@@ -9,6 +9,10 @@ import androidx.core.app.NotificationCompat
 
 object NotificationUtils {
 
+    /*
+     * Sends a notification with customizable parameters
+     * Creates notification channel if it doesn't exist (API 26+)
+     */
     fun sendNotification(
         context: Context,
         channelId: String,
@@ -17,7 +21,7 @@ object NotificationUtils {
         message: String,
         notificationId: Int,
         iconRes: Int,
-        channelDescription: String = "Notifiche di Travel Companion", // TODO: Move to string resources
+        channelDescription: String = "Notifiche di Travel Companion",
         importance: Int = NotificationManager.IMPORTANCE_DEFAULT,
         largeIcon: android.graphics.Bitmap? = null,
         actions: List<NotificationCompat.Action> = emptyList()
@@ -25,7 +29,6 @@ object NotificationUtils {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create channel only if not already created
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val existingChannel = notificationManager.getNotificationChannel(channelId)
             if (existingChannel == null) {
@@ -39,7 +42,6 @@ object NotificationUtils {
             }
         }
 
-        // Create PendingIntent to open the app when notification is tapped
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         val pendingIntent = launchIntent?.let {
             androidx.core.app.TaskStackBuilder.create(context).run {
@@ -49,32 +51,32 @@ object NotificationUtils {
         }
 
         val builder = NotificationCompat.Builder(context, channelId)
-            .setContentTitle(title) // TODO: Move to string resources
-            .setContentText(message) // TODO: Move to string resources
+            .setContentTitle(title)
+            .setContentText(message)
             .setSmallIcon(iconRes)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        // Set large icon if provided
         largeIcon?.let { builder.setLargeIcon(it) }
-
-        // Add actions if provided
         actions.forEach { builder.addAction(it) }
 
         val notification = builder.build()
         notificationManager.notify(notificationId, notification)
     }
 
+    /*
+     * Sends a notification when user is near a point of interest
+     */
     fun sendPoiNotification(context: Context, poiName: String) {
         sendNotification(
             context = context,
             channelId = "poi_channel",
-            channelName = "Punti di Interesse", // TODO: Move to string resources
-            title = "Sei vicino a $poiName", // TODO: Move to string resources
-            message = "Dai un’occhiata!", // TODO: Move to string resources
+            channelName = "Punti di Interesse",
+            title = "Sei vicino a $poiName",
+            message = "Dai un'occhiata!",
             notificationId = poiName.hashCode(),
             iconRes = android.R.drawable.ic_dialog_map,
-            channelDescription = "Notifiche relative ai punti di interesse" // TODO: Move to string resources
+            channelDescription = "Notifiche relative ai punti di interesse"
         )
     }
 }
