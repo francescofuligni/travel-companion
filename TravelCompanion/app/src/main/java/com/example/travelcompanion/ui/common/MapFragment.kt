@@ -82,24 +82,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             LocationUtils.getCurrentLocation(
                 requireContext(),
-                onSuccess = { currentLatLng ->
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
-                    googleMap.addMarker(
-                        MarkerOptions()
-                            .position(currentLatLng)
-                            .title(getString(R.string.your_position))
-                            .snippet(getString(R.string.current_position))
-                    )
+                onSuccess = { location ->
+                    if (isAdded && context != null) {
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f))
+                        googleMap.addMarker(
+                            MarkerOptions()
+                                .position(location)
+                                .title(getString(R.string.your_position))
+                                .snippet(getString(R.string.current_position))
+                        )
+                    }
                 },
-                onFailure = { defaultLatLng ->
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
-                    googleMap.addMarker(
-                        MarkerOptions()
-                            .position(defaultLatLng)
-                            .title(getString(R.string.default_position))
-                            .snippet(getString(R.string.cannot_get_current_position))
-                    )
-                    Toast.makeText(requireContext(), getString(R.string.cannot_get_current_position), Toast.LENGTH_SHORT).show()
+                onFailure = { fallbackLocation ->
+                    if (isAdded && context != null) {
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(fallbackLocation, 10f))
+                        googleMap.addMarker(
+                            MarkerOptions()
+                                .position(fallbackLocation)
+                                .title(getString(R.string.default_position))
+                                .snippet(getString(R.string.cannot_get_current_position))
+                        )
+                        Toast.makeText(requireContext(), getString(R.string.cannot_get_current_position), Toast.LENGTH_SHORT).show()
+                    }
                 }
             )
         } catch (e: SecurityException) {
