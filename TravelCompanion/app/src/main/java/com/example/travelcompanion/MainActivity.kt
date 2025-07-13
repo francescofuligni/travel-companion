@@ -100,8 +100,26 @@ class MainActivity : AppCompatActivity() {
         
         loadUserProfilePicture()
         scheduleTripReminderWorker()
-        startLocationService()
-        registerHomeGeofenceIfSet()
+        checkAndStartLocationServices()
+    }
+
+    private fun checkAndStartLocationServices() {
+        val requiredPermissions = mutableListOf(
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.FOREGROUND_SERVICE
+        )
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            requiredPermissions.add(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+        val notGranted = requiredPermissions.filter {
+            checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (notGranted.isEmpty()) {
+            startLocationService()
+            registerHomeGeofenceIfSet()
+        } else {
+            requestPermissions(notGranted.toTypedArray(), 1010)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -174,5 +192,18 @@ class MainActivity : AppCompatActivity() {
                 ivProfile.setImageResource(R.drawable.missing_img)
             }
         }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1010) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }) {
+                startLocationService()
+                registerHomeGeofenceIfSet()
+            } else {
+                // Optional: mostra un Toast per spiegare che senza permessi alcune funzionalità non sono disponibili
+            }
+        }
+        // Gestisci anche POST_NOTIFICATIONS (requestCode == 1001) se necessario, come già fai.
     }
 }
