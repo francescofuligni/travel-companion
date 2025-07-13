@@ -1,29 +1,30 @@
 package com.example.travelcompanion.ui.common
 
-import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
+import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.travelcompanion.R
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 
-class AddNoteDialogFragment : DialogFragment() {
+/**
+ * Dialog per l'aggiunta o modifica di una nota
+ * Permette all'utente di inserire testo con limite massimo di caratteri
+ */
+class AddNoteDialog : DialogFragment() {
     
     private var listener: ((String) -> Unit)? = null
     private var existingNote: String? = null
     
+    /**
+     * Imposta il listener per quando viene aggiunta una nota
+     */
     fun setOnNoteAddedListener(listener: (String) -> Unit) {
         this.listener = listener
-    }
-    
-    fun setExistingNote(note: String?) {
-        existingNote = note
     }
     
     override fun onCreateView(
@@ -38,16 +39,25 @@ class AddNoteDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         
         val etNote = view.findViewById<TextInputEditText>(R.id.etNote)
+        etNote.filters = arrayOf(InputFilter.LengthFilter(500))
         val btnSave = view.findViewById<Button>(R.id.btnSaveNote)
         val btnCancel = view.findViewById<Button>(R.id.btnCancelNote)
         
         existingNote?.let { etNote.setText(it) }
         
         btnSave.setOnClickListener {
-            val note = etNote.text.toString().trim()
-            if (note.isNotEmpty()) {
-                listener?.invoke(note)
-                dismiss()
+            val noteText = etNote.text.toString()
+            when {
+                noteText.isBlank() -> {
+                    Toast.makeText(requireContext(), getString(R.string.error_empty), Toast.LENGTH_SHORT).show()
+                }
+                noteText.length > 500 -> {
+                    Toast.makeText(requireContext(), getString(R.string.error_too_long), Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    listener?.invoke(noteText.trim())
+                    dismiss()
+                }
             }
         }
         

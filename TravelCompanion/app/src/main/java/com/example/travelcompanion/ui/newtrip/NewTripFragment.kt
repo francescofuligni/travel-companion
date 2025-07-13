@@ -13,6 +13,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Fragment container per la sezione "Nuovo Viaggio"
+ * Determina dinamicamente se mostrare la creazione o l'avviso di viaggio attivo
+ */
 class NewTripFragment : Fragment() {
 
     override fun onCreateView(
@@ -24,7 +28,14 @@ class NewTripFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        loadAppropriateFragment()
+    }
 
+    /**
+     * Carica il fragment appropriato in base allo stato dei viaggi
+     * Se c'è un viaggio attivo mostra NewTripActiveFragment, altrimenti NewTripCreateFragment
+     */
+    private fun loadAppropriateFragment() {
         val repository = TravelRepository.create(requireContext())
 
         lifecycleScope.launch {

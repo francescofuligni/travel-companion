@@ -7,12 +7,16 @@ import com.example.travelcompanion.repository.TravelRepository
 
 /**
  * Factory per creare HomeActiveTripViewModel con le dipendenze necessarie
+ * Implementa il pattern Factory per l'iniezione delle dipendenze nel ViewModel
  */
 class HomeActiveTripViewModelFactory(
     private val application: Application,
     private val repository: TravelRepository
 ) : ViewModelProvider.Factory {
     
+    /**
+     * Crea un'istanza del ViewModel con le dipendenze corrette
+     */
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeActiveTripViewModel::class.java)) {

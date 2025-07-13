@@ -4,9 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.travelcompanion.repository.TravelRepository
 
-class MyTripsViewModelFactory(
-    private val repository: TravelRepository
-) : ViewModelProvider.Factory {
+/**
+ * Factory per creare MyTripsViewModel con le dipendenze necessarie
+ * Implementa il pattern Factory per l'iniezione del repository
+ */
+class MyTripsViewModelFactory(private val repository: TravelRepository) : ViewModelProvider.Factory {
+    
+    /**
+     * Crea un'istanza del ViewModel
+     */
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MyTripsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

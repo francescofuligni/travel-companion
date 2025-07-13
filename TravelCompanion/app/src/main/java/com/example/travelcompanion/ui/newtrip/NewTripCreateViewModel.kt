@@ -1,60 +1,107 @@
 package com.example.travelcompanion.ui.newtrip
 
+import android.app.Application
 import android.content.Intent
-import android.content.Context
 import androidx.core.content.ContextCompat
-
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
-import com.example.travelcompanion.database.models.Location
+import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.repository.TravelRepository
-import com.example.travelcompanion.utils.TrackingService
+import com.example.travelcompanion.services.TrackingService
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Date
+import kotlinx.coroutines.withContext
+import java.util.Calendar
 
-class NewTripCreateViewModel(
-    private val repository: TravelRepository,
-    private val context: Context
-) : ViewModel() {
+/**
+ * ViewModel per la creazione di nuovi viaggi
+ * Gestisce la logica di business per l'avvio dei viaggi e del tracking GPS
+ */
+class NewTripCreateViewModel(application: Application) : AndroidViewModel(application) {
 
-    fun startTrip(title: String, destination: String, type: String, endDate: Date, destinationLatLng: LatLng? = null) {
-        val startDate = System.currentTimeMillis()
-        val plannedEndDateMillis = endDate.time
+    private val repository = TravelRepository.create(getApplication())
 
+    /**
+     * Avvia un nuovo viaggio con i parametri specificati
+     * Crea il viaggio nel database e avvia il servizio di tracking
+     */
+    fun startTrip(
+        title: String,
+        destination: String,
+        type: String,
+        endDate: java.util.Date,
+        destinationLatLng: LatLng?
+    ) {
+        viewModelScope.launch {
+            val appContext = getApplication<Application>()
+
+            val plannedEndDateMillis = endDate.time
+            val tripTypeEnum = TripType.fromString(type) ?: TripType.LOCAL
+            
+            val actualEndDateMillis: Long = calculateActualEndDate(tripTypeEnum, plannedEndDateMillis)
+
+            val tripId = withContext(Dispatchers.IO) {
+                createTripAndGetId(title, destination, type, endDate, destinationLatLng)
+            }
+
+            startTrackingService(appContext, tripId, actualEndDateMillis)
+        }
+    }
+
+    /**
+     * Calcola la data di fine effettiva basandosi sul tipo di viaggio
+     */
+    private fun calculateActualEndDate(tripType: TripType, plannedEndDateMillis: Long): Long {
+        return when (tripType) {
+            TripType.MULTI_DAYS -> plannedEndDateMillis
+            TripType.ONE_DAY, TripType.LOCAL -> {
+                val cal = Calendar.getInstance().apply { timeInMillis = System.currentTimeMillis() }
+                cal.add(Calendar.DAY_OF_MONTH, 1)
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                cal.timeInMillis
+            }
+        }
+    }
+
+    /**
+     * Crea il viaggio nel database e restituisce l'ID
+     */
+    private suspend fun createTripAndGetId(
+        title: String,
+        destination: String,
+        type: String,
+        endDate: java.util.Date,
+        destinationLatLng: LatLng?
+    ): Long {
+        val now = System.currentTimeMillis()
+        val tripTypeEnum = TripType.fromString(type) ?: TripType.LOCAL
         val trip = Trip(
-            id = 0,
+            id = 0L,
             title = title,
             isActive = true,
-            type = TripType.fromString(type) ?: TripType.LOCAL, // fallback sicuro
+            type = tripTypeEnum,
             destination = destination,
-            startDate = startDate,
-            endDate = 0L, // Trip is active, no end date yet
+            startDate = now,
+            endDate = endDate.time,
             duration = 0.0,
             distance = 0.0
         )
+        return repository.insertTrip(trip)
+    }
 
-        viewModelScope.launch {
-            val tripId = repository.insertTrip(trip)
-            android.util.Log.d("NewTripCreateViewModel", "Trip created with ID: $tripId")
-
-            // Se è stato fornito un LatLng per la destinazione, salvalo come Location
-            destinationLatLng?.let { coords ->
-                val destinationLocation = Location(
-                    latitude = coords.latitude,
-                    longitude = coords.longitude
-                )
-                repository.insertLocation(destinationLocation)
-            }
-
-            val serviceIntent = Intent(context, TrackingService::class.java).apply {
-                putExtra("TRIP_ID", tripId.toString())
-                putExtra("END_DATE", plannedEndDateMillis)
-            }
-            ContextCompat.startForegroundService(context, serviceIntent)
-            android.util.Log.d("NewTripCreateViewModel", "Tracking service started for trip: $tripId")
+    /**
+     * Avvia il servizio di tracking GPS per il viaggio
+     */
+    private fun startTrackingService(appContext: Application, tripId: Long, endDateMillis: Long) {
+        val serviceIntent = Intent(appContext, TrackingService::class.java).apply {
+            putExtra("TRIP_ID", tripId.toString())
+            if (endDateMillis > 0) putExtra("END_DATE", endDateMillis)
         }
+        ContextCompat.startForegroundService(appContext, serviceIntent)
     }
 }

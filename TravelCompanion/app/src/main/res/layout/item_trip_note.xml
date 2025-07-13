@@ -18,7 +18,7 @@
             android:id="@+id/tvNoteContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Contenuto della nota"
+            android:text="@string/note_body"
             android:textSize="14sp"
             android:layout_marginBottom="4dp" />
 
@@ -26,7 +26,7 @@
             android:id="@+id/tvNoteTimestamp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="01/01/2023 12:00"
+            android:text="@string/date_mock"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray" />
 

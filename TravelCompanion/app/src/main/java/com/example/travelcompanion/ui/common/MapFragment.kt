@@ -1,13 +1,12 @@
-package com.example.travelcompanion.ui.home
+package com.example.travelcompanion.ui.common
 
-import android.content.pm.PackageManager
+import com.google.android.gms.maps.model.LatLng
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.travelcompanion.R
 import com.example.travelcompanion.utils.LocationUtils
@@ -17,22 +16,27 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
+/**
+ * Fragment per la visualizzazione di una mappa Google
+ * Gestisce la posizione dell'utente e la visualizzazione di marker
+ */
 class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    // Gestione richiesta permessi runtime
+    /**
+     * Launcher per la richiesta permessi di localizzazione
+     */
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             enableUserLocation()
         } else {
-            Toast.makeText(requireContext(), "Permesso posizione negato", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -54,10 +58,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
     }
 
+    /**
+     * Callback chiamato quando la mappa è pronta
+     */
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        googleMap?.uiSettings?.isZoomControlsEnabled = true
-        googleMap?.uiSettings?.isMyLocationButtonEnabled = true
+        googleMap.uiSettings.isZoomControlsEnabled = true
+        googleMap.uiSettings.isMyLocationButtonEnabled = true
 
         if (LocationUtils.hasLocationPermission(requireContext())) {
             enableUserLocation()
@@ -66,35 +73,52 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Abilita la localizzazione dell'utente sulla mappa
+     */
     private fun enableUserLocation() {
         try {
-            googleMap?.isMyLocationEnabled = true
-            
+            googleMap.isMyLocationEnabled = true
+
             LocationUtils.getCurrentLocation(
                 requireContext(),
                 onSuccess = { currentLatLng ->
-                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
-                    // Add a marker at the current location
-                    googleMap?.addMarker(
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f))
+                    googleMap.addMarker(
                         MarkerOptions()
                             .position(currentLatLng)
-                            .title("La tua posizione")
-                            .snippet("Posizione corrente")
+                            .title(getString(R.string.your_position))
+                            .snippet(getString(R.string.current_position))
                     )
                 },
                 onFailure = { defaultLatLng ->
-                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
-                    googleMap?.addMarker(
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 10f))
+                    googleMap.addMarker(
                         MarkerOptions()
                             .position(defaultLatLng)
-                            .title("Posizione di default")
-                            .snippet("Impossibile ottenere la posizione corrente")
+                            .title(getString(R.string.default_position))
+                            .snippet(getString(R.string.cannot_get_current_position))
                     )
-                    Toast.makeText(requireContext(), "Impossibile ottenere la posizione corrente", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.cannot_get_current_position), Toast.LENGTH_SHORT).show()
                 }
             )
         } catch (e: SecurityException) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * Mostra una posizione specifica sulla mappa con un marker
+     */
+    fun showLocation(latLng: LatLng, label: String) {
+        if (::googleMap.isInitialized) {
+            googleMap.clear()
+            googleMap.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(label)
+            )
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
         }
     }
 }

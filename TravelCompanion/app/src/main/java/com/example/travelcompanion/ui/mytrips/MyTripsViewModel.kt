@@ -7,25 +7,21 @@ import androidx.lifecycle.viewModelScope
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
-import com.example.travelcompanion.ui.mytrips.TripUiModel
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 /**
  * ViewModel per gestire i dati dei viaggi con filtri per anno e tipo
+ * Mantiene lo stato dei filtri e fornisce dati formattati per la UI
  */
 class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
     private val _trips = MutableLiveData<List<Trip>>()
-    val trips: LiveData<List<Trip>> = _trips
 
     private val _tripUiModels = MutableLiveData<List<TripUiModel>>()
     val tripUiModels: LiveData<List<TripUiModel>> = _tripUiModels
 
     private val _selectedYear = MutableLiveData<Int>()
-    val selectedYear: LiveData<Int> = _selectedYear
-
     private val _selectedType = MutableLiveData<TripType?>(null)
-    val selectedType: LiveData<TripType?> = _selectedType
 
     init {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
@@ -34,7 +30,7 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
     }
 
     /**
-     * Imposta l'anno per il filtro
+     * Imposta l'anno per il filtro e ricarica i dati
      */
     fun setYear(year: Int) {
         _selectedYear.value = year
@@ -42,7 +38,7 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
     }
 
     /**
-     * Imposta il tipo di viaggio per il filtro
+     * Imposta il tipo di viaggio per il filtro e ricarica i dati
      */
     fun setType(type: TripType?) {
         _selectedType.value = type
@@ -50,7 +46,7 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
     }
 
     /**
-     * Carica i viaggi applicando i filtri
+     * Carica i viaggi applicando i filtri attivi
      */
     private fun loadTrips(year: Int, type: TripType?) {
         viewModelScope.launch {
@@ -59,7 +55,7 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
                 else -> repository.getTripsByYearAndType(year, type)
             }
             _trips.value = trips
-            // Build UI models with first image URI for each trip
+
             val uiModels = trips.map { trip ->
                 val firstImage = repository.getFirstImageForTrip(trip.id)
                 TripUiModel(
@@ -79,7 +75,7 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
     }
 
     /**
-     * Resetta tutti i filtri
+     * Resetta tutti i filtri e torna alla vista di default
      */
     fun resetFilters() {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)

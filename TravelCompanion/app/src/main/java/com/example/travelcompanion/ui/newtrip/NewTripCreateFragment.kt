@@ -6,30 +6,38 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripCreateBinding
-import com.example.travelcompanion.database.TravelDatabase
-import com.example.travelcompanion.repository.TravelRepository
+import com.example.travelcompanion.ui.common.AddressSearchFragment
 import com.google.android.gms.maps.model.LatLng
 import java.util.Calendar
-
+import android.text.InputFilter
 import android.widget.Toast
 
+/**
+ * Fragment per la creazione di un nuovo viaggio
+ * Gestisce la configurazione di tipo, destinazione e data del viaggio
+ */
 class NewTripCreateFragment : Fragment() {
-    // Permission launchers
+
+    private var selectedAddressText: String? = null
+
     private lateinit var foregroundServiceLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private lateinit var fineLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private var pendingTripData: PendingTripData? = null
 
+    /**
+     * Classe per memorizzare i dati del viaggio in attesa di permessi
+     */
     data class PendingTripData(
         val title: String,
         val destination: String,
         val type: String,
         val endDate: java.util.Date,
-        val selectedDestinationLatLng: com.google.android.gms.maps.model.LatLng?
+        val selectedDestinationLatLng: LatLng?
     )
 
     private var _binding: FragmentNewTripCreateBinding? = null
@@ -48,138 +56,228 @@ class NewTripCreateFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Register permission launchers
+        super.onViewCreated(view, savedInstanceState)
+        
+        setupViewModel()
+        setupPermissionLaunchers()
+        setupViews()
+        setupTripTypeToggle()
+        setupAddressSearch()
+    }
+
+    /**
+     * Configura il ViewModel
+     */
+    private fun setupViewModel() {
+        val factory = NewTripCreateViewModelFactory(requireActivity().application)
+        viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
+    }
+
+    /**
+     * Configura i launcher per i permessi di localizzazione
+     */
+    private fun setupPermissionLaunchers() {
         foregroundServiceLocationPermissionLauncher = registerForActivityResult(
             androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             if (isGranted) {
-                // Now check fine location
                 pendingTripData?.let { requestFineLocationPermissionAndStartTrip(it) }
             } else {
                 Toast.makeText(requireContext(), "Permesso FOREGROUND_SERVICE_LOCATION negato", Toast.LENGTH_LONG).show()
                 pendingTripData = null
             }
         }
+
         fineLocationPermissionLauncher = registerForActivityResult(
             androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             if (isGranted) {
                 pendingTripData?.let {
                     viewModel.startTrip(it.title, it.destination, it.type, it.endDate, it.selectedDestinationLatLng)
-                    findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+                    findNavController().navigate(R.id.nav_home)
                 }
             } else {
                 Toast.makeText(requireContext(), "Permesso ACCESS_FINE_LOCATION negato", Toast.LENGTH_LONG).show()
             }
             pendingTripData = null
         }
-        super.onViewCreated(view, savedInstanceState)
+    }
 
-        val repository = TravelRepository.create(requireContext())
-        val factory = NewTripCreateVMFactory(repository, requireContext())
-        viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
-
-        // Imposta la data minima a oggi e mantiene la selezione di default
+    /**
+     * Configura le view base
+     */
+    private fun setupViews() {
+        binding.etTripTitle.filters = arrayOf(InputFilter.LengthFilter(100))
+        
         val datePicker = binding.datePickerEnd
         datePicker.minDate = System.currentTimeMillis()
-
-        // Gestione abilitazione/disabilitazione campi in base al tipo di viaggio
-        val toggleGroup = binding.toggleTripType
-        val today = Calendar.getInstance()
-        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-            when (checkedId) {
-                binding.btnLocal.id -> {
-                    binding.etDestination.isEnabled = false
-                    binding.addressSearchView.visibility = View.GONE
-                    binding.datePickerEnd.isEnabled = false
-                    binding.datePickerEnd.updateDate(
-                        today.get(Calendar.YEAR),
-                        today.get(Calendar.MONTH),
-                        today.get(Calendar.DAY_OF_MONTH)
-                    )
-                }
-                binding.btnOneDay.id -> {
-                    binding.etDestination.isEnabled = true
-                    binding.addressSearchView.visibility = View.VISIBLE
-                    binding.datePickerEnd.isEnabled = false
-                    binding.datePickerEnd.updateDate(
-                        today.get(Calendar.YEAR),
-                        today.get(Calendar.MONTH),
-                        today.get(Calendar.DAY_OF_MONTH)
-                    )
-                }
-                binding.btnMultiDays.id -> {
-                    binding.etDestination.isEnabled = true
-                    binding.addressSearchView.visibility = View.VISIBLE
-                    binding.datePickerEnd.isEnabled = true
-                }
-            }
-        }
-
-        // Setup address search listener
-        binding.addressSearchView.setOnAddressSelectedListener { address, latLng ->
-            binding.etDestination.setText(address)
-            selectedDestinationLatLng = latLng
-            updateBtnStartTripState()
-        }
-
+        
         binding.btnStartTrip.isEnabled = false
-
+        
         binding.etTripTitle.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
-        binding.etDestination.doOnTextChanged { _, _, _, _ -> updateBtnStartTripState() }
-
-        toggleGroup.addOnButtonCheckedListener { _, _, _ ->
-            updateBtnStartTripState()
-        }
-
+        
         binding.btnStartTrip.setOnClickListener {
-            val title = binding.etTripTitle.text.toString()
-            val destination = binding.etDestination.text.toString()
-            val type = when (binding.toggleTripType.checkedButtonId) {
-                binding.btnLocal.id -> "local"
-                binding.btnOneDay.id -> "one_day"
-                binding.btnMultiDays.id -> "multi_days"
-                else -> "unknown"
-            }
-            val calendar = Calendar.getInstance()
-            calendar.set(binding.datePickerEnd.year, binding.datePickerEnd.month, binding.datePickerEnd.dayOfMonth)
-            val endDate = calendar.time
-            val tripData = PendingTripData(title, destination, type, endDate, selectedDestinationLatLng)
-            checkAndRequestPermissionsThenStartTrip(tripData)
+            handleStartTripClick()
         }
     }
 
+    /**
+     * Configura il toggle per il tipo di viaggio
+     */
+    private fun setupTripTypeToggle() {
+        val toggleGroup = binding.toggleTripType
+        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            
+            val today = Calendar.getInstance()
+            val addressSearchFragment = childFragmentManager.findFragmentById(R.id.addressSearchContainer) as? AddressSearchFragment
+
+            when (checkedId) {
+                binding.btnLocal.id -> {
+                    setupLocalTrip(addressSearchFragment, today)
+                }
+                binding.btnOneDay.id -> {
+                    setupOneDayTrip(addressSearchFragment, today)
+                }
+                binding.btnMultiDays.id -> {
+                    setupMultiDaysTrip(addressSearchFragment)
+                }
+            }
+        }
+        
+        toggleGroup.addOnButtonCheckedListener { _, _, _ -> updateBtnStartTripState() }
+    }
+
+    /**
+     * Configura il fragment per la ricerca degli indirizzi
+     */
+    private fun setupAddressSearch() {
+        val fragment = AddressSearchFragment()
+        childFragmentManager.beginTransaction()
+            .replace(R.id.addressSearchContainer, fragment)
+            .commit()
+
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            fragment.setOnAddressSelectedListener { address, latLng ->
+                selectedDestinationLatLng = latLng
+                selectedAddressText = address
+                updateBtnStartTripState()
+            }
+        }
+    }
+
+    /**
+     * Configura il viaggio locale (usa posizione corrente)
+     */
+    private fun setupLocalTrip(addressSearchFragment: AddressSearchFragment?, today: Calendar) {
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            addressSearchFragment?.setInputEnabled(false)
+            addressSearchFragment?.getUserLocation { address, latLng ->
+                selectedDestinationLatLng = latLng
+                selectedAddressText = address
+                addressSearchFragment.setAddressText(address)
+                updateBtnStartTripState()
+            }
+        }
+        binding.datePickerEnd.isEnabled = false
+        binding.datePickerEnd.updateDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
+        binding.datePickerEnd.minDate = today.timeInMillis
+    }
+
+    /**
+     * Configura il viaggio di un giorno
+     */
+    private fun setupOneDayTrip(addressSearchFragment: AddressSearchFragment?, today: Calendar) {
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            addressSearchFragment?.setInputEnabled(true)
+        }
+
+        binding.datePickerEnd.isEnabled = false
+        binding.datePickerEnd.minDate = today.timeInMillis
+        binding.datePickerEnd.updateDate(
+            today.get(Calendar.YEAR),
+            today.get(Calendar.MONTH),
+            today.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    /**
+     * Configura il viaggio di più giorni
+     */
+    private fun setupMultiDaysTrip(addressSearchFragment: AddressSearchFragment?) {
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            addressSearchFragment?.setInputEnabled(true)
+        }
+        binding.datePickerEnd.isEnabled = true
+
+        val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, 1) }
+        binding.datePickerEnd.minDate = tomorrow.timeInMillis
+        binding.datePickerEnd.updateDate(tomorrow.get(Calendar.YEAR), tomorrow.get(Calendar.MONTH), tomorrow.get(Calendar.DAY_OF_MONTH))
+    }
+
+    /**
+     * Gestisce il click sul pulsante di avvio viaggio
+     */
+    private fun handleStartTripClick() {
+        val rawTitle = binding.etTripTitle.text.toString()
+        if (rawTitle.length > 100) {
+            Toast.makeText(requireContext(), getString(R.string.error_too_long), Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val title = rawTitle.trim()
+        val destination = selectedAddressText ?: ""
+        val type = when (binding.toggleTripType.checkedButtonId) {
+            binding.btnLocal.id -> "local"
+            binding.btnOneDay.id -> "one_day"
+            binding.btnMultiDays.id -> "multi_days"
+            else -> "unknown"
+        }
+        
+        val calendar = Calendar.getInstance()
+        calendar.set(binding.datePickerEnd.year, binding.datePickerEnd.month, binding.datePickerEnd.dayOfMonth)
+        val endDate = calendar.time
+        
+        val tripData = PendingTripData(title, destination, type, endDate, selectedDestinationLatLng)
+        checkAndRequestPermissionsThenStartTrip(tripData)
+    }
+
+    /**
+     * Aggiorna lo stato del pulsante di avvio viaggio
+     */
     private fun updateBtnStartTripState() {
         val titleNotEmpty = binding.etTripTitle.text.toString().isNotBlank()
         val selectedType = binding.toggleTripType.checkedButtonId
-        val destinationRequired = selectedType != binding.btnLocal.id
-        val destinationNotEmpty = if (destinationRequired) {
-            binding.etDestination.text.toString().isNotBlank()
-        } else true
+        val addressSelected = selectedDestinationLatLng != null
+        val dataValida = binding.datePickerEnd.year >= Calendar.getInstance().get(Calendar.YEAR)
 
-        binding.btnStartTrip.isEnabled = titleNotEmpty
-            && destinationNotEmpty
-            && selectedType != View.NO_ID
+        binding.btnStartTrip.isEnabled =
+            titleNotEmpty && selectedType != View.NO_ID && addressSelected && dataValida
     }
 
+    /**
+     * Controlla e richiede i permessi necessari prima di avviare il viaggio
+     */
     private fun checkAndRequestPermissionsThenStartTrip(tripData: PendingTripData) {
-        // Check FOREGROUND_SERVICE_LOCATION
-        val foregroundServiceLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(),
-            android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val isAndroid14OrAbove = android.os.Build.VERSION.SDK_INT >= 34
+        val foregroundServiceLocationGranted = if (isAndroid14OrAbove) {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                requireContext(), android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(),
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (foregroundServiceLocationGranted && fineLocationGranted) {
             viewModel.startTrip(tripData.title, tripData.destination, tripData.type, tripData.endDate, tripData.selectedDestinationLatLng)
-            findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+            findNavController().navigate(R.id.nav_home)
         } else {
             pendingTripData = tripData
-            if (!foregroundServiceLocationGranted) {
+            if (isAndroid14OrAbove && !foregroundServiceLocationGranted) {
                 foregroundServiceLocationPermissionLauncher.launch(android.Manifest.permission.FOREGROUND_SERVICE_LOCATION)
             } else {
                 requestFineLocationPermissionAndStartTrip(tripData)
@@ -187,14 +285,17 @@ class NewTripCreateFragment : Fragment() {
         }
     }
 
+    /**
+     * Richiede il permesso di localizzazione fine e avvia il viaggio
+     */
     private fun requestFineLocationPermissionAndStartTrip(tripData: PendingTripData) {
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(),
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
         if (fineLocationGranted) {
             viewModel.startTrip(tripData.title, tripData.destination, tripData.type, tripData.endDate, tripData.selectedDestinationLatLng)
-            findNavController().navigate(R.id.action_nav_new_trip_active_to_nav_home)
+            findNavController().navigate(R.id.nav_home)
             pendingTripData = null
         } else {
             fineLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)

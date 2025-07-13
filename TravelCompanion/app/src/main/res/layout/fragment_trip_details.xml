@@ -10,7 +10,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Trip Header -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -28,7 +27,7 @@
                     android:id="@+id/tvTripTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nome del Viaggio"
+                    android:text="@string/trip_title"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
@@ -37,7 +36,7 @@
                     android:id="@+id/tvTripDestination"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Destinazione"
+                    android:text="@string/dest"
                     android:textSize="18sp"
                     android:layout_marginBottom="8dp" />
 
@@ -45,28 +44,28 @@
                     android:id="@+id/tvTripStartDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Inizio: --/--/----"
+                    android:text="@string/start_date"
                     android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tvTripEndDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Fine: --/--/----"
+                    android:text="@string/end_date"
                     android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tvTripDistance"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Distanza: 0.0 km"
+                    android:text="@string/dist"
                     android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tvTripDuration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Durata: 00:00"
+                    android:text="@string/dur"
                     android:textSize="16sp" />
 
             </LinearLayout>
@@ -107,7 +106,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Immagini del Viaggio"
+                    android:text="@string/trip_images"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
@@ -123,7 +122,7 @@
                     android:id="@+id/tvNoImages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nessuna immagine disponibile"
+                    android:text="@string/no_img"
                     android:textSize="14sp"
                     android:textColor="@android:color/darker_gray"
                     android:visibility="gone"
@@ -151,7 +150,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Note del Viaggio"
+                    android:text="@string/trip_notes"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
@@ -166,7 +165,7 @@
                     android:id="@+id/tvNoNotes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nessuna nota disponibile"
+                    android:text="@string/no_notes"
                     android:textSize="14sp"
                     android:textColor="@android:color/darker_gray"
                     android:visibility="gone"

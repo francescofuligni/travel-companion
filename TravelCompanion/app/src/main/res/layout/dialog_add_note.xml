@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Aggiungi una nota"
+        android:text="@string/add_note_title"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />
@@ -22,7 +22,7 @@
             android:id="@+id/etNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Scrivi la tua nota qui..."
+            android:hint="@string/add_note_hint"
             android:inputType="textMultiLine"
             android:lines="4"
             android:maxLines="6" />
@@ -39,7 +39,7 @@
             android:id="@+id/btnCancelNote"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Annulla"
+            android:text="@string/cancel"
             android:layout_marginEnd="8dp"
             style="@style/Widget.MaterialComponents.Button.TextButton" />
 
@@ -47,8 +47,8 @@
             android:id="@+id/btnSaveNote"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Salva" />
+            android:text="@string/save"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
 
     </LinearLayout>
-
 </LinearLayout>
