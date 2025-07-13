@@ -3,13 +3,14 @@ package com.example.travelcompanion.services
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.utils.NotificationUtils
 import kotlinx.coroutines.runBlocking
 
 class NotificationRemindWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     override fun doWork(): Result = runBlocking {
-        val repo = com.example.travelcompanion.repository.TravelRepository.create(applicationContext)
+        val repo = TravelRepository.create(applicationContext)
         val millis = repo.getLastTripTimestamp()
 
         if (millis != null) {

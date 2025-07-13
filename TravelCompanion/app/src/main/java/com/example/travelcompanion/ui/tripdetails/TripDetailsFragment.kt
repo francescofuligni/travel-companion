@@ -22,6 +22,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
 import com.example.travelcompanion.utils.LocationUtils
 import android.graphics.Color
+import com.example.travelcompanion.database.models.Image
+import com.example.travelcompanion.database.models.Note
+import com.example.travelcompanion.database.models.Trip
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -83,7 +86,7 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun updateMapWithTripData(trip: com.example.travelcompanion.database.models.Trip) {
+    private fun updateMapWithTripData(trip: Trip) {
         googleMap?.let { map ->
             map.clear()
             
@@ -206,7 +209,7 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun updateNotesSection(notes: List<com.example.travelcompanion.database.models.Note>) {
+    private fun updateNotesSection(notes: List<Note>) {
         if (notes.isEmpty()) {
             binding.tvNoNotes.visibility = View.VISIBLE
             binding.rvTripNotes.visibility = View.GONE
@@ -217,7 +220,7 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun updateImagesSection(images: List<com.example.travelcompanion.database.models.Image>) {
+    private fun updateImagesSection(images: List<Image>) {
         if (images.isEmpty()) {
             binding.tvNoImages.visibility = View.VISIBLE
             binding.rvTripImages.visibility = View.GONE

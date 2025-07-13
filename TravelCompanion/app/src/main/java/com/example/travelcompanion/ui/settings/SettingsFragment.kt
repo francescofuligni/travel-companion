@@ -75,15 +75,19 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         setupProfilePicturePicker()
         setupMap()
         setupViews()
+        
+        // IMPORTANTE: Osserva ViewModel PRIMA di caricare i dati
         observeViewModel()
-
+        
         // Imposta listeners per validazione
         binding.etUsername.addTextChangedListener { updateSaveButtonState() }
         binding.etEmail.addTextChangedListener { updateSaveButtonState() }
-        // Chiamata iniziale
-        updateSaveButtonState()
-
+        
+        // Carica i dati DOPO aver impostato gli observer
         viewModel.loadUserData()
+        
+        // Chiamata iniziale solo dopo che i dati sono stati caricati
+        // (verrà chiamata automaticamente dall'observer di homeLocation)
     }
 
     private fun setupProfilePicturePicker() {
@@ -213,26 +217,32 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Cerca un indirizzo e aggiorna la posizione home
+     * @param address indirizzo da cercare
+     */
     private fun searchAddress(address: String) {
         lifecycleScope.launch {
             val latLng = geocodeAddress(address)
             if (latLng != null) {
-                selectedLocation = latLng
-                googleMap?.clear()
-                googleMap?.addMarker(
-                    MarkerOptions()
-                        .position(latLng)
-                        .title("Casa")
-                )
-                googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
-                binding.tvSelectedCoordinates.text =
-                    "Coordinate selezionate: ${String.format("%.6f", latLng.latitude)}, ${String.format("%.6f", latLng.longitude)}"
+                // Aggiorna il ViewModel con la nuova posizione
+                viewModel.setHomeLocation(latLng)
+
+                // Aggiorna la mappa (questo verrà fatto automaticamente dall'observer)
+                googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+
+                Toast.makeText(requireContext(), "Indirizzo trovato e selezionato", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Indirizzo non trovato", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    /**
+     * Geocodifica un indirizzo in coordinate geografiche
+     * @param address indirizzo da geocodificare
+     * @return coordinate LatLng o null se non trovato
+     */
     private suspend fun geocodeAddress(address: String): LatLng? = withContext(Dispatchers.IO) {
         try {
             val encodedAddress = URLEncoder.encode(address, "UTF-8")
@@ -249,7 +259,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 return@withContext LatLng(lat, lng)
             }
         } catch (e: Exception) {
-            // Impossibile trovare indirizzo
+            e.printStackTrace()
         }
         return@withContext null
     }

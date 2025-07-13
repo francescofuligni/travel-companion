@@ -18,6 +18,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.asLiveData
+import com.example.travelcompanion.database.TravelDatabase
+import com.example.travelcompanion.database.models.TripPhaseWithLocation
 import kotlinx.coroutines.Dispatchers
 
 class TravelRepository(
@@ -131,7 +133,7 @@ class TravelRepository(
         return tripPhaseDao.getPhasesByTripId(tripId).asLiveData()
     }
 
-    fun getTripPhasesWithLocations(tripId: Long): LiveData<List<com.example.travelcompanion.database.models.TripPhaseWithLocation>> {
+    fun getTripPhasesWithLocations(tripId: Long): LiveData<List<TripPhaseWithLocation>> {
         android.util.Log.d(
             "TravelRepository",
             "getTripPhasesWithLocations called for tripId: $tripId"
@@ -208,8 +210,7 @@ class TravelRepository(
 
     companion object {
         fun create(context: Context): TravelRepository {
-            val database =
-                com.example.travelcompanion.database.TravelDatabase.getDatabase(context)
+            val database = TravelDatabase.getDatabase(context)
             return TravelRepository(
                 userDao = database.userDao(),
                 locationDao = database.locationDao(),

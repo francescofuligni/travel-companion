@@ -7,7 +7,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.travelcompanion.database.models.Location
 import com.example.travelcompanion.database.models.Trip
+import com.example.travelcompanion.database.models.TripPhase
 import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.services.TrackingService
 import kotlinx.coroutines.launch
@@ -27,7 +29,7 @@ class HomeActiveTripViewModel(
         viewModelScope.launch {
             try {
                 // 1. Salva la location
-                val location = com.example.travelcompanion.database.models.Location(latitude = latitude, longitude = longitude)
+                val location = Location(latitude = latitude, longitude = longitude)
                 val locationId = repository.insertLocation(location)
 
                 // 2. Calcola phaseOrder
@@ -35,7 +37,7 @@ class HomeActiveTripViewModel(
                 val phaseOrder = (lastPhase?.phaseOrder ?: 0) + 1
 
                 // 3. Salva la fase
-                val phase = com.example.travelcompanion.database.models.TripPhase(
+                val phase = TripPhase(
                     tripId = tripId,
                     locationId = locationId,
                     phaseOrder = phaseOrder,
@@ -122,7 +124,7 @@ class HomeActiveTripViewModel(
      * Ottiene le fasi del viaggio per ID
      * @param tripId ID del viaggio
      */
-    fun getTripPhases(tripId: Long): LiveData<List<com.example.travelcompanion.database.models.TripPhase>> {
+    fun getTripPhases(tripId: Long): LiveData<List<TripPhase>> {
         return repository.getTripPhases(tripId)
     }
     
@@ -130,7 +132,7 @@ class HomeActiveTripViewModel(
      * Ottiene una location per ID
      * @param locationId ID della location
      */
-    fun getLocationById(locationId: Long): LiveData<com.example.travelcompanion.database.models.Location?> {
+    fun getLocationById(locationId: Long): LiveData<Location?> {
         return repository.getLocationByIdLiveData(locationId)
     }
 

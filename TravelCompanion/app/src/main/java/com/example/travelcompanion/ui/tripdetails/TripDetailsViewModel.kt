@@ -10,6 +10,7 @@ import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripPhase
 import com.example.travelcompanion.database.models.Note
 import com.example.travelcompanion.database.models.Image
+import com.example.travelcompanion.database.models.TripPhaseWithLocation
 import com.example.travelcompanion.repository.TravelRepository
 import kotlinx.coroutines.launch
 
@@ -28,7 +29,7 @@ class TripDetailsViewModel(
         repository.getTripPhases(tripId)
     }
 
-    val tripPhasesWithLocations: LiveData<List<com.example.travelcompanion.database.models.TripPhaseWithLocation>> = _tripId.switchMap { tripId ->
+    val tripPhasesWithLocations: LiveData<List<TripPhaseWithLocation>> = _tripId.switchMap { tripId ->
         Log.d("TripDetailsViewModel", "Loading phases with locations for trip ID: $tripId")
         repository.getTripPhasesWithLocations(tripId)
     }

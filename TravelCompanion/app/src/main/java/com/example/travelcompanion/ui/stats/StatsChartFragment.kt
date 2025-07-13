@@ -63,7 +63,7 @@ class StatsChartFragment : Fragment() {
                 tripsData.add(tripsInMonth.size.toFloat())
 
                 // Somma le distanze (assumendo campo `distance` su Trip)
-                val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat()
+                val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat()/1000
                 kmData.add(distanceSum)
             }
 

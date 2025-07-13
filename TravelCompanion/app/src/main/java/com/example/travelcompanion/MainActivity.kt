@@ -17,6 +17,8 @@ import android.widget.ImageView
 import com.example.travelcompanion.database.TravelDatabase
 import com.bumptech.glide.Glide
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.NavigationUI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
@@ -26,19 +28,27 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import java.util.concurrent.TimeUnit
 import com.example.travelcompanion.services.NotificationRemindWorker
 import com.example.travelcompanion.services.HomeGeofenceService
+import com.example.travelcompanion.services.LocationUpdatesService
+import com.example.travelcompanion.ui.home.HomeFragment
+import com.example.travelcompanion.utils.NotificationUtils
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setSupportActionBar(binding.appBarMain.toolbar)
+        // devo chiedere il pemesso
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
+        }
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -73,15 +83,15 @@ class MainActivity : AppCompatActivity() {
                         .build()
                     navController.navigate(R.id.nav_home, null, navOptions)
                     val hostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
-                    if (hostFragment is androidx.navigation.fragment.NavHostFragment) {
+                    if (hostFragment is NavHostFragment) {
                         val current = hostFragment.childFragmentManager.fragments.firstOrNull()
-                        if (current is com.example.travelcompanion.ui.home.HomeFragment) current.forceReload()
+                        if (current is HomeFragment) current.forceReload()
                     }
                     binding.drawerLayout.closeDrawers()
                     true
                 }
                 else -> {
-                    val handled = androidx.navigation.ui.NavigationUI.onNavDestinationSelected(item, navController)
+                    val handled = NavigationUI.onNavDestinationSelected(item, navController)
                     if (handled) binding.drawerLayout.closeDrawers()
                     handled
                 }
@@ -118,7 +128,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startLocationService() {
-        val locationServiceIntent = Intent(this, com.example.travelcompanion.services.LocationUpdatesService::class.java)
+        val locationServiceIntent = Intent(this, LocationUpdatesService::class.java)
         startService(locationServiceIntent)
     }
 

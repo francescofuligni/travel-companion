@@ -42,7 +42,7 @@ class AddressSearchFragment : Fragment() {
 
         // Carica MapFragment nel container
         childFragmentManager.beginTransaction()
-            .replace(com.example.travelcompanion.R.id.mapContainer, MapFragment())
+            .replace(R.id.mapContainer, MapFragment())
             .commit()
 
         binding.btnSearchAddress.setOnClickListener {
@@ -67,7 +67,7 @@ class AddressSearchFragment : Fragment() {
             if (latLng != null) {
                 binding.tvSelectedAddress.text = "Indirizzo selezionato: $address"
                 onAddressSelectedListener?.invoke(address, latLng)
-                val mapFragment = childFragmentManager.findFragmentById(com.example.travelcompanion.R.id.mapContainer) as? MapFragment
+                val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
                 mapFragment?.showLocation(latLng, address)
             } else {
                 Toast.makeText(requireContext(), "Indirizzo non trovato", Toast.LENGTH_SHORT).show()
@@ -115,6 +115,10 @@ class AddressSearchFragment : Fragment() {
         binding.tvSelectedAddress.text = "Indirizzo selezionato: $address"
     }
 
+    /**
+     * Ottiene la posizione corrente dell'utente e la converte in un indirizzo leggibile
+     * @param onLocationReady callback chiamato quando la posizione è pronta
+     */
     fun getUserLocation(onLocationReady: (String, LatLng) -> Unit) {
         val fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity())
 
@@ -127,30 +131,64 @@ class AddressSearchFragment : Fragment() {
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
-                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                    val addressText = if (!addresses.isNullOrEmpty()) {
-                        val address = addresses[0]
-                        listOfNotNull(
-                            address.thoroughfare,
-                            address.subThoroughfare,
-                            address.locality,
-                            address.adminArea,
-                            address.postalCode,
-                            address.countryName
-                        ).joinToString(", ")
-                    } else {
-                        "Indirizzo non disponibile"
-                    }
+                    
+                    try {
+                        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                        val addressText = if (!addresses.isNullOrEmpty()) {
+                            val address = addresses[0]
+                            
+                            // Costruisci l'indirizzo pezzo per pezzo, controllando che ogni campo non sia null o vuoto
+                            val addressParts = mutableListOf<String>()
+                            
+                            // Numero civico e via
+                            val street = listOfNotNull(
+                                address.thoroughfare?.takeIf { it.isNotBlank() },
+                                address.subThoroughfare?.takeIf { it.isNotBlank() }
+                            ).joinToString(" ")
+                            if (street.isNotBlank()) addressParts.add(street)
+                            
+                            // Località
+                            address.locality?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
+                            
+                            // Provincia/Stato
+                            address.adminArea?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
+                            
+                            // CAP
+                            address.postalCode?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
+                            
+                            // Paese
+                            address.countryName?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
+                            
+                            if (addressParts.isNotEmpty()) {
+                                addressParts.joinToString(", ")
+                            } else {
+                                "Posizione: ${location.latitude}, ${location.longitude}"
+                            }
+                        } else {
+                            "Posizione: ${location.latitude}, ${location.longitude}"
+                        }
 
-                    binding.etAddressSearch.setText(addressText)
-                    binding.tvSelectedAddress.text = "Indirizzo selezionato: $addressText"
-                    val mapFragment = childFragmentManager.findFragmentById(com.example.travelcompanion.R.id.mapContainer) as? MapFragment
-                    mapFragment?.showLocation(latLng, addressText)
-                    onAddressSelectedListener?.invoke(addressText, latLng)
-                    onLocationReady(addressText, latLng)
+                        binding.etAddressSearch.setText(addressText)
+                        binding.tvSelectedAddress.text = "Indirizzo selezionato: $addressText"
+                        val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
+                        mapFragment?.showLocation(latLng, addressText)
+                        onAddressSelectedListener?.invoke(addressText, latLng)
+                        onLocationReady(addressText, latLng)
+                    } catch (e: Exception) {
+                        // Fallback se il geocoding fallisce
+                        val fallbackAddress = "Posizione: ${location.latitude}, ${location.longitude}"
+                        binding.etAddressSearch.setText(fallbackAddress)
+                        binding.tvSelectedAddress.text = "Indirizzo selezionato: $fallbackAddress"
+                        val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
+                        mapFragment?.showLocation(latLng, fallbackAddress)
+                        onAddressSelectedListener?.invoke(fallbackAddress, latLng)
+                        onLocationReady(fallbackAddress, latLng)
+                    }
                 } else {
                     Toast.makeText(context, "Posizione non disponibile", Toast.LENGTH_SHORT).show()
                 }
+            }.addOnFailureListener { exception ->
+                Toast.makeText(context, "Errore nel recupero della posizione: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(context, "Permesso posizione non concesso", Toast.LENGTH_SHORT).show()

@@ -44,6 +44,9 @@ import android.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import androidx.core.app.ActivityCompat
+import com.example.travelcompanion.database.models.Location
+import com.example.travelcompanion.database.models.Trip
+import com.example.travelcompanion.database.models.TripPhase
 
 /**
  * Fragment che mostra i dettagli di un viaggio attivo in corso
@@ -191,16 +194,16 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     /**
      * Aggiorna la mappa con i dati del viaggio
      */
-    private fun updateMapWithTripData(trip: com.example.travelcompanion.database.models.Trip?) {
+    private fun updateMapWithTripData(trip: Trip?) {
         if (trip == null) return
         googleMap?.let { map ->
             map.clear()
             // Carica le fasi del viaggio per ottenere le coordinate
             viewModel.getTripPhases(trip.id).observe(viewLifecycleOwner) { phases ->
                 if (phases.isNotEmpty()) {
-                    val startPhase = phases.first()
-                    viewModel.getLocationById(startPhase.locationId).observe(viewLifecycleOwner) { startLocation ->
-                        startLocation?.let { location ->
+                    val startPhase:TripPhase = phases.first()
+                    viewModel.getLocationById(startPhase.locationId ).observe(viewLifecycleOwner) { startLocation->
+                        startLocation?.let { location  ->
                             val startLatLng = LatLng(location.latitude, location.longitude)
                             map.addMarker(
                                 MarkerOptions()
@@ -323,7 +326,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     /**
      * Aggiorna la UI con i dati del viaggio
      */
-    private fun updateUI(trip: com.example.travelcompanion.database.models.Trip?) {
+    private fun updateUI(trip: Trip?) {
         if (trip == null) return
         
         view?.let { view ->
