@@ -14,8 +14,8 @@
 
     <ImageView
         android:id="@+id/user_photo"
-        android:layout_width="146dp"
-        android:layout_height="148dp"
+        android:layout_width="126dp"
+        android:layout_height="124dp"
         android:contentDescription="@string/nav_header_desc"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:scaleType="centerCrop"

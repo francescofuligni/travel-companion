@@ -26,4 +26,7 @@
     <string name="clear_filter">Azzera filtro</string>
     <string name="profile_image_placeholder">Immagine profilo</string>
     <string name="trip_title_hint">Nome del viaggio</string>
+    <string name="error_too_long">Hai inserito troppi caratteri</string>
+    <string name="error_empty">Il campo non può essere vuoto</string>
+    <string name="error_invalid_email">Inserisci un indirizzo email valido\n</string>
 </resources>

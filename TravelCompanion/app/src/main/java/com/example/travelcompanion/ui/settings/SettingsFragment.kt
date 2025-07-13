@@ -29,6 +29,9 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.net.URL
+import android.util.Patterns
+import androidx.core.widget.addTextChangedListener
+import com.example.travelcompanion.R
 
 class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentSettingsBinding? = null
@@ -73,6 +76,12 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         setupMap()
         setupViews()
         observeViewModel()
+
+        // Imposta listeners per validazione
+        binding.etUsername.addTextChangedListener { updateSaveButtonState() }
+        binding.etEmail.addTextChangedListener { updateSaveButtonState() }
+        // Chiamata iniziale
+        updateSaveButtonState()
 
         viewModel.loadUserData()
     }
@@ -147,6 +156,13 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         binding.btnSaveSettings.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
             val email = binding.etEmail.text.toString().trim()
+
+            // Validazione email
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(requireContext(), getString(R.string.error_invalid_email), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val homeLocation = viewModel.homeLocation.value
             viewModel.saveUser(username, email, homeLocation, currentProfilePictureUri)
         }
@@ -182,6 +198,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 binding.tvSelectedCoordinates.text = "Nessuna posizione selezionata"
                 googleMap?.clear()
             }
+            updateSaveButtonState()
         }
 
         viewModel.profilePictureUri.observe(viewLifecycleOwner) { uri ->
@@ -235,6 +252,15 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
             // Impossibile trovare indirizzo
         }
         return@withContext null
+    }
+
+    /** Abilita/disabilita il bottone Salva in base alle condizioni */
+    private fun updateSaveButtonState() {
+        val usernameValid = binding.etUsername.text.toString().trim().isNotEmpty()
+        val emailText = binding.etEmail.text.toString().trim()
+        val emailValid = Patterns.EMAIL_ADDRESS.matcher(emailText).matches()
+        val addressValid = viewModel.homeLocation.value != null
+        binding.btnSaveSettings.isEnabled = usernameValid && emailValid && addressValid
     }
 
     override fun onDestroyView() {

@@ -4,6 +4,7 @@ import com.example.travelcompanion.databinding.FragmentAddressSearchBinding
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
+import com.example.travelcompanion.R
 import androidx.lifecycle.lifecycleScope
 import com.example.travelcompanion.BuildConfig
 import com.google.android.gms.maps.model.LatLng
@@ -16,6 +17,7 @@ import java.net.URLEncoder
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.ViewGroup
+import android.text.InputFilter
 
 class AddressSearchFragment : Fragment() {
 
@@ -35,17 +37,26 @@ class AddressSearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Limite massimo di 200 caratteri per l'indirizzo
+        binding.etAddressSearch.filters = arrayOf(InputFilter.LengthFilter(200))
+
         // Carica MapFragment nel container
         childFragmentManager.beginTransaction()
             .replace(com.example.travelcompanion.R.id.mapContainer, MapFragment())
             .commit()
 
         binding.btnSearchAddress.setOnClickListener {
-            val address = binding.etAddressSearch.text.toString().trim()
-            if (address.isNotEmpty()) {
-                searchAddress(address)
-            } else {
-                Toast.makeText(requireContext(), "Inserisci un indirizzo", Toast.LENGTH_SHORT).show()
+            val raw = binding.etAddressSearch.text.toString()
+            when {
+                raw.length > 200 -> {
+                    Toast.makeText(requireContext(), getString(R.string.error_too_long), Toast.LENGTH_SHORT).show()
+                }
+                raw.trim().isEmpty() -> {
+                    Toast.makeText(requireContext(), "Inserisci un indirizzo", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    searchAddress(raw.trim())
+                }
             }
         }
     }

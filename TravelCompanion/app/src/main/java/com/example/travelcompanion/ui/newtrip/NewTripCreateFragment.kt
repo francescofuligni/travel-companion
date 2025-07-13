@@ -15,6 +15,7 @@ import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.ui.common.AddressSearchFragment
 import com.google.android.gms.maps.model.LatLng
 import java.util.Calendar
+import android.text.InputFilter
 import android.widget.Toast
 
 class NewTripCreateFragment : Fragment() {
@@ -49,6 +50,8 @@ class NewTripCreateFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // Limite massimo di 100 caratteri per il titolo del viaggio
+        binding.etTripTitle.filters = arrayOf(InputFilter.LengthFilter(100))
         val fragment = AddressSearchFragment()
         childFragmentManager.beginTransaction()
             .replace(R.id.addressSearchContainer, fragment)
@@ -149,7 +152,12 @@ class NewTripCreateFragment : Fragment() {
         toggleGroup.addOnButtonCheckedListener { _, _, _ -> updateBtnStartTripState() }
 
         binding.btnStartTrip.setOnClickListener {
-            val title = binding.etTripTitle.text.toString()
+            val rawTitle = binding.etTripTitle.text.toString()
+            if (rawTitle.length > 100) {
+                Toast.makeText(requireContext(), getString(R.string.error_too_long), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val title = rawTitle.trim()
             val destination = selectedAddressText ?: ""
             val type = when (binding.toggleTripType.checkedButtonId) {
                 binding.btnLocal.id -> "local"
