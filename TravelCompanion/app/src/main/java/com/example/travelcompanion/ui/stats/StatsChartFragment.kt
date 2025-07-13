@@ -1,5 +1,9 @@
 package com.example.travelcompanion.ui.stats
 
+import com.example.travelcompanion.databinding.FragmentStatsChartBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -24,25 +28,22 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.components.XAxis
 
 class StatsChartFragment : Fragment() {
+    private var _binding: FragmentStatsChartBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_stats_chart, container, false)
+        _binding = FragmentStatsChartBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val lineChart = view.findViewById<LineChart>(R.id.lineChart)
-        val distanceChart = view.findViewById<LineChart>(R.id.distanceChart)
-
-        val tripsTitle = view.findViewById<TextView>(R.id.tripsTitle)
-        val distanceTitle = view.findViewById<TextView>(R.id.distanceTitle)
-
         // Popola i dati del grafico dagli ultimi 6 mesi
         lifecycleScope.launch {
             val db = TravelDatabase.getDatabase(requireContext())
-            val trips = db.tripDao().getAllTrips()
+            val trips = withContext(Dispatchers.IO) { db.tripDao().getAllTrips() }
 
             val monthLabels = mutableListOf<String>()
             val tripsData = mutableListOf<Float>()
@@ -63,15 +64,15 @@ class StatsChartFragment : Fragment() {
                 tripsData.add(tripsInMonth.size.toFloat())
 
                 // Somma le distanze (assumendo campo `distance` su Trip)
-                val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat()/1000
+                val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat() / 1000
                 kmData.add(distanceSum)
             }
 
             // Aggiorna titoli e grafici
-            tripsTitle.text = "Viaggi negli ultimi 6 mesi: ${tripsData.sum()}"
-            distanceTitle.text = "Distanza percorsa negli ultimi 6 mesi: ${kmData.sum()} km"
-            setupChart(lineChart, tripsData, monthLabels, "Viaggi per mese")
-            setupChart(distanceChart, kmData, monthLabels, "Km per mese")
+            binding.tripsTitle.text = "Viaggi negli ultimi 6 mesi: ${tripsData.sum()}"
+            binding.distanceTitle.text = "Distanza percorsa negli ultimi 6 mesi: ${kmData.sum()} km"
+            setupChart(binding.lineChart, tripsData, monthLabels, "Viaggi per mese")
+            setupChart(binding.distanceChart, kmData, monthLabels, "Km per mese")
         }
     }
 
@@ -98,5 +99,10 @@ class StatsChartFragment : Fragment() {
         chart.axisRight.isEnabled = false
         chart.description.isEnabled = false
         chart.invalidate()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

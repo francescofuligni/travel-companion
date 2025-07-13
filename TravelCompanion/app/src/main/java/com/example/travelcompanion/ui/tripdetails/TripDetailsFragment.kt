@@ -23,8 +23,12 @@ import com.google.android.gms.maps.model.LatLngBounds
 import com.example.travelcompanion.utils.LocationUtils
 import android.graphics.Color
 import com.example.travelcompanion.database.models.Image
+import com.example.travelcompanion.database.models.Location
 import com.example.travelcompanion.database.models.Note
 import com.example.travelcompanion.database.models.Trip
+import com.example.travelcompanion.database.models.TripPhase
+import androidx.lifecycle.Observer
+import com.example.travelcompanion.database.models.TripPhaseWithLocation
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -38,6 +42,10 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
     private lateinit var notesAdapter: TripNotesAdapter
     private var tripId: Long = -1L
     private var googleMap: GoogleMap? = null
+
+    private val dateFormatter by lazy {
+        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,9 +72,16 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         setupImagesRecyclerView()
         setupNotesRecyclerView()
         observeViewModel()
+        observeMapData()
         
         if (tripId != -1L) {
             viewModel.loadTripDetails(tripId)
+        }
+    }
+
+    private fun observeMapData() {
+        viewModel.trip.observe(viewLifecycleOwner) { trip ->
+            trip?.let { updateMapWithTripData(it) }
         }
     }
 
@@ -79,68 +94,58 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
-        
-        // Wait for trip data to be loaded to show map markers
-        viewModel.trip.observe(viewLifecycleOwner) { trip ->
-            trip?.let { updateMapWithTripData(it) }
+    }
+
+    private fun drawMarkers(map: GoogleMap, phasesWithLocations: List<Pair<TripPhase, Location>>) {
+        val boundsBuilder = LatLngBounds.Builder()
+        val routePoints = mutableListOf<LatLng>()
+        phasesWithLocations.forEachIndexed { index, (phase, location) ->
+            val latLng = LatLng(location.latitude, location.longitude)
+            val markerOptions = MarkerOptions()
+                .position(latLng)
+                .title("Fase ${phase.phaseOrder}")
+                .snippet(dateFormatter.format(Date(phase.timestamp)))
+            when (index) {
+                0 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                phasesWithLocations.size - 1 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                else -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+            }
+            map.addMarker(markerOptions)
+            routePoints.add(latLng)
+            boundsBuilder.include(latLng)
+        }
+        drawPolyline(map, routePoints)
+        try {
+            val bounds = boundsBuilder.build()
+            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+        } catch (e: Exception) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(routePoints.first(), 15f))
+        }
+    }
+    
+    private fun drawPolyline(map: GoogleMap, points: List<LatLng>) {
+        if (points.size > 1) {
+            val polylineOptions = PolylineOptions()
+                .addAll(points)
+                .color(Color.BLUE)
+                .width(5f)
+            map.addPolyline(polylineOptions)
         }
     }
 
     private fun updateMapWithTripData(trip: Trip) {
-        googleMap?.let { map ->
-            map.clear()
-            
-            // Load trip phases with locations to show route
-            viewModel.tripPhasesWithLocations.observe(viewLifecycleOwner) { phasesWithLocations ->
+        val map = googleMap ?: return
+
+        // Creo un observer che si auto‐rimuove alla prima invocazione
+        val phasesObserver = object : Observer<List<TripPhaseWithLocation>> {
+            override fun onChanged(phasesWithLocations: List<TripPhaseWithLocation>) {
+                // Rimuovo l’observer prima di fare qualsiasi operazione, così gira solo una volta
+                viewModel.tripPhasesWithLocations.removeObserver(this)
+
                 if (phasesWithLocations.isNotEmpty()) {
-                    val boundsBuilder = LatLngBounds.Builder()
-                    val routePoints = mutableListOf<LatLng>()
-                    
-                    // Add markers for each phase location
-                    phasesWithLocations.forEachIndexed { index, phaseWithLocation ->
-                        val location = phaseWithLocation.location
-                        val phase = phaseWithLocation.phase
-                        val latLng = LatLng(location.latitude, location.longitude)
-                        
-                        // Add marker
-                        val markerOptions = MarkerOptions()
-                            .position(latLng)
-                            .title("Fase ${phase.phaseOrder}")
-                            .snippet(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(phase.timestamp)))
-                        
-                        // Use different colors for start, middle, and end points
-                        when (index) {
-                            0 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                            phasesWithLocations.size - 1 -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                            else -> markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                        }
-                        
-                        map.addMarker(markerOptions)
-                        routePoints.add(latLng)
-                        boundsBuilder.include(latLng)
-                    }
-                    
-                    // Add polyline to connect all points
-                    if (routePoints.size > 1) {
-                        val polylineOptions = PolylineOptions()
-                            .addAll(routePoints)
-                            .color(Color.BLUE)
-                            .width(5f)
-                        map.addPolyline(polylineOptions)
-                    }
-                    
-                    // Adjust camera to show all markers
-                    try {
-                        val bounds = boundsBuilder.build()
-                        val padding = 100 // padding in pixels
-                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
-                    } catch (e: Exception) {
-                        // If bounds building fails, center on first location
-                        val firstLocation = routePoints.first()
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 15f))
-                    }
+                    drawMarkers(map, phasesWithLocations.map { it.phase to it.location })
                 } else {
-                    // No phases found, try to use GPS location or show trip destination
+                    // fallback esistente…
                     LocationUtils.getCurrentLocation(
                         requireContext(),
                         onSuccess = { currentLatLng ->
@@ -165,6 +170,8 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
+
+        viewModel.tripPhasesWithLocations.observe(viewLifecycleOwner, phasesObserver)
     }
 
     private fun setupImagesRecyclerView() {
@@ -227,7 +234,7 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
         } else {
             binding.tvNoImages.visibility = View.GONE
             binding.rvTripImages.visibility = View.VISIBLE
-            imagesAdapter.updateImages(images)
+            imagesAdapter.submitList(images)
         }
     }
 
@@ -249,13 +256,11 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun updateTripHeader(trip: com.example.travelcompanion.database.models.Trip) {
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        
         binding.tvTripTitle.text = trip.title
         binding.tvTripDestination.text = trip.destination
-        binding.tvTripStartDate.text = "Inizio: ${dateFormat.format(Date(trip.startDate))}"
+        binding.tvTripStartDate.text = "Inizio: ${dateFormatter.format(Date(trip.startDate))}"
         binding.tvTripEndDate.text = if (trip.endDate != 0L) 
-            "Fine: ${dateFormat.format(Date(trip.endDate))}" else "In corso"
+            "Fine: ${dateFormatter.format(Date(trip.endDate))}" else "In corso"
         
         // Convert distance from meters to kilometers
         val distanceInKm = trip.distance / 1000.0

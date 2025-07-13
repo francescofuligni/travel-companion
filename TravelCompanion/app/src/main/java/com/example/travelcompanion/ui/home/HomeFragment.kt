@@ -20,6 +20,12 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
+    private fun showNoTrip() {
+        childFragmentManager.beginTransaction()
+            .replace(R.id.home_container, HomeNoTripFragment())
+            .commit()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,25 +64,18 @@ class HomeFragment : Fragment() {
                 Log.d("HomeFragment", "Active trip: $trip")
 
                 val fragment = if (trip != null && trip.isActive) {
-                    val bundle = Bundle().apply {
-                        putLong("tripId", trip.id)
-                    }
                     HomeActiveTripFragment().apply {
-                        arguments = bundle
+                        arguments = Bundle().apply { putLong("tripId", trip.id) }
                     }
                 } else {
-                    HomeNoTripFragment()
+                    null
                 }
-
                 childFragmentManager.beginTransaction()
-                    .replace(R.id.home_container, fragment)
+                    .replace(R.id.home_container, fragment ?: HomeNoTripFragment())
                     .commit()
             } catch (e: Exception) {
                 Log.e("HomeFragment", "Error loading active trip", e)
-                // Fallback to no trip fragment
-                childFragmentManager.beginTransaction()
-                    .replace(R.id.home_container, HomeNoTripFragment())
-                    .commit()
+                showNoTrip()
             }
         }
     }

@@ -10,14 +10,19 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.example.travelcompanion.databinding.FragmentProfilePicturePickerBinding
 import com.example.travelcompanion.utils.ProfilePictureUtils
+
+private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
+
+private fun Fragment.toast(msg: String) =
+    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
 class ProfilePicturePickerFragment : Fragment() {
     
@@ -54,7 +59,7 @@ class ProfilePicturePickerFragment : Fragment() {
         if (isGranted) {
             openCamera()
         } else {
-            Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+            toast("Camera permission is required")
         }
     }
     
@@ -95,12 +100,12 @@ class ProfilePicturePickerFragment : Fragment() {
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
-                Manifest.permission.CAMERA
+                CAMERA_PERMISSION
             ) == PackageManager.PERMISSION_GRANTED -> {
                 openCamera()
             }
             else -> {
-                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                cameraPermissionLauncher.launch(CAMERA_PERMISSION)
             }
         }
     }
@@ -133,7 +138,7 @@ class ProfilePicturePickerFragment : Fragment() {
             onImageSelectedListener?.invoke(savedUri)
             
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error saving image: ${e.message}", Toast.LENGTH_SHORT).show()
+            toast("Error saving image: ${e.message}")
         }
     }
     

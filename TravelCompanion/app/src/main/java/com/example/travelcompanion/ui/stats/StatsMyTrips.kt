@@ -1,5 +1,7 @@
 package com.example.travelcompanion.ui.stats
 
+import com.example.travelcompanion.databinding.FragmentStatsMyTripsBinding
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,28 +11,28 @@ import androidx.fragment.app.Fragment
 import com.example.travelcompanion.R
 
 class StatsMyTrips : Fragment() {
+    private var _binding: FragmentStatsMyTripsBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_stats_my_trips, container, false)
+        _binding = FragmentStatsMyTripsBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val btnMap = view.findViewById<MaterialButton>(R.id.btnMap)
-        val btnCharts = view.findViewById<MaterialButton>(R.id.btnCharts)
-
-        view.post {
+        binding.containerView.post {
             // Mostra heatmap all'avvio come default, ma solo dopo che la view è stata misurata
             replaceFragment(StatsHeatmapFragment())
         }
 
-        btnMap.setOnClickListener {
+        binding.btnMap.setOnClickListener {
             replaceFragment(StatsHeatmapFragment())
         }
 
-        btnCharts.setOnClickListener {
+        binding.btnCharts.setOnClickListener {
             replaceFragment(StatsChartFragment())
         }
     }
@@ -39,5 +41,9 @@ class StatsMyTrips : Fragment() {
         childFragmentManager.beginTransaction()
             .replace(R.id.containerView, fragment)
             .commit()
+    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

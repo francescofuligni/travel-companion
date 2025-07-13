@@ -19,6 +19,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.text.InputFilter
 
+private fun parseLatLng(response: String): LatLng? {
+    try {
+        val jsonObject = JSONObject(response)
+        val results = jsonObject.getJSONArray("results")
+        if (results.length() > 0) {
+            val loc = results.getJSONObject(0)
+                .getJSONObject("geometry")
+                .getJSONObject("location")
+            return LatLng(loc.getDouble("lat"), loc.getDouble("lng"))
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return null
+}
+
 class AddressSearchFragment : Fragment() {
 
     private var _binding: FragmentAddressSearchBinding? = null
@@ -80,14 +96,7 @@ class AddressSearchFragment : Fragment() {
             val encodedAddress = URLEncoder.encode(address, "UTF-8")
             val urlString = "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedAddress&key=${BuildConfig.MAPS_API_KEY}"
             val response = URL(urlString).readText()
-            val jsonObject = JSONObject(response)
-            val results = jsonObject.getJSONArray("results")
-            if (results.length() > 0) {
-                val location = results.getJSONObject(0).getJSONObject("geometry").getJSONObject("location")
-                val lat = location.getDouble("lat")
-                val lng = location.getDouble("lng")
-                return@withContext LatLng(lat, lng)
-            }
+            return@withContext parseLatLng(response)
         } catch (e: Exception) {
             e.printStackTrace()
         }

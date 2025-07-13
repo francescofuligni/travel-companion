@@ -9,7 +9,11 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.travelcompanion.R
+import com.example.travelcompanion.databinding.DialogAddNoteBinding
 import com.google.android.material.textfield.TextInputEditText
+
+private var _binding: DialogAddNoteBinding? = null
+private val binding get() = _binding!!
 
 class AddNoteDialog : DialogFragment() {
     
@@ -25,17 +29,18 @@ class AddNoteDialog : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.dialog_add_note, container, false)
+        _binding = DialogAddNoteBinding.inflate(inflater, container, false)
+        return binding.root
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        val etNote = view.findViewById<TextInputEditText>(R.id.etNote)
-        // Limite massimo di 500 caratteri
-        etNote.filters = arrayOf(InputFilter.LengthFilter(500))
-        val btnSave = view.findViewById<Button>(R.id.btnSaveNote)
-        val btnCancel = view.findViewById<Button>(R.id.btnCancelNote)
+        val etNote = binding.etNote.apply {
+            filters = arrayOf(InputFilter.LengthFilter(500))
+        }
+        val btnSave = binding.btnSaveNote
+        val btnCancel = binding.btnCancelNote
         
         existingNote?.let { etNote.setText(it) }
         
@@ -66,5 +71,10 @@ class AddNoteDialog : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

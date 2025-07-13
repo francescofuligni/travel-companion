@@ -33,6 +33,15 @@ import android.util.Patterns
 import androidx.core.widget.addTextChangedListener
 import com.example.travelcompanion.R
 
+private fun Fragment.toast(msg: String) =
+    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+
+private fun Fragment.requestLocationPermission(onGranted: () -> Unit) {
+    registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) onGranted() else toast(getString(R.string.error_location_permission))
+    }.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+}
+
 class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
@@ -41,19 +50,6 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
     private var selectedLocation: LatLng? = null
     private var currentProfilePictureUri: Uri? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
-    private val locationPermissionRequest = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            enableUserLocation()
-        } else {
-            Toast.makeText(requireContext(), "Permesso posizione negato", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private val geocodingApiKey: String
-        get() = BuildConfig.MAPS_API_KEY
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -119,7 +115,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         if (LocationUtils.hasLocationPermission(requireContext())) {
             enableUserLocation()
         } else {
-            locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            requestLocationPermission { enableUserLocation() }
         }
 
         // Set initial location to Bologna as fallback, then try to get current location
@@ -163,7 +159,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
             // Validazione email
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(requireContext(), getString(R.string.error_invalid_email), Toast.LENGTH_SHORT).show()
+                toast(getString(R.string.error_invalid_email))
                 return@setOnClickListener
             }
 
@@ -180,7 +176,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
             if (address.isNotEmpty()) {
                 searchAddress(address)
             } else {
-                Toast.makeText(requireContext(), "Inserisci un indirizzo", Toast.LENGTH_SHORT).show()
+                toast("Inserisci un indirizzo")
             }
         }
     }
@@ -213,7 +209,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         }
 
         viewModel.message.observe(viewLifecycleOwner) { msg ->
-            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+            toast(msg)
         }
     }
 
@@ -231,9 +227,9 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
                 // Aggiorna la mappa (questo verrà fatto automaticamente dall'observer)
                 googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
 
-                Toast.makeText(requireContext(), "Indirizzo trovato e selezionato", Toast.LENGTH_SHORT).show()
+                toast("Indirizzo trovato e selezionato")
             } else {
-                Toast.makeText(requireContext(), "Indirizzo non trovato", Toast.LENGTH_SHORT).show()
+                toast("Indirizzo non trovato")
             }
         }
     }
@@ -247,7 +243,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         try {
             val encodedAddress = URLEncoder.encode(address, "UTF-8")
             val urlString =
-                "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedAddress&key=$geocodingApiKey"
+                "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedAddress&key=${BuildConfig.MAPS_API_KEY}"
             val response = URL(urlString).readText()
             val jsonObject = JSONObject(response)
             val results = jsonObject.getJSONArray("results")

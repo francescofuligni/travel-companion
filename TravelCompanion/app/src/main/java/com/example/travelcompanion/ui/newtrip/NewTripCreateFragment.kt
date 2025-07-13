@@ -17,13 +17,25 @@ import java.util.Calendar
 import android.text.InputFilter
 import android.widget.Toast
 import android.app.Application
+import android.Manifest
+import androidx.activity.result.contract.ActivityResultContracts
+
+private const val PERM_FOREGROUND = Manifest.permission.FOREGROUND_SERVICE_LOCATION
+private const val PERM_FINE = Manifest.permission.ACCESS_FINE_LOCATION
+
+private fun Fragment.toast(msg: String) =
+    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+
+private fun Fragment.requestPermission(perm: String, onGranted: () -> Unit) {
+    registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) onGranted() else toast("$perm denied")
+    }.launch(perm)
+}
 
 class NewTripCreateFragment : Fragment() {
 
     private var selectedAddressText: String? = null
 
-    private lateinit var foregroundServiceLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
-    private lateinit var fineLocationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     private var pendingTripData: PendingTripData? = null
 
     data class PendingTripData(
@@ -56,31 +68,6 @@ class NewTripCreateFragment : Fragment() {
         childFragmentManager.beginTransaction()
             .replace(R.id.addressSearchContainer, fragment)
             .commit()
-
-        foregroundServiceLocationPermissionLauncher = registerForActivityResult(
-            androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            if (isGranted) {
-                pendingTripData?.let { requestFineLocationPermissionAndStartTrip(it) }
-            } else {
-                Toast.makeText(requireContext(), "Permesso FOREGROUND_SERVICE_LOCATION negato", Toast.LENGTH_LONG).show()
-                pendingTripData = null
-            }
-        }
-
-        fineLocationPermissionLauncher = registerForActivityResult(
-            androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            if (isGranted) {
-                pendingTripData?.let {
-                    viewModel.startTrip(it.title, it.destination, it.type, it.endDate, it.selectedDestinationLatLng)
-                    findNavController().navigate(R.id.nav_home)
-                }
-            } else {
-                Toast.makeText(requireContext(), "Permesso ACCESS_FINE_LOCATION negato", Toast.LENGTH_LONG).show()
-            }
-            pendingTripData = null
-        }
 
         val factory = NewTripCreateViewModelFactory(requireActivity().application)
         viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
@@ -153,7 +140,7 @@ class NewTripCreateFragment : Fragment() {
         binding.btnStartTrip.setOnClickListener {
             val rawTitle = binding.etTripTitle.text.toString()
             if (rawTitle.length > 100) {
-                Toast.makeText(requireContext(), getString(R.string.error_too_long), Toast.LENGTH_SHORT).show()
+                toast(getString(R.string.error_too_long))
                 return@setOnClickListener
             }
             val title = rawTitle.trim()
@@ -185,11 +172,11 @@ class NewTripCreateFragment : Fragment() {
 
     private fun checkAndRequestPermissionsThenStartTrip(tripData: PendingTripData) {
         val foregroundServiceLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(), android.Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            requireContext(), PERM_FOREGROUND
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
+            requireContext(), PERM_FINE
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (foregroundServiceLocationGranted && fineLocationGranted) {
@@ -198,7 +185,9 @@ class NewTripCreateFragment : Fragment() {
         } else {
             pendingTripData = tripData
             if (!foregroundServiceLocationGranted) {
-                foregroundServiceLocationPermissionLauncher.launch(android.Manifest.permission.FOREGROUND_SERVICE_LOCATION)
+                requestPermission(PERM_FOREGROUND) {
+                    requestFineLocationPermissionAndStartTrip(tripData)
+                }
             } else {
                 requestFineLocationPermissionAndStartTrip(tripData)
             }
@@ -207,7 +196,7 @@ class NewTripCreateFragment : Fragment() {
 
     private fun requestFineLocationPermissionAndStartTrip(tripData: PendingTripData) {
         val fineLocationGranted = androidx.core.content.ContextCompat.checkSelfPermission(
-            requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION
+            requireContext(), PERM_FINE
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (fineLocationGranted) {
@@ -215,7 +204,11 @@ class NewTripCreateFragment : Fragment() {
             findNavController().navigate(R.id.nav_home)
             pendingTripData = null
         } else {
-            fineLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            requestPermission(PERM_FINE) {
+                viewModel.startTrip(tripData.title, tripData.destination, tripData.type, tripData.endDate, tripData.selectedDestinationLatLng)
+                findNavController().navigate(R.id.nav_home)
+                pendingTripData = null
+            }
         }
     }
 

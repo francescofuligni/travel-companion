@@ -2,57 +2,53 @@ package com.example.travelcompanion.ui.tripdetails
 
 import android.net.Uri
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.travelcompanion.R
-import com.example.travelcompanion.database.models.Image
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.travelcompanion.R
+import com.example.travelcompanion.database.models.Image
+import com.example.travelcompanion.databinding.ItemTripImageBinding
 
 /**
  * Adapter per visualizzare le immagini del viaggio in una griglia/lista orizzontale
  */
 class TripImagesAdapter(
     private val onImageClick: (Image) -> Unit
-) : RecyclerView.Adapter<TripImagesAdapter.ImageViewHolder>() {
-
-    private var images: List<Image> = emptyList()
-
-    fun updateImages(newImages: List<Image>) {
-        images = newImages
-        notifyDataSetChanged()
-    }
+) : ListAdapter<Image, TripImagesAdapter.ImageViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_trip_image, parent, false)
-        return ImageViewHolder(view)
+        val binding = ItemTripImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ImageViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        holder.bind(images[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = images.size
-
-    inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageView: ImageView = itemView.findViewById(R.id.ivTripImage)
+    inner class ImageViewHolder(private val binding: ItemTripImageBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(image: Image) {
             // Usa Glide per caricare l'immagine
-            Glide.with(itemView.context)
+            Glide.with(binding.root.context)
                 .load(Uri.parse(image.uri))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop()
                 .placeholder(R.drawable.ic_placeholder_image)
                 .error(R.drawable.ic_error_image)
-                .into(imageView)
+                .into(binding.ivTripImage)
 
-            itemView.setOnClickListener {
+            binding.root.setOnClickListener {
                 onImageClick(image)
             }
         }
+    }
+
+    companion object DiffCallback : DiffUtil.ItemCallback<Image>() {
+        override fun areItemsTheSame(oldItem: Image, newItem: Image) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Image, newItem: Image) = oldItem == newItem
     }
 }

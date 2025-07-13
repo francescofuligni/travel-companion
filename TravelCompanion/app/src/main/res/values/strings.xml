@@ -29,4 +29,6 @@
     <string name="error_too_long">Hai inserito troppi caratteri</string>
     <string name="error_empty">Il campo non può essere vuoto</string>
     <string name="error_invalid_email">Inserisci un indirizzo email valido\n</string>
+    <string name="filter_year">Filtra per anno</string>
+    <string name="error_location_permission">Permesso per la localizzazione mancante</string>
 </resources>

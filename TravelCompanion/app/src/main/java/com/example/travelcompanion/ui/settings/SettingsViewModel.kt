@@ -14,6 +14,10 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(application: Application, private val repository: TravelRepository) : AndroidViewModel(application) {
 
+    private fun postMessage(msg: String) {
+        _message.value = msg
+    }
+
     private val appContext = application.applicationContext
 
     private val _user = MutableLiveData<User?>()
@@ -31,32 +35,39 @@ class SettingsViewModel(application: Application, private val repository: Travel
     fun loadUserData() {
         viewModelScope.launch {
             try {
-                // Load user
-                val user = repository.getUserById(1)
-                _user.value = user
-
-                // Load profile picture separately
-                user?.profilePictureId?.let { imageId ->
-                    val image = repository.getImageById(imageId)
-                    image?.let { img ->
-                        _profilePictureUri.value = Uri.parse(img.uri)
-                    }
-                }
-
-                // Load home location
-                user?.homeLocationId?.let { id ->
-                    try {
-                        val location = repository.getLocationById(id)
-                        location?.let {
-                            _homeLocation.value = LatLng(it.latitude, it.longitude)
-                        }
-                    } catch (e: Exception) {
-                        Log.e("SettingsViewModel", "Error loading location with id: $id", e)
-                    }
-                }
+                loadUser()
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Error loading user data", e)
-                _message.value = "Error loading user data: ${e.message}"
+                postMessage("Error loading user data: ${e.message}")
+            }
+        }
+    }
+
+    private suspend fun loadUser() {
+        val user = repository.getUserById(1)
+        _user.value = user
+        user?.let {
+            loadProfilePicture(it)
+            loadHomeLocation(it)
+        }
+    }
+
+    private suspend fun loadProfilePicture(user: User) {
+        user.profilePictureId?.let { id ->
+            repository.getImageById(id)?.let { img ->
+                _profilePictureUri.value = Uri.parse(img.uri)
+            }
+        }
+    }
+
+    private suspend fun loadHomeLocation(user: User) {
+        user.homeLocationId?.let { id ->
+            try {
+                repository.getLocationById(id)?.let {
+                    _homeLocation.value = LatLng(it.latitude, it.longitude)
+                }
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Error loading location with id: $id", e)
             }
         }
     }
@@ -66,12 +77,12 @@ class SettingsViewModel(application: Application, private val repository: Travel
             try {
                 // Validate input data
                 if (username.isBlank()) {
-                    _message.value = "Username cannot be empty"
+                    postMessage("Username cannot be empty")
                     return@launch
                 }
                 
                 if (email.isBlank()) {
-                    _message.value = "Email cannot be empty"
+                    postMessage("Email cannot be empty")
                     return@launch
                 }
 
@@ -92,7 +103,7 @@ class SettingsViewModel(application: Application, private val repository: Travel
                         )
                     } catch (e: Exception) {
                         Log.e("SettingsViewModel", "Error saving location", e)
-                        _message.value = "Error saving location: ${e.message}"
+                        postMessage("Error saving location: ${e.message}")
                         return@launch
                     }
                 }
@@ -110,7 +121,7 @@ class SettingsViewModel(application: Application, private val repository: Travel
                         Log.d("SettingsViewModel", "Saved profile picture with ID: $profilePictureId")
                     } catch (e: Exception) {
                         Log.e("SettingsViewModel", "Error saving profile picture", e)
-                        _message.value = "Error saving profile picture: ${e.message}"
+                        postMessage("Error saving profile picture: ${e.message}")
                         return@launch
                     }
                 }
@@ -133,7 +144,7 @@ class SettingsViewModel(application: Application, private val repository: Travel
                         Log.d("SettingsViewModel", "Updated user: $updatedUser")
                     } catch (e: Exception) {
                         Log.e("SettingsViewModel", "Error updating user", e)
-                        _message.value = "Error updating user: ${e.message}"
+                        postMessage("Error updating user: ${e.message}")
                         return@launch
                     }
                 } else {
@@ -152,16 +163,16 @@ class SettingsViewModel(application: Application, private val repository: Travel
                         Log.d("SettingsViewModel", "Created new user: $newUser")
                     } catch (e: Exception) {
                         Log.e("SettingsViewModel", "Error creating user", e)
-                        _message.value = "Error creating user: ${e.message}"
+                        postMessage("Error creating user: ${e.message}")
                         return@launch
                     }
                 }
                 
-                _message.value = "Settings saved successfully"
+                postMessage("Settings saved successfully")
                 
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Error saving user", e)
-                _message.value = "Error saving settings: ${e.message}"
+                postMessage("Error saving settings: ${e.message}")
             }
         }
     }
@@ -183,10 +194,10 @@ class SettingsViewModel(application: Application, private val repository: Travel
                 _user.value = null
                 _homeLocation.value = null
                 _profilePictureUri.value = null
-                _message.value = "App reset successfully"
+                postMessage("App reset successfully")
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Error resetting app", e)
-                _message.value = "Error resetting app: ${e.message}"
+                postMessage("Error resetting app: ${e.message}")
             }
         }
     }

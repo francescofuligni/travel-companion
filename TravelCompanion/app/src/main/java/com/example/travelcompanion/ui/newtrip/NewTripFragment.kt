@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.travelcompanion.R
+import com.example.travelcompanion.databinding.FragmentNewTripBinding
 import com.example.travelcompanion.repository.TravelRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,11 +16,15 @@ import kotlinx.coroutines.withContext
 
 class NewTripFragment : Fragment() {
 
+    private var _binding: FragmentNewTripBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_new_trip, container, false)
+        _binding = FragmentNewTripBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -43,5 +48,10 @@ class NewTripFragment : Fragment() {
                 replace(R.id.newTripContainer, fragment)
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

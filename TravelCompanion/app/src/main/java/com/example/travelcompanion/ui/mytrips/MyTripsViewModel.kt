@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 /**
@@ -56,19 +58,21 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
             }
             _trips.value = trips
             // Build UI models with first image URI for each trip
-            val uiModels = trips.map { trip ->
-                val firstImage = repository.getFirstImageForTrip(trip.id)
-                TripUiModel(
-                    id = trip.id,
-                    title = trip.title,
-                    destination = trip.destination,
-                    imageUrl = firstImage?.uri,
-                    startDate = trip.startDate,
-                    endDate = trip.endDate,
-                    type = trip.type,
-                    distance = trip.distance,
-                    duration = trip.duration
-                )
+            val uiModels = withContext(Dispatchers.Default) {
+                trips.map { trip ->
+                    val firstImage = repository.getFirstImageForTrip(trip.id)
+                    TripUiModel(
+                        id = trip.id,
+                        title = trip.title,
+                        destination = trip.destination,
+                        imageUrl = firstImage?.uri,
+                        startDate = trip.startDate,
+                        endDate = trip.endDate,
+                        type = trip.type,
+                        distance = trip.distance,
+                        duration = trip.duration
+                    )
+                }
             }
             _tripUiModels.value = uiModels
         }
@@ -79,8 +83,7 @@ class MyTripsViewModel(private val repository: TravelRepository) : ViewModel() {
      */
     fun resetFilters() {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        _selectedYear.value = currentYear
-        _selectedType.value = null
-        loadTrips(currentYear, null)
+        setYear(currentYear)
+        setType(null)
     }
 }

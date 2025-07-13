@@ -5,10 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.travelcompanion.R
 import com.example.travelcompanion.database.models.TripType
-import com.bumptech.glide.Glide
+import com.example.travelcompanion.databinding.ItemTripBinding
 
 data class TripUiModel(
     val id: Long,
@@ -23,51 +26,50 @@ data class TripUiModel(
 )
 
 class MyTripsAdapter(
-    private var items: List<TripUiModel>,
     private val onTripClicked: (Long) -> Unit
-) : RecyclerView.Adapter<MyTripsAdapter.TripViewHolder>() {
+) : ListAdapter<TripUiModel, MyTripsAdapter.TripViewHolder>(DiffCallback) {
 
     inner class TripViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-      private val ivTripImage: ImageView = view.findViewById(R.id.ivTripImage)
-      private val tvTripTitle: TextView = view.findViewById(R.id.tvTripTitle)
-      private val tvTripDestination: TextView = view.findViewById(R.id.tvTripDestination)
+        private val binding = ItemTripBinding.bind(view)
 
-      fun bind(item: TripUiModel) {
-        tvTripTitle.text = item.title
-        tvTripDestination.text = item.destination
-        if (!item.imageUrl.isNullOrBlank()) {
-            Glide.with(itemView.context)
-                .load(item.imageUrl)
-                .placeholder(R.drawable.missing_img)
-                .error(R.drawable.missing_img)
-                .centerCrop()
-                .into(ivTripImage)
-        } else {
-            ivTripImage.setImageResource(R.drawable.missing_img)
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onTripClicked(currentList[position].id)
+                }
+            }
         }
-        
-        // Handle click
-        itemView.setOnClickListener {
-            onTripClicked(item.id)
+
+        fun bind(item: TripUiModel) {
+            binding.tvTripTitle.text = item.title
+            binding.tvTripDestination.text = item.destination
+            val imageView = binding.ivTripImage
+            if (!item.imageUrl.isNullOrBlank()) {
+                Glide.with(itemView.context)
+                    .load(item.imageUrl)
+                    .placeholder(R.drawable.missing_img)
+                    .error(R.drawable.missing_img)
+                    .centerCrop()
+                    .into(imageView)
+            } else {
+                imageView.setImageResource(R.drawable.missing_img)
+            }
         }
-      }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TripViewHolder {
-      val view = LayoutInflater.from(parent.context)
-        .inflate(R.layout.item_trip, parent, false)
-      return TripViewHolder(view)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_trip, parent, false)
+        return TripViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: TripViewHolder, position: Int) {
-      holder.bind(items[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = items.size
-
-    /** Metodo helper per aggiornare la lista e ridisegnare */
-    fun submitList(newItems: List<TripUiModel>) {
-      items = newItems
-      notifyDataSetChanged()
+    companion object DiffCallback : DiffUtil.ItemCallback<TripUiModel>() {
+        override fun areItemsTheSame(oldItem: TripUiModel, newItem: TripUiModel) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: TripUiModel, newItem: TripUiModel) = oldItem == newItem
     }
 }

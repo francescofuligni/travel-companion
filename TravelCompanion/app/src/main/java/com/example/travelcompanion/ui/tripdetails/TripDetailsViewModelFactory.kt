@@ -8,7 +8,6 @@ class TripDetailsViewModelFactory(
     private val repository: TravelRepository
 ) : ViewModelProvider.Factory {
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripDetailsViewModel::class.java)) {
             return TripDetailsViewModel(repository) as T

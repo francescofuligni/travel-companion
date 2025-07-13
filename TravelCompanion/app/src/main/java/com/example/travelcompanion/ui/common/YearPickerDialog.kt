@@ -7,6 +7,7 @@ import android.widget.NumberPicker
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.example.travelcompanion.R
+import com.example.travelcompanion.databinding.DialogYearPickerBinding
 import java.util.Calendar
 
 class YearPickerDialog(
@@ -16,19 +17,18 @@ class YearPickerDialog(
 ) : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val inflater = requireActivity().layoutInflater
-        val view = inflater.inflate(R.layout.dialog_year_picker, null)
-        val numberPicker = view.findViewById<NumberPicker>(R.id.numberPickerYear).apply {
+        val binding = DialogYearPickerBinding.inflate(requireActivity().layoutInflater)
+        val numberPicker = binding.numberPickerYear.apply {
             this.minValue = minYear
             this.maxValue = maxYear
             this.value = Calendar.getInstance().get(Calendar.YEAR)
         }
 
         val dialog = AlertDialog.Builder(requireContext())
-            .setView(view)
+            .setView(binding.root)
             .create()
 
-        view.findViewById<Button>(R.id.btnOkYear).setOnClickListener {
+        binding.btnOkYear.setOnClickListener {
             onYearSelected(numberPicker.value)
             dialog.dismiss()
         }

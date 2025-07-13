@@ -1,5 +1,9 @@
 package com.example.travelcompanion.ui.stats
 
+import com.example.travelcompanion.databinding.FragmentStatsFutureBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import androidx.annotation.RequiresApi
 import android.os.Build
 
@@ -28,12 +32,15 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 class StatsFutureFragment : Fragment() {
+    private var _binding: FragmentStatsFutureBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_stats_future, container, false)
+        _binding = FragmentStatsFutureBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -43,23 +50,10 @@ class StatsFutureFragment : Fragment() {
         val fadedRed = Color.argb(160, 240, 120, 120)
         val fadedGreen = Color.argb(160, 120, 200, 120)
 
-        val textNextMonth = view.findViewById<TextView>(R.id.textNextMonth)
-        val textPredictedTrips = view.findViewById<TextView>(R.id.textPredictedTrips)
-        val textPredictedKm = view.findViewById<TextView>(R.id.textPredictedKm)
-        val trendTripsBox = view.findViewById<android.widget.LinearLayout>(R.id.trendTripsBox)
-        val textTrendTripsTitle = view.findViewById<TextView>(R.id.textTrendTripsTitle)
-        val textTrendTripsMessage = view.findViewById<TextView>(R.id.textTrendTripsMessage)
-        val trendKmBox = view.findViewById<android.widget.LinearLayout>(R.id.trendKmBox)
-        val textTrendKmTitle = view.findViewById<TextView>(R.id.textTrendKmTitle)
-        val textTrendKmMessage = view.findViewById<TextView>(R.id.textTrendKmMessage)
-
-        val chartTrips = view.findViewById<LineChart>(R.id.futureTripsChart)
-        val chartKm = view.findViewById<LineChart>(R.id.futureKmChart)
-
         // Carica dati storici dal DB e calcola previsioni future
         lifecycleScope.launch {
             val db = TravelDatabase.getDatabase(requireContext())
-            val trips = db.tripDao().getAllTrips()
+            val trips = withContext(Dispatchers.IO) { db.tripDao().getAllTrips() }
             val now = LocalDate.now()
 
             // Debug: Log total trips
@@ -79,32 +73,30 @@ class StatsFutureFragment : Fragment() {
                         .toLocalDate()
                     tripDate.year == month.year && tripDate.month == month.month
                 }
-                
-             
+
                 tripsDataList.add(tripsInMonth.size.toFloat())
                 val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat()
                 kmDataList.add(distanceSum)
             }
 
-      
             if (tripsDataList.isEmpty() || tripsDataList.all { it == 0f }) {
-                textNextMonth.text = "Nessun dato disponibile"
-                textPredictedTrips.text = "Registra alcuni viaggi per vedere le previsioni"
-                textPredictedKm.text = "Registra alcuni viaggi per vedere le previsioni"
+                binding.textNextMonth.text = "Nessun dato disponibile"
+                binding.textPredictedTrips.text = "Registra alcuni viaggi per vedere le previsioni"
+                binding.textPredictedKm.text = "Registra alcuni viaggi per vedere le previsioni"
             }
 
             val predictedTrips = if (tripsDataList.isNotEmpty()) {
                 (tripsDataList.sum() / tripsDataList.size.toFloat()).roundToInt()
             } else 0
-            
+
             val predictedKm = if (kmDataList.isNotEmpty()) {
-                (kmDataList.sum() / kmDataList.size.toFloat()/1000).roundToInt()
+                (kmDataList.sum() / kmDataList.size.toFloat() / 1000).roundToInt()
             } else 0
 
             val isTrendDownTrips = if (tripsDataList.isNotEmpty()) {
                 predictedTrips < tripsDataList.last()
             } else false
-            
+
             val isTrendDownKm = if (kmDataList.isNotEmpty()) {
                 predictedKm < kmDataList.last()
             } else false
@@ -114,22 +106,22 @@ class StatsFutureFragment : Fragment() {
                 .getDisplayName(TextStyle.FULL, Locale("it", "IT"))
                 .replaceFirstChar { it.uppercase(Locale("it", "IT")) }
 
-            textNextMonth.text = "PROSSIMO MESE: $nextMonthLabel"
-            textPredictedTrips.text = "Aspettativa numero viaggi: $predictedTrips"
-            textPredictedKm.text = "Aspettativa distanza percorsa: $predictedKm km"
+            binding.textNextMonth.text = "PROSSIMO MESE: $nextMonthLabel"
+            binding.textPredictedTrips.text = "Aspettativa numero viaggi: $predictedTrips"
+            binding.textPredictedKm.text = "Aspettativa distanza percorsa: $predictedKm km"
 
-            textTrendTripsTitle.text = if (isTrendDownTrips) "Trend: in calo" else "Trend: in crescita"
-            textTrendTripsMessage.text = if (isTrendDownTrips)
+            binding.textTrendTripsTitle.text = if (isTrendDownTrips) "Trend: in calo" else "Trend: in crescita"
+            binding.textTrendTripsMessage.text = if (isTrendDownTrips)
                 "Cerca nuove esperienze e viaggia di più!" else "Continua così, sei un esploratore nato!"
-            trendTripsBox.setBackgroundColor(if (isTrendDownTrips) fadedRed else fadedGreen)
+            binding.trendTripsBox.setBackgroundColor(if (isTrendDownTrips) fadedRed else fadedGreen)
 
-            textTrendKmTitle.text = if (isTrendDownKm) "Trend: in calo" else "Trend: in crescita"
-            textTrendKmMessage.text = if (isTrendDownKm)
+            binding.textTrendKmTitle.text = if (isTrendDownKm) "Trend: in calo" else "Trend: in crescita"
+            binding.textTrendKmMessage.text = if (isTrendDownKm)
                 "Non ti arrendere, guarda oltre i tuoi orizzonti!" else "Continua così, arriverai sempre più lontano!"
-            trendKmBox.setBackgroundColor(if (isTrendDownKm) fadedRed else fadedGreen)
+            binding.trendKmBox.setBackgroundColor(if (isTrendDownKm) fadedRed else fadedGreen)
 
-            setupChartWithForecast(chartTrips, tripsDataList, predictedTrips.toFloat(), "Viaggi", monthsLabels)
-            setupChartWithForecast(chartKm, kmDataList, predictedKm.toFloat(), "Km percorsi", monthsLabels)
+            setupChartWithForecast(binding.futureTripsChart, tripsDataList, predictedTrips.toFloat(), "Viaggi", monthsLabels)
+            setupChartWithForecast(binding.futureKmChart, kmDataList, predictedKm.toFloat(), "Km percorsi", monthsLabels)
         }
     }
 
@@ -218,4 +210,9 @@ private fun setupChartWithForecast(
     
     android.util.Log.d("StatsFuture", "Chart configured for $label with ${entries.size} entries")
 }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

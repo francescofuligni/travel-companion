@@ -20,6 +20,17 @@ class NewTripCreateViewModel(application: Application) : AndroidViewModel(applic
 
     private val repository = TravelRepository.create(getApplication())
 
+    private fun computeActualEndDate(type: TripType, plannedEnd: Long): Long {
+        return when (type) {
+            TripType.MULTI_DAYS -> plannedEnd
+            TripType.ONE_DAY, TripType.LOCAL -> Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+        }
+    }
+
     fun startTrip(
         title: String,
         destination: String,
@@ -33,19 +44,7 @@ class NewTripCreateViewModel(application: Application) : AndroidViewModel(applic
             // Compute auto-stop timestamp
             val plannedEndDateMillis = endDate.time
             val tripTypeEnum = TripType.fromString(type) ?: TripType.LOCAL
-            val actualEndDateMillis: Long = when (tripTypeEnum) {
-                TripType.MULTI_DAYS -> plannedEndDateMillis
-                TripType.ONE_DAY, TripType.LOCAL -> {
-                    val cal = Calendar.getInstance().apply { timeInMillis = System.currentTimeMillis() }
-                    cal.add(Calendar.DAY_OF_MONTH, 1)
-                    cal.set(Calendar.HOUR_OF_DAY, 0)
-                    cal.set(Calendar.MINUTE, 0)
-                    cal.set(Calendar.SECOND, 0)
-                    cal.set(Calendar.MILLISECOND, 0)
-                    cal.timeInMillis
-                }
-                else -> -1L
-            }
+            val actualEndDateMillis = computeActualEndDate(tripTypeEnum, plannedEndDateMillis)
 
             // Create trip in DB
             val tripId = withContext(Dispatchers.IO) {

@@ -10,7 +10,6 @@ class NewTripCreateViewModelFactory(
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NewTripCreateViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
             return NewTripCreateViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

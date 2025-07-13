@@ -23,17 +23,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    // Gestione richiesta permessi runtime
-    private val locationPermissionRequest = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            enableUserLocation()
-        } else {
-            Toast.makeText(requireContext(), "Permesso posizione negato", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,7 +49,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         if (LocationUtils.hasLocationPermission(requireContext())) {
             enableUserLocation()
         } else {
-            locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            requestLocationPermission { enableUserLocation() }
         }
     }
 
@@ -106,5 +95,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             )
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
         }
+    }
+
+    private fun Fragment.requestLocationPermission(onGranted: () -> Unit) {
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) onGranted()
+            else Toast.makeText(requireContext(), "Permesso posizione negato", Toast.LENGTH_SHORT).show()
+        }.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
     }
 }
