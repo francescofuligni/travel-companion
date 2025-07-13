@@ -71,12 +71,14 @@
             android:foregroundServiceType="location" />
 
         <!-- GeofenceService for geofencing -->
+
+        <!-- Receiver che gestisce gli eventi di geofence relativi alla posizione di casa -->
         <receiver
             android:name=".services.HomeGeofenceReceiver"
             android:enabled="true"
             android:exported="true" />
 
-        <!-- Receiver per BOOT_COMPLETED: re-registra geofence casa dopo riavvio -->
+        <!-- Receiver che intercetta l'evento BOOT_COMPLETED per reimpostare la geofence di casa dopo il riavvio del dispositivo -->
         <receiver
             android:name=".services.BootCompletedReceiver"
             android:enabled="true"

@@ -184,83 +184,21 @@ class HomeGeofenceReceiver : BroadcastReceiver() {
     private val TAG = "HomeGeofenceReceiver"
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "=== GEOFENCE EVENT RICEVUTO ===")
-        Log.d(TAG, "Intent: ${intent.action}")
-        Log.d(TAG, "Extras: ${intent.extras}")
-
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent?.hasError() == true) {
-            Log.e(TAG, "Errore geofencing: ${geofencingEvent.errorCode}")
             return
         }
 
-        val geofenceTransition = geofencingEvent?.geofenceTransition
-        Log.d(TAG, "Transizione geofence: $geofenceTransition")
-
-        // Lista dei geofence che hanno scatenato l'evento
-        val triggeringGeofences = geofencingEvent?.triggeringGeofences
-        Log.d(TAG, "Geofences coinvolti: ${triggeringGeofences?.size}")
-
-        when (geofenceTransition) {
-            Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                Log.d(TAG, "Utente entrato nella zona casa")
-                sendTestNotification(context, "Entrato in casa", "Benvenuto a casa!")
-            }
-            Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                Log.d(TAG, "Utente uscito dalla zona casa")
-                sendTestNotification(context, "Uscito da casa", "Stai lasciando la zona casa")
-                handleHomeExit(context)
-            }
-            else -> {
-                Log.d(TAG, "Transizione geofence non gestita: $geofenceTransition")
-            }
-        }
-    }
-
-    /**
-     * Invia notifica di test per verificare il funzionamento
-     */
-    private fun sendTestNotification(context: Context, title: String, message: String) {
-        Log.d(TAG, "Invio notifica di test: $title")
+        // Notifica per evento geofence
         NotificationUtils.sendNotification(
             context = context,
-            channelId = "geofence_debug",
-            channelName = "Geofence Debug",
-            title = title,
-            message = message,
+            channelId = "geofence_channel",
+            channelName = "Geofence Event",
+            title = "Sei uscito da casa?",
+            message = "Ricordati di monitorare i tuoi viaggi!",
             notificationId = System.currentTimeMillis().toInt(),
-            iconRes = android.R.drawable.ic_dialog_alert,
-            channelDescription = "Debug notifiche geofence"
+            iconRes = android.R.drawable.ic_dialog_info,
+            channelDescription = "Notifica evento geofence generica"
         )
-    }
-
-    /**
-     * Gestisce l'evento di uscita dalla zona casa
-     */
-    private fun handleHomeExit(context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val repo = TravelRepository.create(context)
-                val isTripActive = repo.getActiveTripId() != null
-
-                Log.d(TAG, "Viaggio attivo: $isTripActive")
-
-                if (!isTripActive) {
-                    Log.d(TAG, "Invio notifica promemoria viaggio")
-                    NotificationUtils.sendNotification(
-                        context = context,
-                        channelId = "geofence_channel",
-                        channelName = "Promemoria viaggi",
-                        title = "Buon viaggio!",
-                        message = "Sei uscito da casa: ricorda di avviare il tuo viaggio.",
-                        notificationId = System.currentTimeMillis().toInt(),
-                        iconRes = android.R.drawable.ic_dialog_info,
-                        channelDescription = "Notifiche quando esci dalla zona casa"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Errore nella gestione dell'uscita da casa", e)
-            }
-        }
     }
 }
