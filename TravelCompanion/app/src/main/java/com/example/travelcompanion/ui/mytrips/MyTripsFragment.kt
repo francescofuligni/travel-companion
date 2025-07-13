@@ -7,18 +7,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import java.util.Calendar
-import com.example.travelcompanion.ui.mytrips.YearPickerDialog
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentMyTripsBinding
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.lifecycle.ViewModelProvider
-import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripType
 import com.example.travelcompanion.repository.TravelRepository
-
-import androidx.lifecycle.lifecycleScope
-
-import kotlinx.coroutines.launch
+import com.example.travelcompanion.ui.common.YearPickerDialog
 
 /**
  * Fragment per visualizzare e filtrare la lista dei viaggi dell'utente
@@ -54,7 +49,7 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupViewModel() {
         val repository = TravelRepository.create(requireContext())
-        val factory = MyTripsVMFactory(repository)
+        val factory = MyTripsViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[MyTripsViewModel::class.java]
     }
 
@@ -63,7 +58,6 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupRecyclerView() {
         adapter = MyTripsAdapter(emptyList()) { tripId ->
-            // Navigate to trip details
             navigateToTripDetails(tripId)
         }
         binding.rvMyTrips.adapter = adapter
@@ -76,7 +70,6 @@ class MyTripsFragment : Fragment() {
      * Configura gli observer per i dati del ViewModel
      */
     private fun setupObservers() {
-        // Osserva i viaggi filtrati e aggiorna la lista
         viewModel.tripUiModels.observe(viewLifecycleOwner) { tripUiModels ->
             adapter.submitList(tripUiModels)
             toggleEmptyView()
@@ -88,24 +81,20 @@ class MyTripsFragment : Fragment() {
      */
     private fun setupFilters() {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        
-        // Imposta filtro anno corrente di default
-        binding.filterButton.text = currentYear.toString()
+        binding.filterButton.text = getString(R.string.year_format, currentYear)
         viewModel.setYear(currentYear)
 
-        // Bottone selezione anno
         binding.filterButton.setOnClickListener {
             YearPickerDialog(
                 minYear = currentYear - 150,
                 maxYear = currentYear
             ) { year ->
-                binding.filterButton.text = year.toString()
+                binding.filterButton.text = getString(R.string.year_format, year)
                 binding.ivClearFilter.visibility = View.VISIBLE
                 viewModel.setYear(year)
             }.show(childFragmentManager, "yearPicker")
         }
 
-        // Filtro tipo viaggio (MaterialButtonToggleGroup)
         binding.toggleTripType.addOnButtonCheckedListener { group, checkedId, isChecked ->
             if (isChecked) {
                 val type = when (checkedId) {
@@ -116,12 +105,10 @@ class MyTripsFragment : Fragment() {
                 }
                 viewModel.setType(type)
             } else if (group.checkedButtonId == View.NO_ID) {
-                // Nessun bottone selezionato - rimuovi filtro tipo
                 viewModel.setType(null)
             }
         }
 
-        // Bottone cancella filtri
         binding.ivClearFilter.setOnClickListener {
             clearAllFilters()
         }
@@ -131,7 +118,7 @@ class MyTripsFragment : Fragment() {
      * Cancella tutti i filtri attivi e ripristina lo stato iniziale
      */
     private fun clearAllFilters() {
-        binding.filterButton.text = "Filtra per anno"
+        binding.filterButton.text = getString(R.string.filter_by_year)
         binding.ivClearFilter.visibility = View.GONE
         binding.toggleTripType.clearChecked()
         viewModel.resetFilters()
@@ -145,36 +132,18 @@ class MyTripsFragment : Fragment() {
         binding.tvEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     /**
-     * Extension function per convertire Trip in TripUiModel
-     * Separa la logica di presentazione dal modello dati
-     */
-    private fun Trip.toUiModel(imageUrl: String? = null): TripUiModel {
-        return TripUiModel(
-            id = this.id,
-            title = this.title,
-            destination = this.destination,
-            imageUrl = imageUrl,
-            startDate = this.startDate,
-            endDate = this.endDate,
-            type = this.type,
-            distance = this.distance,
-            duration = this.duration,
-        )
-    }
-
-    /**
-     * Naviga ai dettagli del viaggio
+     * Naviga ai dettagli del viaggio selezionato
      */
     private fun navigateToTripDetails(tripId: Long) {
         val bundle = Bundle().apply {
             putLong("tripId", tripId)
         }
         findNavController().navigate(R.id.action_nav_my_trips_to_nav_trip_details, bundle)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

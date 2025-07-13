@@ -6,22 +6,21 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Features hardware -->
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
-    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="true" />
+    <uses-feature android:name="android.hardware.location.network" android:required="true" />
 
     <application
-        
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:allowBackup="true"
@@ -59,10 +58,34 @@
 
         <!-- TrackingService for GPS tracking -->
         <service
-            android:name=".utils.TrackingService"
+            android:name=".services.TrackingService"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:foregroundServiceType="location" />
 
+        <!-- LocationUpdatesService for POI notifications -->
+        <service
+            android:name=".services.LocationUpdatesService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="location" />
+
+        <!-- GeofenceService for geofencing -->
+
+        <!-- Receiver che gestisce gli eventi di geofence relativi alla posizione di casa -->
+        <receiver
+            android:name=".services.HomeGeofenceReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
+        <!-- Receiver che intercetta l'evento BOOT_COMPLETED per reimpostare la geofence di casa dopo il riavvio del dispositivo -->
+        <receiver
+            android:name=".services.BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

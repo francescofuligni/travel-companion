@@ -11,7 +11,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Adapter per visualizzare le note del viaggio
+ * Adapter per visualizzare le note del viaggio in una lista verticale
+ * Ogni nota mostra contenuto e timestamp di creazione
  */
 class TripNotesAdapter(
     private val onNoteClick: (Note) -> Unit
@@ -19,6 +20,9 @@ class TripNotesAdapter(
 
     private var notes: List<Note> = emptyList()
 
+    /**
+     * Aggiorna la lista delle note e notifica i cambiamenti
+     */
     fun updateNotes(newNotes: List<Note>) {
         notes = newNotes
         notifyDataSetChanged()
@@ -36,10 +40,16 @@ class TripNotesAdapter(
 
     override fun getItemCount(): Int = notes.size
 
+    /**
+     * ViewHolder per gli elementi nota
+     */
     inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvNoteContent: TextView = itemView.findViewById(R.id.tvNoteContent)
         private val tvNoteTimestamp: TextView = itemView.findViewById(R.id.tvNoteTimestamp)
 
+        /**
+         * Collega i dati della nota alle view
+         */
         fun bind(note: Note) {
             val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
             

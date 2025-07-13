@@ -19,9 +19,12 @@ import com.bumptech.glide.Glide
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentProfilePicturePickerBinding
 import com.example.travelcompanion.utils.ProfilePictureUtils
-import java.io.File
 
-class ProfilePicturePickerFragment : Fragment() {
+/**
+ * Fragment per la selezione e gestione della foto profilo
+ * Permette di scattare una foto o selezionare un'immagine dalla galleria
+ */
+class ProfilePictureFragment : Fragment() {
     
     private var _binding: FragmentProfilePicturePickerBinding? = null
     private val binding get() = _binding!!
@@ -29,7 +32,9 @@ class ProfilePicturePickerFragment : Fragment() {
     private var currentPhotoUri: Uri? = null
     private var onImageSelectedListener: ((Uri?) -> Unit)? = null
     
-    // Activity result launchers
+    /**
+     * Launcher per la selezione dalla galleria
+     */
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -40,6 +45,9 @@ class ProfilePicturePickerFragment : Fragment() {
         }
     }
     
+    /**
+     * Launcher per la cattura dalla fotocamera
+     */
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -50,13 +58,16 @@ class ProfilePicturePickerFragment : Fragment() {
         }
     }
     
+    /**
+     * Launcher per la richiesta permesso fotocamera
+     */
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             openCamera()
         } else {
-            Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -74,6 +85,9 @@ class ProfilePicturePickerFragment : Fragment() {
         setupViews()
     }
     
+    /**
+     * Configura i listener per i pulsanti
+     */
     private fun setupViews() {
         binding.btnSelectFromGallery.setOnClickListener {
             openGallery()
@@ -88,11 +102,17 @@ class ProfilePicturePickerFragment : Fragment() {
         }
     }
     
+    /**
+     * Apre la galleria per selezionare un'immagine
+     */
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         galleryLauncher.launch(intent)
     }
     
+    /**
+     * Controlla i permessi e apre la fotocamera
+     */
     private fun checkCameraPermissionAndOpen() {
         when {
             ContextCompat.checkSelfPermission(
@@ -107,6 +127,9 @@ class ProfilePicturePickerFragment : Fragment() {
         }
     }
     
+    /**
+     * Apre la fotocamera per scattare una foto
+     */
     private fun openCamera() {
         val photoFile = ProfilePictureUtils.createImageFile(requireContext())
         photoFile?.let { file ->
@@ -123,46 +146,55 @@ class ProfilePicturePickerFragment : Fragment() {
         }
     }
     
+    /**
+     * Gestisce la selezione di un'immagine
+     */
     private fun handleImageSelection(uri: Uri) {
         try {
-            // Save the image to internal storage
             val savedUri = ProfilePictureUtils.saveImageToInternalStorage(requireContext(), uri)
-            
-            // Update UI
             displayImage(savedUri)
-            
-            // Notify listener
             onImageSelectedListener?.invoke(savedUri)
-            
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error saving image: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_saving_image, e.message), Toast.LENGTH_SHORT).show()
         }
     }
     
+    /**
+     * Mostra l'immagine selezionata nell'interfaccia
+     */
     private fun displayImage(uri: Uri?) {
         if (uri != null) {
             Glide.with(this)
                 .load(uri)
                 .circleCrop()
-                .placeholder(android.R.drawable.ic_menu_myplaces) // Use Android built-in resource
+                .placeholder(android.R.drawable.ic_menu_myplaces)
                 .into(binding.ivProfilePicture)
             
             binding.btnRemovePhoto.visibility = View.VISIBLE
         } else {
-            binding.ivProfilePicture.setImageResource(android.R.drawable.ic_menu_myplaces) // Use Android built-in resource
+            binding.ivProfilePicture.setImageResource(android.R.drawable.ic_menu_myplaces)
             binding.btnRemovePhoto.visibility = View.GONE
         }
     }
     
+    /**
+     * Rimuove la foto profilo
+     */
     private fun removePhoto() {
         displayImage(null)
         onImageSelectedListener?.invoke(null)
     }
     
+    /**
+     * Imposta l'immagine corrente da mostrare
+     */
     fun setCurrentImage(uri: Uri?) {
         displayImage(uri)
     }
     
+    /**
+     * Imposta il listener per la selezione dell'immagine
+     */
     fun setOnImageSelectedListener(listener: (Uri?) -> Unit) {
         onImageSelectedListener = listener
     }

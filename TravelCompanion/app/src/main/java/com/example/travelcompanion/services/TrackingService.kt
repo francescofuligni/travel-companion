@@ -1,4 +1,4 @@
-package com.example.travelcompanion.utils
+package com.example.travelcompanion.services
 
 import android.Manifest
 import android.app.*
@@ -17,23 +17,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.google.android.gms.location.*
 
-class TrackingService : Service() {
+/**
+ * Servizio per il tracking GPS durante un viaggio attivo
+ * Monitora continuamente la posizione e salva le fasi del viaggio
+ */
+class TrackingService : BaseLocationService() {
 
     private var phaseOrderCounter = 0
     private var endDate: Long = -1L
-
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private var tripId: Long = -1L
 
     override fun onCreate() {
         super.onCreate()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        initFusedLocationClient()
 
-        locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 30000L)
-            .setMinUpdateIntervalMillis(30000L)
-            .build()
+        locationRequest = buildHighAccuracyRequest(
+            intervalMillis = 30_000L,
+            minUpdateMillis = 30_000L
+        )
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
@@ -52,7 +55,6 @@ class TrackingService : Service() {
         endDate = intent?.getLongExtra("END_DATE", -1L) ?: -1L
         
         if (tripId != -1L) {
-            // Initialize phase order counter
             phaseOrderCounter = 0
             startLocationUpdates()
             Log.d("TrackingService", "Tracking iniziato per trip ID: $tripId")
@@ -70,6 +72,9 @@ class TrackingService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /**
+     * Avvia la notifica per il servizio in foreground
+     */
     private fun startForegroundNotification() {
         val channelId = "tracking_channel"
         val channelName = "Location Tracking"
@@ -91,6 +96,9 @@ class TrackingService : Service() {
         startForeground(1, notification)
     }
 
+    /**
+     * Avvia gli aggiornamenti di localizzazione
+     */
     private fun startLocationUpdates() {
         if (
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -108,22 +116,26 @@ class TrackingService : Service() {
         )
     }
 
+    /**
+     * Ferma gli aggiornamenti di localizzazione
+     */
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
+    /**
+     * Gestisce una nuova posizione ricevuta dal GPS
+     */
     private fun handleNewLocation(location: android.location.Location) {
         val db = TravelDatabase.getDatabase(applicationContext)
         if (System.currentTimeMillis() > endDate && endDate > 0) {
             Log.d("TrackingService", "Fine viaggio raggiunta. Interrompo il tracking.")
-            // Aggiorna il viaggio come terminato
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val trip = db.tripDao().getTripById(tripId)
                     if (trip != null && trip.isActive) {
                         val updatedTrip = trip.copy(
-                            isActive = false,
-                            endDate = System.currentTimeMillis()
+                            isActive = false
                         )
                         db.tripDao().updateTrip(updatedTrip)
                         Log.d("TrackingService", "Trip aggiornato come terminato automaticamente: ${updatedTrip.id}")
@@ -137,7 +149,7 @@ class TrackingService : Service() {
         }
         Log.d("TrackingService", "Nuova posizione: ${location.latitude}, ${location.longitude}")
 
-        val radius = 0.0003 // ~30m in lat/lon approssimato
+        val radius = 0.0003
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -180,25 +192,27 @@ class TrackingService : Service() {
         }
     }
 
+    /**
+     * Aggiorna distanza e durata del viaggio
+     */
     private suspend fun updateDistanceAndDuration(db: TravelDatabase, tripPhase: TripPhase) {
         val location = db.locationDao().getLocationById(tripPhase.locationId)
         if (phaseOrderCounter > 1) {
             val previousPhase = db.tripPhaseDao().getLastPhaseBefore(tripId, phaseOrderCounter - 1)
             val previousLocation = previousPhase?.let { db.locationDao().getLocationById(it.locationId) }
 
-            if (previousLocation != null && location != null) {
-                val results = FloatArray(1)
-                android.location.Location.distanceBetween(
-                    previousLocation.latitude, previousLocation.longitude,
-                    location.latitude, location.longitude,
-                    results
-                )
-                val distance = results[0].toDouble() // in metri
+            if (previousLocation != null) {
+                val distance = if (location != null) {
+                    calculateDistance(
+                        previousLocation.latitude, previousLocation.longitude,
+                        location.latitude, location.longitude
+                    )
+                } else 0.0
 
                 val trip = db.tripDao().getTripById(tripId)
                 if (trip != null) {
                     val updatedDistance = trip.distance + distance
-                    val updatedDuration = trip.duration + 30.0 // 30 seconds per update
+                    val updatedDuration = trip.duration + 30.0
                     val updatedTrip = trip.copy(distance = updatedDistance, duration = updatedDuration)
                     db.tripDao().updateTrip(updatedTrip)
                     Log.d("TrackingService", "Trip updated: distance=${updatedDistance}m, duration=${updatedDuration}s")

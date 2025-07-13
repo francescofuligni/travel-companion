@@ -16,6 +16,6 @@
         android:id="@+id/btnOkYear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="applica filtro"
+        android:text="@string/apply_filter"
         android:layout_gravity="center" />
 </LinearLayout>

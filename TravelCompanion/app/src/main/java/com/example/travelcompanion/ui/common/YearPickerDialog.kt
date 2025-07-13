@@ -1,4 +1,4 @@
-package com.example.travelcompanion.ui.mytrips
+package com.example.travelcompanion.ui.common
 
 import android.app.Dialog
 import android.os.Bundle
@@ -9,12 +9,19 @@ import androidx.fragment.app.DialogFragment
 import com.example.travelcompanion.R
 import java.util.Calendar
 
+/**
+ * Dialog per la selezione dell'anno
+ * Permette all'utente di selezionare un anno tramite NumberPicker
+ */
 class YearPickerDialog(
     private val maxYear: Int,
     private val minYear: Int,
     private val onYearSelected: (Int) -> Unit
 ) : DialogFragment() {
 
+    /**
+     * Crea il dialog con NumberPicker per la selezione dell'anno
+     */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val inflater = requireActivity().layoutInflater
         val view = inflater.inflate(R.layout.dialog_year_picker, null)
