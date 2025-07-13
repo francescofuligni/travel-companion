@@ -2,7 +2,6 @@ package com.example.travelcompanion
 
 import android.os.Bundle
 import android.view.Menu
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -12,6 +11,12 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.travelcompanion.databinding.ActivityMainBinding
+import android.widget.ImageView
+import com.example.travelcompanion.database.TravelDatabase
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,11 +31,6 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
-        binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
-        }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -38,11 +38,38 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
+                R.id.nav_home,
+                R.id.nav_new_trip,
+                R.id.nav_stats,
+                R.id.nav_my_trips, 
+                R.id.nav_settings
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+        
+        // Load and display user profile picture in drawer header
+        val headerView = navView.getHeaderView(0)
+        val userPhoto = headerView.findViewById<ImageView>(R.id.user_photo)
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = TravelDatabase.getDatabase(applicationContext)
+            val user = db.userDao().getUserById(1L) // Change as needed for multi-user
+            val profilePicId = user?.profilePictureId
+            if (profilePicId != null) {
+                val image = db.imageDao().getImageById(profilePicId)
+                val uri = image?.uri
+                if (!uri.isNullOrBlank()) {
+                    launch(Dispatchers.Main) {
+                        Glide.with(this@MainActivity)
+                            .load(uri)
+                            .placeholder(R.drawable.missing_img)
+                            .error(R.drawable.missing_img)
+                            .circleCrop()
+                            .into(userPhoto)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

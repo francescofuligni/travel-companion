@@ -5,21 +5,117 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/nav_home">
 
+    <!-- Home (viaggio corrente) -->
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.travelcompanion.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_nav_home_to_nav_note"
+            app:destination="@id/nav_note" />
+    </fragment>
+
+    <!-- Nuovo viaggio -->
+    <fragment
+        android:id="@+id/nav_new_trip"
+        android:name="com.example.travelcompanion.ui.newtrip.NewTripFragment"
+        android:label="@string/start_trip_title"
+        tools:layout="@layout/fragment_new_trip">
+        <action
+            android:id="@+id/action_nav_new_trip_to_nav_new_trip_create"
+            app:destination="@id/nav_new_trip_create" />
+        <action
+            android:id="@+id/action_nav_new_trip_to_nav_new_trip_active"
+            app:destination="@id/nav_new_trip_active" />
+        <action
+            android:id="@+id/action_nav_new_trip_active_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.example.travelcompanion.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_new_trip_create"
+        android:name="com.example.travelcompanion.ui.newtrip.NewTripCreateFragment"
+        android:label="Nuovo Viaggio"
+        tools:layout="@layout/fragment_new_trip_create" >
+        <action
+            android:id="@+id/action_nav_new_trip_create_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 
+    <!-- Viaggi passati -->
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.example.travelcompanion.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_my_trips"
+        android:name="com.example.travelcompanion.ui.mytrips.MyTripsFragment"
+        android:label="@string/menu_my_trips"
+        tools:layout="@layout/fragment_my_trips">
+        <action
+            android:id="@+id/action_nav_my_trips_to_nav_trip_details"
+            app:destination="@id/nav_trip_details" />
+    </fragment>
+
+    <!-- Dettagli viaggio -->
+    <fragment
+        android:id="@+id/nav_trip_details"
+        android:name="com.example.travelcompanion.ui.tripdetails.TripDetailsFragment"
+        android:label="Dettagli Viaggio"
+        tools:layout="@layout/fragment_trip_details">
+        <argument
+            android:name="tripId"
+            app:argType="long" />
+    </fragment>
+
+    <!-- Statistiche -->
+    <fragment
+        android:id="@+id/nav_stats"
+        android:name="com.example.travelcompanion.ui.stats.StatsFragment"
+        android:label="@string/menu_stats"
+        tools:layout="@layout/fragment_stats" />
+
+    <!-- Impostazioni -->
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.example.travelcompanion.ui.settings.SettingsFragment"
+        android:label="@string/menu_settings"
+        tools:layout="@layout/fragment_settings" />
+
+    <!-- Nota -->
+    <fragment
+        android:id="@+id/nav_note"
+        android:name="com.example.travelcompanion.ui.home.NoteFragment"
+        android:label="Nota"
+        tools:layout="@layout/fragment_note" />
+
+    <!-- Nessun viaggio in corso -->
+    <fragment
+        android:id="@+id/nav_home_no_trip"
+        android:name="com.example.travelcompanion.ui.home.HomeNoTripFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_noTripFragment_to_nav_new_trip"
+            app:destination="@id/nav_new_trip" />
+    </fragment>
+
+    <!-- Viaggio in corso -->
+    <fragment
+        android:id="@+id/nav_home_active_trip"
+        android:name="com.example.travelcompanion.ui.home.HomeActiveTripFragment"
+        android:label="Viaggio Attivo"
+        tools:layout="@layout/fragment_home_active_trip">
+        <action
+            android:id="@+id/action_homeActiveTripFragment_to_nav_my_trips"
+            app:destination="@id/nav_my_trips" />
+    </fragment>
+
+    <!-- Viaggio già attivo -->
+    <fragment
+        android:id="@+id/nav_new_trip_active"
+        android:name="com.example.travelcompanion.ui.newtrip.NewTripActiveFragment"
+        android:label="Viaggio Attivo"
+        tools:layout="@layout/fragment_new_trip_active" >
+        <action
+            android:id="@+id/action_nav_new_trip_active_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 </navigation>

@@ -1,20 +1,23 @@
 package com.example.travelcompanion.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentHomeBinding
+import com.example.travelcompanion.repository.TravelRepository
+import kotlinx.coroutines.launch
 
+/**
+ * Fragment principale della home che decide se mostrare un viaggio attivo o meno
+ */
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -22,17 +25,56 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
-
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        return binding.root
+    }
 
-        val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        loadActiveTrip()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh when returning to home
+        loadActiveTrip()
+    }
+
+    /**
+     * Carica il viaggio attivo se presente
+     */
+    private fun loadActiveTrip() {
+        val repository = TravelRepository.create(requireContext())
+        lifecycleScope.launch {
+            try {
+                val activeId = repository.getActiveTripId()
+                Log.d("HomeFragment", "Active trip ID: $activeId")
+
+                val trip = activeId?.let { repository.getTripById(it) }
+                Log.d("HomeFragment", "Active trip: $trip")
+
+                val fragment = if (trip != null && trip.isActive) {
+                    val bundle = Bundle().apply {
+                        putLong("tripId", trip.id)
+                    }
+                    HomeActiveTripFragment().apply {
+                        arguments = bundle
+                    }
+                } else {
+                    HomeNoTripFragment()
+                }
+
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.home_container, fragment)
+                    .commit()
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error loading active trip", e)
+                // Fallback to no trip fragment
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.home_container, HomeNoTripFragment())
+                    .commit()
+            }
         }
-        return root
     }
 
     override fun onDestroyView() {

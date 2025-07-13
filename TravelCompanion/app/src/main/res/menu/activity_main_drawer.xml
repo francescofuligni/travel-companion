@@ -9,12 +9,21 @@
             android:icon="@drawable/ic_menu_camera"
             android:title="@string/menu_home" />
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
+            android:id="@+id/nav_new_trip"
+            android:icon="@android:drawable/ic_menu_mylocation"
+            android:title="Nuovo viaggio" />
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_slideshow" />
+            android:id="@+id/nav_my_trips"
+            android:icon="@android:drawable/ic_input_get"
+            android:title="I miei Viaggi" />
+        <item
+            android:id="@+id/nav_stats"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Statistiche" />
     </group>
+    <item
+        android:id="@+id/nav_settings"
+        android:checkable="false"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:title="Impostazioni" />
 </menu>
