@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentProfilePicturePickerBinding
 import com.example.travelcompanion.utils.ProfilePictureUtils
 
@@ -66,7 +67,7 @@ class ProfilePicturePickerFragment : Fragment() {
         if (isGranted) {
             openCamera()
         } else {
-            Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -154,7 +155,7 @@ class ProfilePicturePickerFragment : Fragment() {
             displayImage(savedUri)
             onImageSelectedListener?.invoke(savedUri)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error saving image: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_saving_image, e.message), Toast.LENGTH_SHORT).show()
         }
     }
     

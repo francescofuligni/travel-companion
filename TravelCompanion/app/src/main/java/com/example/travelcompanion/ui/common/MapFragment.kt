@@ -36,7 +36,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         if (isGranted) {
             enableUserLocation()
         } else {
-            Toast.makeText(requireContext(), "Permesso posizione negato", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -79,7 +79,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun enableUserLocation() {
         try {
             googleMap.isMyLocationEnabled = true
-            
+
             LocationUtils.getCurrentLocation(
                 requireContext(),
                 onSuccess = { currentLatLng ->
@@ -87,8 +87,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     googleMap.addMarker(
                         MarkerOptions()
                             .position(currentLatLng)
-                            .title("La tua posizione")
-                            .snippet("Posizione corrente")
+                            .title(getString(R.string.your_position))
+                            .snippet(getString(R.string.current_position))
                     )
                 },
                 onFailure = { defaultLatLng ->
@@ -96,10 +96,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     googleMap.addMarker(
                         MarkerOptions()
                             .position(defaultLatLng)
-                            .title("Posizione di default")
-                            .snippet("Impossibile ottenere la posizione corrente")
+                            .title(getString(R.string.default_position))
+                            .snippet(getString(R.string.cannot_get_current_position))
                     )
-                    Toast.makeText(requireContext(), "Impossibile ottenere la posizione corrente", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.cannot_get_current_position), Toast.LENGTH_SHORT).show()
                 }
             )
         } catch (e: SecurityException) {
