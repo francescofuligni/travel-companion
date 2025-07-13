@@ -30,7 +30,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.location.LocationServices
 import com.example.travelcompanion.utils.LocationUtils
-
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import androidx.core.app.ActivityCompat
@@ -50,6 +49,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     private var isChronoRunning = false
     private var googleMap: GoogleMap? = null
 
+    /**
+     * Launcher per la richiesta del permesso della fotocamera
+     */
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -60,6 +62,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Launcher per scattare una foto
+     */
     private val takePictureLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
@@ -80,7 +85,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         val repository = TravelRepository.create(requireContext())
         val factory = HomeActiveTripViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[HomeActiveTripViewModel::class.java]
-
     }
 
     override fun onCreateView(
@@ -104,7 +108,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         viewLifecycleOwner.lifecycleScope.launch {
             observeTrip()
         }
-
     }
     
     /**
@@ -113,24 +116,20 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     private fun setupViews(view: View) {
         chronometer = view.findViewById(R.id.chronometer)
         
-        // Bottoni
         val stopButton = view.findViewById<Button>(R.id.btn_stop)
         val photoButton = view.findViewById<Button>(R.id.btn_photo)
         val noteButton = view.findViewById<Button>(R.id.btn_note)
         
-        // Stop trip button
         stopButton.setOnClickListener {
             Log.d("HomeActiveTripFragment", "Stop button clicked")
             stopTrip()
         }
         
-        // Photo button
         photoButton.setOnClickListener {
             Log.d("HomeActiveTripFragment", "Photo button clicked")
             checkCameraPermissionAndTakePicture()
         }
         
-        // Note button
         noteButton.setOnClickListener {
             Log.d("HomeActiveTripFragment", "Note button clicked")
             showAddNoteDialog()
@@ -146,12 +145,14 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
     }
 
+    /**
+     * Callback chiamato quando la mappa è pronta
+     */
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         googleMap?.uiSettings?.isMyLocationButtonEnabled = true
     }
-
 
     /**
      * Aggiorna la mappa con i dati del viaggio
@@ -160,7 +161,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         if (trip == null) return
         googleMap?.let { map ->
             map.clear()
-            // Carica le fasi del viaggio per ottenere le coordinate
             viewModel.getTripPhases(trip.id).observe(viewLifecycleOwner) { phases ->
                 if (phases.isNotEmpty()) {
                     val startPhase:TripPhase = phases.first()
@@ -177,7 +177,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
                         }
                     }
                 } else {
-                    // Nessuna fase trovata, usa la posizione corrente dell'utente
                     LocationUtils.getCurrentLocation(
                         requireContext(),
                         onSuccess = { currentLatLng ->
@@ -208,7 +207,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
      * Osserva i dati del viaggio e aggiorna la UI
      */
     private suspend fun observeTrip() {
-        // Carica i dati del viaggio usando il viewModel
         viewModel.getTripById(tripId).observe(viewLifecycleOwner) { trip ->
             trip?.let {
                 updateUI(it)
@@ -236,7 +234,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             tvEndDate.text = if (trip.endDate != 0L) dateFormat.format(Date(trip.endDate)) else "In corso"
             tvDistance.text = "Distanza: ${String.format("%.1f", trip.distance)} m"
 
-            // Gestione cronometro - calcola il tempo trascorso dall'inizio del viaggio
             if (trip.isActive && !isChronoRunning) {
                 val currentTime = System.currentTimeMillis()
                 val elapsedTime = currentTime - trip.startDate
@@ -261,7 +258,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             requireActivity().runOnUiThread {
                 if (success) {
                     Toast.makeText(requireContext(), "Viaggio terminato", Toast.LENGTH_SHORT).show()
-                    // Naviga alla schermata "I miei viaggi"
                     findNavController().navigate(R.id.nav_my_trips)
                 } else {
                     Toast.makeText(requireContext(), "Errore durante la chiusura del viaggio", Toast.LENGTH_LONG).show()

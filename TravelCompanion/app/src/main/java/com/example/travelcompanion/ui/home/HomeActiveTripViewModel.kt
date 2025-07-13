@@ -28,7 +28,6 @@ class HomeActiveTripViewModel(
     
     /**
      * Ottiene i dati del viaggio per ID
-     * @param tripId ID del viaggio da monitorare
      */
     suspend fun getTripById(tripId: Long): LiveData<Trip?> {
         return repository.getTripByIdLive(tripId)
@@ -36,7 +35,6 @@ class HomeActiveTripViewModel(
     
     /**
      * Ferma il viaggio attivo
-     * @param tripId ID del viaggio da terminare
      */
     fun stopTrip(tripId: Long, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
@@ -73,7 +71,6 @@ class HomeActiveTripViewModel(
     
     /**
      * Ottiene le fasi del viaggio per ID
-     * @param tripId ID del viaggio
      */
     fun getTripPhases(tripId: Long): LiveData<List<TripPhase>> {
         return repository.getTripPhases(tripId)
@@ -81,7 +78,6 @@ class HomeActiveTripViewModel(
     
     /**
      * Ottiene una location per ID
-     * @param locationId ID della location
      */
     fun getLocationById(locationId: Long): LiveData<Location?> {
         return repository.getLocationByIdLiveData(locationId)

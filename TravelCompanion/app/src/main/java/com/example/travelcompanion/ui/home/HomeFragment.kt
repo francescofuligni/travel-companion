@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Fragment principale della home che decide se mostrare un viaggio attivo o meno
+ * Gestisce dinamicamente il contenuto basandosi sullo stato dei viaggi
  */
 class HomeFragment : Fragment() {
 
@@ -36,16 +37,18 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh when returning to home
         loadActiveTrip()
     }
 
+    /**
+     * Forza il ricaricamento del fragment figlio
+     */
     fun forceReload() {
-        loadActiveTrip()  // o qualunque metodo tu usi per caricare dinamicamente il fragment figlio
+        loadActiveTrip()
     }
 
     /**
-     * Carica il viaggio attivo se presente
+     * Carica il viaggio attivo se presente e mostra il fragment appropriato
      */
     private fun loadActiveTrip() {
         val repository = TravelRepository.create(requireContext())
@@ -73,7 +76,6 @@ class HomeFragment : Fragment() {
                     .commit()
             } catch (e: Exception) {
                 Log.e("HomeFragment", "Error loading active trip", e)
-                // Fallback to no trip fragment
                 childFragmentManager.beginTransaction()
                     .replace(R.id.home_container, HomeNoTripFragment())
                     .commit()

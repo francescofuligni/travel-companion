@@ -1,5 +1,3 @@
-
-
 package com.example.travelcompanion.ui.home
 
 import android.os.Bundle
@@ -11,6 +9,10 @@ import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentHomeNoTripBinding
 
+/**
+ * Fragment mostrato quando non c'è nessun viaggio attivo
+ * Presenta un pulsante per iniziare un nuovo viaggio
+ */
 class HomeNoTripFragment : Fragment() {
 
     private var _binding: FragmentHomeNoTripBinding? = null
@@ -27,6 +29,9 @@ class HomeNoTripFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        /**
+         * Naviga alla schermata di creazione nuovo viaggio
+         */
         binding.btnStartNewTrip.setOnClickListener {
             requireParentFragment().findNavController().navigate(R.id.nav_new_trip)
         }
