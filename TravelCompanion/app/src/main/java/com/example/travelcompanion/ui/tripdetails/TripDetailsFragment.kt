@@ -211,7 +211,9 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
      * Configura la RecyclerView per le immagini del viaggio
      */
     private fun setupImagesRecyclerView() {
-
+        imagesAdapter = TripImagesAdapter { image ->
+            Log.d("TripDetailsFragment", "Image clicked: ${image.uri}")
+        }
         binding.rvTripImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         binding.rvTripImages.adapter = imagesAdapter
     }
@@ -220,7 +222,9 @@ class TripDetailsFragment : Fragment(), OnMapReadyCallback {
      * Configura la RecyclerView per le note del viaggio
      */
     private fun setupNotesRecyclerView() {
-
+        notesAdapter = TripNotesAdapter { note ->
+            Log.d("TripDetailsFragment", "Note clicked: ${note.content}")
+        }
         binding.rvTripNotes.layoutManager = LinearLayoutManager(context)
         binding.rvTripNotes.adapter = notesAdapter
     }

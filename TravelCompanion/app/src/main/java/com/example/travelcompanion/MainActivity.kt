@@ -38,6 +38,10 @@ import android.os.Build
 import androidx.appcompat.app.AlertDialog
 import android.util.Log
 
+/**
+ * Activity principale dell'app Travel Companion
+ * Gestisce la navigazione, i permessi, i servizi in background e l'interfaccia utente
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -52,17 +56,33 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        initializeActivity()
+        setupNavigation()
+        initializeServices()
+    }
+
+    /**
+     * Inizializza l'activity con binding e toolbar
+     */
+    private fun initializeActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.appBarMain.toolbar)
-
+        
         // Richiedi permessi necessari
         requestRequiredPermissions()
+    }
 
+    /**
+     * Configura la navigazione con drawer e controller
+     */
+    private fun setupNavigation() {
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         
+        // Configurazione AppBar con destinazioni top-level
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_home,
@@ -72,6 +92,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_settings
             ), drawerLayout
         )
+        
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
@@ -80,20 +101,17 @@ class MainActivity : AppCompatActivity() {
             navView.inflateHeaderView(R.layout.nav_header_main)
         }
 
-        // Gestisci selezione e reselezione dei menu
+        setupNavigationItemListener(navView, navController)
+    }
+
+    /**
+     * Configura il listener per la selezione degli item del drawer
+     */
+    private fun setupNavigationItemListener(navView: NavigationView, navController: androidx.navigation.NavController) {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
-                    val navOptions = NavOptions.Builder()
-                        .setPopUpTo(navController.graph.id, false)
-                        .build()
-                    navController.navigate(R.id.nav_home, null, navOptions)
-                    val hostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
-                    if (hostFragment is NavHostFragment) {
-                        val current = hostFragment.childFragmentManager.fragments.firstOrNull()
-                        if (current is HomeFragment) current.forceReload()
-                    }
-                    binding.drawerLayout.closeDrawers()
+                    handleHomeNavigation(navController)
                     true
                 }
                 else -> {
@@ -103,7 +121,31 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * Gestisce la navigazione verso la home con reload forzato
+     */
+    private fun handleHomeNavigation(navController: androidx.navigation.NavController) {
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(navController.graph.id, false)
+            .build()
+        navController.navigate(R.id.nav_home, null, navOptions)
         
+        // Forza il reload del fragment home
+        val hostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+        if (hostFragment is NavHostFragment) {
+            val current = hostFragment.childFragmentManager.fragments.firstOrNull()
+            if (current is HomeFragment) current.forceReload()
+        }
+        
+        binding.drawerLayout.closeDrawers()
+    }
+
+    /**
+     * Inizializza i servizi dell'app
+     */
+    private fun initializeServices() {
         loadUserProfilePicture()
         scheduleTripReminderWorker()
         
@@ -137,7 +179,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Permesso foreground service location per Android 14+
-        if (Build.VERSION.SDK_INT >= 34) { // Android 14+
+        if (Build.VERSION.SDK_INT >= 34) {
             if (checkSelfPermission(Manifest.permission.FOREGROUND_SERVICE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
             }
@@ -158,7 +200,6 @@ class MainActivity : AppCompatActivity() {
     private fun requestBackgroundLocationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // Mostra dialog esplicativo prima di richiedere il permesso
                 showBackgroundLocationPermissionDialog()
             } else {
                 Log.d(TAG, "Permesso background location già concesso")
@@ -196,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         val backgroundLocation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
         } else {
-            true // Not required for Android < 10
+            true // Non richiesto per Android < 10
         }
         return fineLocation && coarseLocation && backgroundLocation
     }
@@ -221,27 +262,41 @@ class MainActivity : AppCompatActivity() {
         
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
-                Log.d(TAG, "Risultati permessi base: ${grantResults.joinToString()}")
-                if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                    Log.d(TAG, "Permessi base concessi")
-                    // Avvia servizi se i permessi sono stati concessi
-                    startLocationService()
-                    registerHomeGeofenceIfSet()
-                    // Richiedi background location se necessario
-                    requestBackgroundLocationPermissionIfNeeded()
-                } else {
-                    Log.w(TAG, "Alcuni permessi base sono stati rifiutati")
-                }
+                handleBasicPermissionsResult(grantResults)
             }
             BACKGROUND_LOCATION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "Permesso background location concesso")
-                    // Riavvia i servizi per abilitare il geofencing
-                    registerHomeGeofenceIfSet()
-                } else {
-                    Log.w(TAG, "Permesso background location rifiutato")
-                }
+                handleBackgroundLocationPermissionResult(grantResults)
             }
+        }
+    }
+
+    /**
+     * Gestisce il risultato della richiesta dei permessi base
+     */
+    private fun handleBasicPermissionsResult(grantResults: IntArray) {
+        Log.d(TAG, "Risultati permessi base: ${grantResults.joinToString()}")
+        if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            Log.d(TAG, "Permessi base concessi")
+            // Avvia servizi se i permessi sono stati concessi
+            startLocationService()
+            registerHomeGeofenceIfSet()
+            // Richiedi background location se necessario
+            requestBackgroundLocationPermissionIfNeeded()
+        } else {
+            Log.w(TAG, "Alcuni permessi base sono stati rifiutati")
+        }
+    }
+
+    /**
+     * Gestisce il risultato della richiesta del permesso background location
+     */
+    private fun handleBackgroundLocationPermissionResult(grantResults: IntArray) {
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "Permesso background location concesso")
+            // Riavvia i servizi per abilitare il geofencing
+            registerHomeGeofenceIfSet()
+        } else {
+            Log.w(TAG, "Permesso background location rifiutato")
         }
     }
 
@@ -256,7 +311,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Programma il worker per i reminder periodici
+     * Programma il worker per i reminder periodici dei viaggi
      */
     private fun scheduleTripReminderWorker() {
         val request = PeriodicWorkRequestBuilder<NotificationRemindWorker>(
@@ -272,7 +327,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Avvia il servizio di localizzazione per POI
+     * Avvia il servizio di localizzazione per rilevamento POI
      */
     private fun startLocationService() {
         if (hasLocationPermissions()) {
@@ -285,7 +340,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Registra il geofence della casa se impostato
+     * Registra il geofence della casa se la posizione è stata impostata
      */
     private fun registerHomeGeofenceIfSet() {
         Log.d(TAG, "=== CONTROLLO GEOFENCE CASA ===")
@@ -293,31 +348,17 @@ class MainActivity : AppCompatActivity() {
         // Verifica permessi necessari (foreground + background)
         if (!hasLocationPermissions()) {
             Log.e(TAG, "Permessi localizzazione (foreground o background) mancanti per geofencing")
-            NotificationUtils.sendNotification(
-                context = this,
-                channelId = "geofence_channel",
-                channelName = "Geofence Error",
-                title = "Permessi mancanti",
-                message = "Per il geofencing sono necessari i permessi di localizzazione in primo piano e in background.",
-                notificationId = 994,
-                iconRes = android.R.drawable.ic_dialog_alert,
-                channelDescription = "Errore permessi geofence"
-            )
+            showGeofencePermissionError()
             return
         }
 
-        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
-        val homeLat = prefs.getFloat("home_latitude", Float.MIN_VALUE)
-        val homeLon = prefs.getFloat("home_longitude", Float.MIN_VALUE)
-
-        Log.d(TAG, "Posizione casa: lat=$homeLat, lon=$homeLon")
-
-        if (homeLat != Float.MIN_VALUE && homeLon != Float.MIN_VALUE) {
+        val homeLocation = getHomeLocationFromPreferences()
+        if (homeLocation != null) {
             Log.d(TAG, "Registrazione geofence casa")
             HomeGeofenceService.registerHomeGeofence(
                 context = this,
-                latitude = homeLat.toDouble(),
-                longitude = homeLon.toDouble()
+                latitude = homeLocation.first,
+                longitude = homeLocation.second
             )
         } else {
             Log.w(TAG, "Posizione casa non impostata")
@@ -325,7 +366,40 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Carica l'immagine del profilo utente nel drawer
+     * Recupera la posizione casa dalle SharedPreferences
+     */
+    private fun getHomeLocationFromPreferences(): Pair<Double, Double>? {
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val homeLat = prefs.getFloat("home_latitude", Float.MIN_VALUE)
+        val homeLon = prefs.getFloat("home_longitude", Float.MIN_VALUE)
+
+        Log.d(TAG, "Posizione casa: lat=$homeLat, lon=$homeLon")
+
+        return if (homeLat != Float.MIN_VALUE && homeLon != Float.MIN_VALUE) {
+            Pair(homeLat.toDouble(), homeLon.toDouble())
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Mostra notifica di errore per i permessi del geofencing
+     */
+    private fun showGeofencePermissionError() {
+        NotificationUtils.sendNotification(
+            context = this,
+            channelId = "geofence_channel",
+            channelName = "Geofence Error",
+            title = "Permessi mancanti",
+            message = "Per il geofencing sono necessari i permessi di localizzazione in primo piano e in background.",
+            notificationId = 994,
+            iconRes = android.R.drawable.ic_dialog_alert,
+            channelDescription = "Errore permessi geofence"
+        )
+    }
+
+    /**
+     * Carica l'immagine del profilo utente nel drawer di navigazione
      */
     private fun loadUserProfilePicture() {
         val headerView = binding.navView.getHeaderView(0)
@@ -333,34 +407,43 @@ class MainActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
-                // Carica utente e immagine in background
-                val user = withContext(Dispatchers.IO) {
-                    TravelDatabase.getDatabase(applicationContext).userDao().getUserById(1L)
-                }
-                val uri = user?.profilePictureId?.let { imageId ->
-                    withContext(Dispatchers.IO) {
-                        TravelDatabase.getDatabase(applicationContext)
-                            .imageDao()
-                            .getImageById(imageId)
-                            ?.uri
-                    }
-                }
-                
-                // Aggiorna UI
-                if (!uri.isNullOrBlank()) {
-                    Glide.with(this@MainActivity)
-                        .load(uri)
-                        .placeholder(R.drawable.missing_img)
-                        .error(R.drawable.missing_img)
-                        .circleCrop()
-                        .into(ivProfile)
-                } else {
-                    ivProfile.setImageResource(R.drawable.missing_img)
-                }
+                val profileUri = getUserProfilePictureUri()
+                updateProfilePictureInDrawer(ivProfile, profileUri)
             } catch (e: Exception) {
                 Log.e(TAG, "Errore caricamento immagine profilo", e)
                 ivProfile.setImageResource(R.drawable.missing_img)
             }
+        }
+    }
+
+    /**
+     * Recupera l'URI dell'immagine del profilo dal database
+     */
+    private suspend fun getUserProfilePictureUri(): String? {
+        return withContext(Dispatchers.IO) {
+            val user = TravelDatabase.getDatabase(applicationContext).userDao().getUserById(1L)
+            user?.profilePictureId?.let { imageId ->
+                TravelDatabase.getDatabase(applicationContext)
+                    .imageDao()
+                    .getImageById(imageId)
+                    ?.uri
+            }
+        }
+    }
+
+    /**
+     * Aggiorna l'immagine del profilo nel drawer usando Glide
+     */
+    private fun updateProfilePictureInDrawer(imageView: ImageView, uri: String?) {
+        if (!uri.isNullOrBlank()) {
+            Glide.with(this@MainActivity)
+                .load(uri)
+                .placeholder(R.drawable.missing_img)
+                .error(R.drawable.missing_img)
+                .circleCrop()
+                .into(imageView)
+        } else {
+            imageView.setImageResource(R.drawable.missing_img)
         }
     }
 }
