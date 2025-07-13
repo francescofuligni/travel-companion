@@ -11,15 +11,15 @@ import com.google.android.gms.maps.model.LatLng
  */
 object LocationUtils {
     
-    // Default fallback locations
-    private val DEFAULT_ITALY_LOCATION = LatLng(41.9028, 12.4964) // Rome, Italy
-    private val DEFAULT_BOLOGNA_LOCATION = LatLng(44.4949, 11.3426) // Bologna (for settings)
+    /*
+     * Default fallback locations
+     */
+    private val DEFAULT_ITALY_LOCATION = LatLng(41.9028, 12.4964)
+    private val DEFAULT_BOLOGNA_LOCATION = LatLng(44.4949, 11.3426)
     
-    /**
+    /*
      * Gets the current user location if permissions are granted
-     * @param context The context to check permissions
-     * @param onSuccess Callback when location is successfully retrieved
-     * @param onFailure Callback when location cannot be retrieved (uses default location)
+     * Uses Rome as fallback location when location cannot be retrieved
      */
     fun getCurrentLocation(
         context: Context,
@@ -48,11 +48,9 @@ object LocationUtils {
         }
     }
     
-    /**
-     * Gets the current user location for settings (uses Bologna as fallback)
-     * @param context The context to check permissions
-     * @param onSuccess Callback when location is successfully retrieved
-     * @param onFailure Callback when location cannot be retrieved (uses Bologna as fallback)
+    /*
+     * Gets the current user location for settings screen
+     * Uses Bologna as fallback location when location cannot be retrieved
      */
     fun getCurrentLocationForSettings(
         context: Context,
@@ -81,10 +79,8 @@ object LocationUtils {
         }
     }
     
-    /**
+    /*
      * Checks if location permissions are granted
-     * @param context The context to check permissions
-     * @return true if permissions are granted, false otherwise
      */
     fun hasLocationPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -93,9 +89,8 @@ object LocationUtils {
         ) == PackageManager.PERMISSION_GRANTED
     }
     
-    /**
-     * Gets the default Bologna location (for settings)
-     * @return LatLng of Bologna, Italy
+    /*
+     * Gets the default Bologna location for settings screen
      */
     fun getDefaultBolognaLocation(): LatLng {
         return DEFAULT_BOLOGNA_LOCATION

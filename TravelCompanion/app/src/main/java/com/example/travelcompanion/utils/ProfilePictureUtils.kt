@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -14,8 +15,11 @@ import java.util.*
 object ProfilePictureUtils {
     
     private const val PROFILE_PICTURES_DIR = "profile_pictures"
-    private const val MAX_IMAGE_SIZE = 1024 // Max width/height in pixels
+    private const val MAX_IMAGE_SIZE = 1024
     
+    /*
+     * Creates a temporary image file for camera capture
+     */
     fun createImageFile(context: Context): File? {
         return try {
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -23,30 +27,31 @@ object ProfilePictureUtils {
             val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             File.createTempFile(imageFileName, ".jpg", storageDir)
         } catch (e: Exception) {
+            Log.d("ProfilePictureUtils", e.printStackTrace().toString())
             null
         }
     }
     
+    /*
+     * Saves an image from URI to internal storage
+     * Resizes the image if it exceeds maximum dimensions
+     */
     fun saveImageToInternalStorage(context: Context, sourceUri: Uri): Uri? {
         return try {
             val inputStream: InputStream? = context.contentResolver.openInputStream(sourceUri)
             val bitmap = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
             
-            // Resize bitmap if needed
             val resizedBitmap = resizeBitmap(bitmap)
             
-            // Create internal storage directory for profile pictures
             val profilePicturesDir = File(context.filesDir, PROFILE_PICTURES_DIR)
             if (!profilePicturesDir.exists()) {
                 profilePicturesDir.mkdirs()
             }
             
-            // Create unique filename
             val fileName = "profile_${System.currentTimeMillis()}.jpg"
             val file = File(profilePicturesDir, fileName)
             
-            // Save bitmap to file
             val outputStream = FileOutputStream(file)
             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
             outputStream.flush()
@@ -59,6 +64,9 @@ object ProfilePictureUtils {
         }
     }
     
+    /*
+     * Resizes bitmap to fit within maximum dimensions while maintaining aspect ratio
+     */
     private fun resizeBitmap(bitmap: Bitmap): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
