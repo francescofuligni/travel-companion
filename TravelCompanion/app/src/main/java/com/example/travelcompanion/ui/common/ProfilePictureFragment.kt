@@ -24,7 +24,7 @@ import com.example.travelcompanion.utils.ProfilePictureUtils
  * Fragment per la selezione e gestione della foto profilo
  * Permette di scattare una foto o selezionare un'immagine dalla galleria
  */
-class ProfilePicturePickerFragment : Fragment() {
+class ProfilePictureFragment : Fragment() {
     
     private var _binding: FragmentProfilePicturePickerBinding? = null
     private val binding get() = _binding!!

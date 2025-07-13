@@ -34,7 +34,7 @@ object ProfilePictureUtils {
             inputStream?.close()
             
             // Resize bitmap if needed
-            val resizedBitmap = resizeBitmap(bitmap, MAX_IMAGE_SIZE)
+            val resizedBitmap = resizeBitmap(bitmap)
             
             // Create internal storage directory for profile pictures
             val profilePicturesDir = File(context.filesDir, PROFILE_PICTURES_DIR)
@@ -59,31 +59,18 @@ object ProfilePictureUtils {
         }
     }
     
-    private fun resizeBitmap(bitmap: Bitmap, maxSize: Int): Bitmap {
+    private fun resizeBitmap(bitmap: Bitmap): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
         
-        if (width <= maxSize && height <= maxSize) {
+        if (width <= MAX_IMAGE_SIZE && height <= MAX_IMAGE_SIZE) {
             return bitmap
         }
         
-        val ratio = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height)
+        val ratio = minOf(MAX_IMAGE_SIZE.toFloat() / width, MAX_IMAGE_SIZE.toFloat() / height)
         val newWidth = (width * ratio).toInt()
         val newHeight = (height * ratio).toInt()
         
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
-    }
-    
-    fun deleteProfilePicture(context: Context, uri: Uri): Boolean {
-        return try {
-            val file = File(uri.path ?: return false)
-            if (file.exists() && file.absolutePath.contains(PROFILE_PICTURES_DIR)) {
-                file.delete()
-            } else {
-                false
-            }
-        } catch (e: Exception) {
-            false
-        }
     }
 }

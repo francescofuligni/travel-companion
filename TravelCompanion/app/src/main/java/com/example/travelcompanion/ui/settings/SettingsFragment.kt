@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.travelcompanion.BuildConfig
 import com.example.travelcompanion.databinding.FragmentSettingsBinding
 import com.example.travelcompanion.repository.TravelRepository
-import com.example.travelcompanion.ui.common.ProfilePicturePickerFragment
+import com.example.travelcompanion.ui.common.ProfilePictureFragment
 import com.example.travelcompanion.utils.LocationUtils
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -104,13 +104,13 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
      * Configura il fragment per la selezione della foto profilo
      */
     private fun setupProfilePicturePicker() {
-        val profilePicturePickerFragment = ProfilePicturePickerFragment()
+        val profilePictureFragment = ProfilePictureFragment()
 
         childFragmentManager.beginTransaction()
-            .replace(binding.profilePictureContainer.id, profilePicturePickerFragment)
+            .replace(binding.profilePictureContainer.id, profilePictureFragment)
             .commit()
 
-        profilePicturePickerFragment.setOnImageSelectedListener { uri ->
+        profilePictureFragment.setOnImageSelectedListener { uri ->
             currentProfilePictureUri = uri
             viewModel.updateProfilePicture(uri)
         }
@@ -234,7 +234,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
 
         viewModel.profilePictureUri.observe(viewLifecycleOwner) { uri ->
             currentProfilePictureUri = uri
-            val profilePictureFragment = childFragmentManager.findFragmentById(binding.profilePictureContainer.id) as? ProfilePicturePickerFragment
+            val profilePictureFragment = childFragmentManager.findFragmentById(binding.profilePictureContainer.id) as? ProfilePictureFragment
             profilePictureFragment?.setCurrentImage(uri)
         }
 

@@ -3,7 +3,6 @@ package com.example.travelcompanion.utils
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 
@@ -92,14 +91,6 @@ object LocationUtils {
             context,
             android.Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-    }
-    
-    /**
-     * Gets the default Italy location (Rome) as fallback
-     * @return LatLng of Rome, Italy
-     */
-    fun getDefaultItalyLocation(): LatLng {
-        return DEFAULT_ITALY_LOCATION
     }
     
     /**

@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.google.android.libraries.places.api.model.Place
 
 object NotificationUtils {
 
@@ -77,11 +76,5 @@ object NotificationUtils {
             iconRes = android.R.drawable.ic_dialog_map,
             channelDescription = "Notifiche relative ai punti di interesse" // TODO: Move to string resources
         )
-    }
-
-    fun checkDistanceAndNotify(context: Context, distance: Double, place: Place) {
-        if (distance < 10) {
-            sendPoiNotification(context, place.name ?: "Un luogo interessante")
-        }
     }
 }
