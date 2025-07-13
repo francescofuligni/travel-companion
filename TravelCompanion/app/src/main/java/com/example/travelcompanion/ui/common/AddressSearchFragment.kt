@@ -1,5 +1,6 @@
 package com.example.travelcompanion.ui.common
 
+import android.location.Geocoder
 import com.example.travelcompanion.databinding.FragmentAddressSearchBinding
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -130,7 +131,7 @@ class AddressSearchFragment : Fragment() {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
-                    val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                    val geocoder = Geocoder(context, java.util.Locale.getDefault())
                     
                     try {
                         val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)

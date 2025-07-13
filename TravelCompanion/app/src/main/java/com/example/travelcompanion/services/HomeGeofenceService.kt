@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.app.PendingIntent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.example.travelcompanion.utils.NotificationUtils
@@ -20,11 +21,12 @@ import kotlinx.coroutines.launch
 
 /**
  * Servizio per la gestione del geofencing della casa dell'utente
+ * Invia notifiche quando l'utente esce/entra da casa
  */
 object HomeGeofenceService {
 
     private const val GEOFENCE_ID = "HOME_GEOFENCE_ID"
-    private const val GEOFENCE_RADIUS_METERS = 500f // Aumentato per test in emulatore
+    private const val GEOFENCE_RADIUS_METERS = 500f
     private const val TAG = "HomeGeofenceService"
 
     /**
@@ -33,10 +35,9 @@ object HomeGeofenceService {
     fun registerHomeGeofence(context: Context, latitude: Double, longitude: Double) {
         Log.d(TAG, "Registrazione geofence casa: lat=$latitude, lon=$longitude, radius=$GEOFENCE_RADIUS_METERS")
 
-        // 1. Check if location is enabled
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
-        val isLocationEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         Log.d(TAG, "Location enabled: $isLocationEnabled")
         if (!isLocationEnabled) {
             Log.e(TAG, "Location disattivata: impossibile registrare geofence")
@@ -53,30 +54,6 @@ object HomeGeofenceService {
             return
         }
 
-        // 2. Check Google Play Services availability
-        val playServicesAvailable = try {
-            val gms = com.google.android.gms.common.GoogleApiAvailability.getInstance()
-            val resultCode = gms.isGooglePlayServicesAvailable(context)
-            resultCode == com.google.android.gms.common.ConnectionResult.SUCCESS
-        } catch (e: Exception) {
-            Log.e(TAG, "Errore nel controllo Google Play Services", e)
-            false
-        }
-        Log.d(TAG, "Google Play Services available: $playServicesAvailable")
-        if (!playServicesAvailable) {
-            Log.e(TAG, "Google Play Services non disponibile o non aggiornato")
-            NotificationUtils.sendNotification(
-                context = context,
-                channelId = "geofence_channel",
-                channelName = "Geofence Error",
-                title = "Errore geofence",
-                message = "Google Play Services non disponibile o non aggiornato. Aggiorna Google Play Services e riprova.",
-                notificationId = 995,
-                iconRes = android.R.drawable.ic_dialog_alert,
-                channelDescription = "Errore geofence play services"
-            )
-            return
-        }
 
         val geofencingClient = LocationServices.getGeofencingClient(context)
 
@@ -85,7 +62,7 @@ object HomeGeofenceService {
             .setCircularRegion(latitude, longitude, GEOFENCE_RADIUS_METERS)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_ENTER)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
-            .setLoiteringDelay(10000) // 10 secondi
+            .setLoiteringDelay(10000)
             .build()
 
         val geofencingRequest = GeofencingRequest.Builder()
@@ -133,7 +110,6 @@ object HomeGeofenceService {
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Errore registrazione geofence: ${exception.message}")
                 Log.e(TAG, "Exception details: ", exception)
-                // Try to get error code if possible
                 val errorCode = if (exception is com.google.android.gms.common.api.ApiException) exception.statusCode else null
                 val errorMsg = when (errorCode) {
                     1000 -> "GEOFENCE_NOT_AVAILABLE: Servizi di localizzazione non disponibili o Google Play Services non aggiornato."
@@ -165,6 +141,9 @@ object HomeGeofenceService {
             .addOnFailureListener { Log.e(TAG, "Errore rimozione geofence", it) }
     }
 
+    /**
+     * Crea il PendingIntent per gli eventi di geofencing
+     */
     private fun getGeofencePendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, HomeGeofenceReceiver::class.java)
         return PendingIntent.getBroadcast(
@@ -178,16 +157,19 @@ object HomeGeofenceService {
 
 /**
  * Receiver per gli eventi di geofencing
+ * Gestisce l'entrata e l'uscita dal geofence della casa
  */
 class HomeGeofenceReceiver : BroadcastReceiver() {
 
+    /**
+     * Gestisce gli eventi di geofencing ricevuti
+     */
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent?.hasError() == true) {
             return
         }
 
-        // Notifica per evento geofence
         NotificationUtils.sendNotification(
             context = context,
             channelId = "geofence_channel",

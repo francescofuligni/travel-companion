@@ -23,6 +23,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Servizio per il monitoraggio della posizione e notifiche POI
+ * Invia notifiche quando l'utente si trova vicino a luoghi interessanti
  */
 class LocationUpdatesService : BaseLocationService() {
 
@@ -33,13 +34,12 @@ class LocationUpdatesService : BaseLocationService() {
     // Cache per evitare notifiche duplicate
     private val notifiedPlaces = mutableSetOf<String>()
     private var lastPlaceCheckTime = 0L
-    private val PLACE_CHECK_INTERVAL = 3 * 60 * 1000L // 3 minuti tra controlli
-    private val NOTIFICATION_COOLDOWN = 20 * 60 * 1000L // 20 minuti tra notifiche stesso posto
-    
+    private val PLACE_CHECK_INTERVAL = 3 * 60 * 1000L // 3 minuti
+    private val NOTIFICATION_COOLDOWN = 20 * 60 * 1000L // 20 minuti per stessi posti
+
     override fun onCreate() {
         super.onCreate()
 
-        // Avvia foreground service con notifica persistente
         startForegroundServiceWithNotification()
 
         if (!Places.isInitialized()) {
@@ -50,15 +50,14 @@ class LocationUpdatesService : BaseLocationService() {
         initFusedLocationClient()
 
         locationRequest = buildHighAccuracyRequest(
-            intervalMillis = 2 * 60 * 1000L, // 2 minuti
-            minUpdateMillis = 60 * 1000L // 1 minuto
+            intervalMillis = 2 * 60 * 1000L,
+            minUpdateMillis = 60 * 1000L
         )
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { location ->
                     android.util.Log.d("LocationService", "Nuova posizione: ${location.latitude}, ${location.longitude}")
-                    // Controlla i luoghi solo ogni 3 minuti per ridurre le chiamate API
                     val currentTime = System.currentTimeMillis()
                     if (currentTime - lastPlaceCheckTime > PLACE_CHECK_INTERVAL) {
                         checkNearbyPlaces(location)
@@ -174,7 +173,6 @@ class LocationUpdatesService : BaseLocationService() {
             val poiLocation = place.latLng ?: continue
             val placeId = place.id ?: continue
             
-            // Calcola distanza
             val distance = calculateDistance(
                 userLocation.latitude, userLocation.longitude,
                 poiLocation.latitude, poiLocation.longitude
@@ -182,8 +180,7 @@ class LocationUpdatesService : BaseLocationService() {
             
             android.util.Log.d("LocationService", "Posto: ${place.name}, distanza: $distance metri")
             
-            // Controlla se il posto è interessante e vicino
-            if (distance < 100 && // Aumentata soglia a 100 metri
+            if (distance < 100 &&
                 isInterestingPlace(place) && 
                 shouldNotifyForPlace(placeId)
             ) {
@@ -192,16 +189,14 @@ class LocationUpdatesService : BaseLocationService() {
                 
                 NotificationUtils.sendPoiNotification(applicationContext, placeName)
                 
-                // Aggiungi alla cache per evitare spam
                 notifiedPlaces.add(placeId)
                 
-                // Pulisci la cache dopo il cooldown
                 CoroutineScope(Dispatchers.IO).launch {
                     delay(NOTIFICATION_COOLDOWN)
                     notifiedPlaces.remove(placeId)
                 }
                 
-                break // Solo una notifica per volta
+                break
             }
         }
     }

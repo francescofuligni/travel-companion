@@ -7,8 +7,15 @@ import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.utils.NotificationUtils
 import kotlinx.coroutines.runBlocking
 
+/**
+ * Worker per l'invio di notifiche promemoria sui viaggi
+ * Controlla se è passato troppo tempo dall'ultimo viaggio
+ */
 class NotificationRemindWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
+    /**
+     * Esegue il controllo e invia notifiche se necessario
+     */
     override fun doWork(): Result = runBlocking {
         val repo = TravelRepository.create(applicationContext)
         val millis = repo.getLastTripTimestamp()
