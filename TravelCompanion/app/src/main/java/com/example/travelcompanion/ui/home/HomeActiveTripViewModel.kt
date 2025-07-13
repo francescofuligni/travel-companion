@@ -29,7 +29,7 @@ class HomeActiveTripViewModel(
     /**
      * Ottiene i dati del viaggio per ID
      */
-    suspend fun getTripById(tripId: Long): LiveData<Trip?> {
+    fun getTripById(tripId: Long): LiveData<Trip?> {
         return repository.getTripByIdLive(tripId)
     }
     

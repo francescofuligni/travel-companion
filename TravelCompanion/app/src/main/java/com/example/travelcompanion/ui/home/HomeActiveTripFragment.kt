@@ -28,12 +28,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.location.LocationServices
 import com.example.travelcompanion.utils.LocationUtils
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import androidx.core.app.ActivityCompat
-import com.example.travelcompanion.database.models.Location
 import com.example.travelcompanion.database.models.Trip
 import com.example.travelcompanion.database.models.TripPhase
 
@@ -231,8 +228,9 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
 
             tvTripTitle.text = trip.title
             tvStartDate.text = dateFormat.format(Date(trip.startDate))
-            tvEndDate.text = if (trip.endDate != 0L) dateFormat.format(Date(trip.endDate)) else "In corso"
-            tvDistance.text = "Distanza: ${String.format("%.1f", trip.distance)} m"
+            tvEndDate.text = if (trip.endDate != 0L) dateFormat.format(Date(trip.endDate)) else getString(R.string.in_progress)
+            // Use string resource for distance formatting to ensure localization
+            tvDistance.text = getString(R.string.distance_format, trip.distance)
 
             if (trip.isActive && !isChronoRunning) {
                 val currentTime = System.currentTimeMillis()

@@ -48,5 +48,8 @@
     <string name="cannot_get_current_position">Impossibile ottenere la posizione corrente</string>
     <string name="your_position">La tua posizione</string>
     <string name="current_position">Posizione corrente</string>
+    
+    <string name="distance_format">Distanza: %1$.1f m</string>
+    <string name="in_progress">In corso</string>
 
 </resources>
