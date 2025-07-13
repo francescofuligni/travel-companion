@@ -15,7 +15,6 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.travelcompanion.databinding.ActivityMainBinding
 import android.widget.ImageView
-import androidx.core.app.ActivityCompat
 import com.example.travelcompanion.database.TravelDatabase
 import com.bumptech.glide.Glide
 import androidx.lifecycle.lifecycleScope
@@ -50,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private const val PERMISSION_REQUEST_CODE = 1001
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1002
         private const val BACKGROUND_LOCATION_REQUEST_CODE = 1003
     }
 
@@ -240,17 +238,6 @@ class MainActivity : AppCompatActivity() {
             true // Non richiesto per Android < 10
         }
         return fineLocation && coarseLocation && backgroundLocation
-    }
-
-    /**
-     * Verifica se il permesso background location è stato concesso
-     */
-    private fun hasBackgroundLocationPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true // Non necessario per Android < 10
-        }
     }
 
     override fun onRequestPermissionsResult(
