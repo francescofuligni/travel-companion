@@ -1,6 +1,7 @@
-
-
 package com.example.travelcompanion.ui.stats
+
+import androidx.annotation.RequiresApi
+import android.os.Build
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,6 +18,14 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.components.XAxis
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.travelcompanion.database.TravelDatabase
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
 
 class StatsFutureFragment : Fragment() {
 
@@ -27,6 +36,7 @@ class StatsFutureFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_stats_future, container, false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -46,80 +56,123 @@ class StatsFutureFragment : Fragment() {
         val chartTrips = view.findViewById<com.github.mikephil.charting.charts.LineChart>(R.id.futureTripsChart)
         val chartKm = view.findViewById<com.github.mikephil.charting.charts.LineChart>(R.id.futureKmChart)
 
-        val months = listOf("Mar", "Apr", "Mag", "Giu", "Lug")
-        val tripsData = listOf(2, 3, 1, 4, 3)
-        val kmData = listOf(120f, 200f, 80f, 250f, 190f)
+        // Carica dati storici dal DB e calcola previsioni future
+        lifecycleScope.launch {
+            val db = TravelDatabase.getDatabase(requireContext())
+            val trips = db.tripDao().getAllTrips()
+            val now = LocalDate.now()
 
-        val predictedTrips = (tripsData.sum() / tripsData.size.toFloat()).roundToInt()
-        val predictedKm = (kmData.sum() / kmData.size.toFloat()).roundToInt()
-        val isTrendDownTrips = predictedTrips < tripsData.last()
-        val isTrendDownKm = predictedKm < kmData.last()
+            val monthsLabels = mutableListOf<String>()
+            val tripsDataList = mutableListOf<Float>()
+            val kmDataList = mutableListOf<Float>()
 
-        val allMonthLabels = listOf("Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic")
-        val lastMonth = months.last()
-        val nextMonth = allMonthLabels[(allMonthLabels.indexOf(lastMonth) + 1) % 12]
-        textNextMonth.text = "PROSSIMO MESE: $nextMonth"
-        textPredictedTrips.text = "Aspettativa numero viaggi: $predictedTrips"
-        textPredictedKm.text = "Aspettativa distanza percorsa: $predictedKm km"
+            // Ultimi 5 mesi
+            for (i in 5 downTo 1) {
+                val month = now.minusMonths(i.toLong())
+                monthsLabels.add(month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
 
-        textTrendTripsTitle.text = if (isTrendDownTrips) "Trend: in calo" else "Trend: in crescita"
-        textTrendTripsMessage.text = if (isTrendDownTrips)
-            "Cerca nuove esperienze e viaggia di più!" else "Continua così, sei un esploratore nato!"
-        trendTripsBox.setBackgroundColor(if (isTrendDownTrips) fadedRed else fadedGreen)
+                val tripsInMonth = trips.filter { trip ->
+                    val tripDate = Instant.ofEpochMilli(trip.startDate)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    tripDate.year == month.year && tripDate.month == month.month
+                }
+                tripsDataList.add(tripsInMonth.size.toFloat())
 
-        textTrendKmTitle.text = if (isTrendDownKm) "Trend: in calo" else "Trend: in crescita"
-        textTrendKmMessage.text = if (isTrendDownKm)
-            "Non ti arrendere, guarda oltre i tuoi orizzonti!" else "Continua così, arriverai sempre più lontano!"
-        trendKmBox.setBackgroundColor(if (isTrendDownKm) fadedRed else fadedGreen)
-
-        fun setupChartWithForecast(
-            chart: LineChart,
-            historicalData: List<Float>,
-            predictedValue: Float,
-            label: String,
-            months: List<String>
-        ) {
-            val fullData = historicalData + predictedValue
-            val fullMonths = months + nextMonth
-
-            val entries = fullData.mapIndexed { index, value ->
-                Entry(index.toFloat(), value)
+                val distanceSum = tripsInMonth.sumOf { it.distance }.toFloat()
+                kmDataList.add(distanceSum)
             }
 
-            val historyEntries = entries.dropLast(1)
-            val forecastEntryStart = entries[entries.size - 2]
-            val forecastEntryEnd = entries.last()
+            // Calcola previsioni
+            val predictedTrips = (tripsDataList.sum() / tripsDataList.size.toFloat()).roundToInt()
+            val predictedKm = (kmDataList.sum() / kmDataList.size.toFloat()).roundToInt()
+            val isTrendDownTrips = predictedTrips < tripsDataList.last()
+            val isTrendDownKm = predictedKm < kmDataList.last()
 
-            val historyDataSet = LineDataSet(historyEntries, label).apply {
-                color = Color.BLUE
-                valueTextColor = Color.BLACK
-                setCircleColor(fadedRed)
-                circleRadius = 4f
-                lineWidth = 2f
-            }
+            // Determina mese successivo
+            val lastMonthLabel = monthsLabels.last()
+            val allMonthLabels = listOf("Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic")
+            val nextMonth = allMonthLabels[(allMonthLabels.indexOf(lastMonthLabel) + 1) % 12]
 
-            val forecastColor = if (predictedValue < historicalData.last()) fadedRed else fadedGreen
-            val forecastDataSet = LineDataSet(listOf(forecastEntryStart, forecastEntryEnd), "Previsione").apply {
-                color = forecastColor
-                valueTextColor = Color.BLACK
-                setCircleColor(forecastColor)
-                circleRadius = 4f
-                lineWidth = 2f
-            }
+            val nextMonthDate = now.plusMonths(1)
+            val nextMonthLabel = nextMonthDate.month
+                .getDisplayName(TextStyle.FULL, Locale("it", "IT"))
+                .replaceFirstChar { it.uppercase(Locale("it", "IT")) }
 
-            chart.data = LineData(historyDataSet, forecastDataSet)
-            chart.xAxis.apply {
-                valueFormatter = IndexAxisValueFormatter(fullMonths)
-                granularity = 1f
-                position = XAxis.XAxisPosition.BOTTOM
-                labelRotationAngle = -45f
-            }
-            chart.axisRight.isEnabled = false
-            chart.description.isEnabled = false
-            chart.invalidate()
+            // Aggiorna UI
+            textNextMonth.text = "PROSSIMO MESE: $nextMonthLabel"
+            textPredictedTrips.text = "Aspettativa numero viaggi: $predictedTrips"
+            textPredictedKm.text = "Aspettativa distanza percorsa: $predictedKm km"
+
+            textTrendTripsTitle.text = if (isTrendDownTrips) "Trend: in calo" else "Trend: in crescita"
+            textTrendTripsMessage.text = if (isTrendDownTrips)
+                "Cerca nuove esperienze e viaggia di più!" else "Continua così, sei un esploratore nato!"
+            trendTripsBox.setBackgroundColor(if (isTrendDownTrips) fadedRed else fadedGreen)
+
+            textTrendKmTitle.text = if (isTrendDownKm) "Trend: in calo" else "Trend: in crescita"
+            textTrendKmMessage.text = if (isTrendDownKm)
+                "Non ti arrendere, guarda oltre i tuoi orizzonti!" else "Continua così, arriverai sempre più lontano!"
+            trendKmBox.setBackgroundColor(if (isTrendDownKm) fadedRed else fadedGreen)
+
+            // Popola grafici con previsione
+            setupChartWithForecast(chartTrips, tripsDataList, predictedTrips.toFloat(), "Viaggi", monthsLabels)
+            setupChartWithForecast(chartKm, kmDataList, predictedKm.toFloat(), "Km percorsi", monthsLabels)
+        }
+    }
+
+    private fun setupChartWithForecast(
+        chart: LineChart,
+        historicalData: List<Float>,
+        predictedValue: Float,
+        label: String,
+        months: List<String>
+    ) {
+        // Combina dati storici e previsione
+        val fullData = historicalData + predictedValue
+        
+        // Calcola etichette includendo il prossimo mese
+        val lastMonthLabel = months.last()
+        val allMonthLabels = listOf("Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic")
+        val nextMonth = allMonthLabels[(allMonthLabels.indexOf(lastMonthLabel) + 1) % 12]
+        val fullMonths = months + nextMonth
+
+        // Prepara le entry per il grafico
+        val entries = fullData.mapIndexed { index, value ->
+            Entry(index.toFloat(), value)
         }
 
-        setupChartWithForecast(chartTrips, tripsData.map { it.toFloat() }, predictedTrips.toFloat(), "Viaggi", months)
-        setupChartWithForecast(chartKm, kmData, predictedKm.toFloat(), "Km percorsi", months)
+        // Segmenta storico e forecast
+        val historyEntries = entries.dropLast(1)
+        val forecastEntryStart = entries[entries.size - 2]
+        val forecastEntryEnd = entries.last()
+
+        val historyDataSet = LineDataSet(historyEntries, label).apply {
+            color = Color.BLUE
+            valueTextColor = Color.BLACK
+            setCircleColor(Color.RED)
+            circleRadius = 4f
+            lineWidth = 2f
+        }
+
+        val forecastColor = if (predictedValue < historicalData.last()) Color.RED else Color.GREEN
+        val forecastDataSet = LineDataSet(listOf(forecastEntryStart, forecastEntryEnd), "Previsione").apply {
+            color = forecastColor
+            valueTextColor = Color.BLACK
+            setCircleColor(forecastColor)
+            circleRadius = 4f
+            lineWidth = 2f
+        }
+
+        // Assegna dati al grafico
+        chart.data = LineData(historyDataSet, forecastDataSet)
+        chart.xAxis.apply {
+            valueFormatter = IndexAxisValueFormatter(fullMonths)
+            granularity = 1f
+            position = XAxis.XAxisPosition.BOTTOM
+            labelRotationAngle = -45f
+        }
+        chart.axisRight.isEnabled = false
+        chart.description.isEnabled = false
+        chart.invalidate()
     }
 }

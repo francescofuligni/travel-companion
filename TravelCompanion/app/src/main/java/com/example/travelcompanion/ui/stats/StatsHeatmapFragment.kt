@@ -14,6 +14,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.android.gms.maps.model.TileOverlayOptions
 
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.travelcompanion.database.TravelDatabase
+
 class StatsHeatmapFragment : Fragment(), OnMapReadyCallback {
 
     private var googleMap: GoogleMap? = null
@@ -51,17 +55,16 @@ class StatsHeatmapFragment : Fragment(), OnMapReadyCallback {
         // Zoom iniziale più distante per mostrare il mondo
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(0.0, 0.0), 1.2f))
 
-        val dummyLocations = listOf(
-            LatLng(48.8566, 2.3522), // Parigi
-            LatLng(41.9028, 12.4964), // Roma
-            LatLng(40.7128, -74.0060) // New York
-        )
-
-        val heatmapProvider = HeatmapTileProvider.Builder()
-            .data(dummyLocations)
-            .radius(50) // aumenta il raggio per rendere l'area colorata più evidente
-            .build()
-
-        googleMap?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapProvider))
+        // Carica tutte le posizioni dal database e genera la heatmap
+        lifecycleScope.launch {
+            val db = TravelDatabase.getDatabase(requireContext())
+            val locations = db.locationDao().getAllLocations()
+            val latLngs = locations.map { LatLng(it.latitude, it.longitude) }
+            val heatmapProvider = HeatmapTileProvider.Builder()
+                .data(latLngs)
+                .radius(50)
+                .build()
+            googleMap?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapProvider))
+        }
     }
 }

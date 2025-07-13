@@ -70,7 +70,7 @@
                     android:id="@+id/etAddressSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Search address" />
+                    android:hint="Cerca indirizzo" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -78,7 +78,7 @@
                 android:id="@+id/btnSearchAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Search" />
+                android:text="Cerca" />
 
         </LinearLayout>
 
@@ -101,7 +101,7 @@
             android:id="@+id/btnSaveSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save Settings"
+            android:text="Salva Impostazioni"
             android:layout_marginBottom="16dp" />
 
         <Button
@@ -109,7 +109,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Reset App"
-            style="@style/Widget.Material3.Button.TextButton" />
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:textColor="@android:color/white"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 
