@@ -16,8 +16,9 @@ import com.example.travelcompanion.databinding.ActivityMainBinding
 import android.widget.ImageView
 import com.example.travelcompanion.database.TravelDatabase
 import com.bumptech.glide.Glide
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import androidx.work.WorkManager
 import androidx.work.PeriodicWorkRequestBuilder
@@ -57,6 +58,11 @@ class MainActivity : AppCompatActivity() {
         // Collega NavigationView al NavController
         navView.setupWithNavController(navController)
 
+        // Assicura che il header del drawer sia gonfiato
+        if (navView.headerCount == 0) {
+            navView.inflateHeaderView(R.layout.nav_header_main)
+        }
+
         // Gestisci selezione e reselezione dei menu
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -82,7 +88,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
-        loadUserProfilePicture(navView.getHeaderView(0))
+        loadUserProfilePicture()
         scheduleTripReminderWorker()
         startLocationService()
         registerHomeGeofenceIfSet()
@@ -130,25 +136,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadUserProfilePicture(headerView: android.view.View) {
-        val userPhoto = headerView.findViewById<ImageView>(R.id.user_photo)
-        CoroutineScope(Dispatchers.IO).launch {
-            val db = TravelDatabase.getDatabase(applicationContext)
-            val user = db.userDao().getUserById(1L)
-            val profilePicId = user?.profilePictureId
-            if (profilePicId != null) {
-                val image = db.imageDao().getImageById(profilePicId)
-                val uri = image?.uri
-                if (!uri.isNullOrBlank()) {
-                    launch(Dispatchers.Main) {
-                        Glide.with(this@MainActivity)
-                            .load(uri)
-                            .placeholder(R.drawable.missing_img)
-                            .error(R.drawable.missing_img)
-                            .circleCrop()
-                            .into(userPhoto)
-                    }
+    private fun loadUserProfilePicture() {
+        val headerView = binding.navView.getHeaderView(0)
+        val ivProfile = headerView.findViewById<ImageView>(R.id.user_photo)
+        lifecycleScope.launch {
+            // Carica utente e immagine in background
+            val user = withContext(Dispatchers.IO) {
+                TravelDatabase.getDatabase(applicationContext).userDao().getUserById(1L)
+            }
+            val uri = user?.profilePictureId?.let { imageId ->
+                withContext(Dispatchers.IO) {
+                    TravelDatabase.getDatabase(applicationContext)
+                        .imageDao()
+                        .getImageById(imageId)
+                        ?.uri
                 }
+            }
+            // Aggiorna UI
+            if (!uri.isNullOrBlank()) {
+                Glide.with(this@MainActivity)
+                    .load(uri)
+                    .placeholder(R.drawable.missing_img)
+                    .error(R.drawable.missing_img)
+                    .circleCrop()
+                    .into(ivProfile)
+            } else {
+                ivProfile.setImageResource(R.drawable.missing_img)
             }
         }
     }
