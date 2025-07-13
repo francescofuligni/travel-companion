@@ -85,9 +85,7 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
         
         // Carica i dati DOPO aver impostato gli observer
         viewModel.loadUserData()
-        
-        // Chiamata iniziale solo dopo che i dati sono stati caricati
-        // (verrà chiamata automaticamente dall'observer di homeLocation)
+
     }
 
     private fun setupProfilePicturePicker() {

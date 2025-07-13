@@ -9,6 +9,10 @@ import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripActiveBinding
 
+/**
+ * Fragment mostrato quando c'è già un viaggio attivo
+ * Informa l'utente che può avere solo un viaggio attivo alla volta
+ */
 class NewTripActiveFragment : Fragment() {
 
     private var _binding: FragmentNewTripActiveBinding? = null
@@ -25,6 +29,9 @@ class NewTripActiveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        /**
+         * Naviga alla home per vedere il viaggio attivo
+         */
         binding.btnStartNewTrip.setOnClickListener {
             findNavController().navigate(R.id.nav_home)
         }
