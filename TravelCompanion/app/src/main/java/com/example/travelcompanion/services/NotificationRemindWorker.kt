@@ -22,7 +22,7 @@ class NotificationRemindWorker(context: Context, workerParams: WorkerParameters)
                     channelName = "Promemoria Viaggi",
                     title = "Travel Companion",
                     message = "È più di un mese che non viaggi!",
-                    notificationId = 1,
+                    notificationId =  System.currentTimeMillis().toInt(),
                     iconRes = android.R.drawable.ic_dialog_info
                 )
             }
@@ -35,7 +35,7 @@ class NotificationRemindWorker(context: Context, workerParams: WorkerParameters)
                     channelName = "Promemoria Viaggi",
                     title = "Travel Companion",
                     message = "Avvia il tuo primo viaggio",
-                    notificationId = 1,
+                    notificationId =  System.currentTimeMillis().toInt(),
                     iconRes = android.R.drawable.ic_dialog_info
                 )
             }

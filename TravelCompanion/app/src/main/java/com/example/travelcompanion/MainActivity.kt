@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun scheduleTripReminderWorker() {
         val request = PeriodicWorkRequestBuilder<NotificationRemindWorker>(
-            1, TimeUnit.DAYS
+            15, TimeUnit.MINUTES
         ).build()
 
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(

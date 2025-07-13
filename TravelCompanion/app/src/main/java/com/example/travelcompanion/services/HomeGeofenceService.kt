@@ -18,7 +18,7 @@ import com.google.android.gms.location.LocationServices
 object HomeGeofenceService {
 
     private const val GEOFENCE_ID = "HOME_GEOFENCE_ID"
-    private const val GEOFENCE_RADIUS_METERS = 5000f
+    private const val GEOFENCE_RADIUS_METERS = 1000f
 
     fun registerHomeGeofence(context: Context, latitude: Double, longitude: Double) {
         val geofencingClient = LocationServices.getGeofencingClient(context)

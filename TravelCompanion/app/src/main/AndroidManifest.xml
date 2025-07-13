@@ -14,10 +14,10 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- Features hardware -->
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
-    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="true" />
+    <uses-feature android:name="android.hardware.location.network" android:required="true" />
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -57,13 +57,14 @@
 
         <!-- TrackingService for GPS tracking -->
         <service
-            android:name=".utils.TrackingService"
+            android:name=".services.TrackingService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />
 
         <receiver
-            android:name=".services.geofence.HomeGeofenceReceiver"
-            android:exported="true" />
+            android:name=".services.HomeGeofenceReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 </manifest>
