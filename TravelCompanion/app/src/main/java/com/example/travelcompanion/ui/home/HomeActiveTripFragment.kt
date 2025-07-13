@@ -31,16 +31,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.location.LocationServices
 import com.example.travelcompanion.utils.LocationUtils
 
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.Priority
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
-import android.os.Looper
-import android.graphics.Color
-
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import androidx.core.app.ActivityCompat
@@ -53,11 +43,6 @@ import com.example.travelcompanion.database.models.TripPhase
  * Include una mappa per visualizzare il percorso in tempo reale
  */
 class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
-
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
-    private var userPath: Polyline? = null
-    private val userPathPoints = mutableListOf<LatLng>()
 
     private var tripId: Long = -1L
     private lateinit var viewModel: HomeActiveTripViewModel
@@ -96,8 +81,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         val factory = HomeActiveTripViewModelFactory(requireActivity().application, repository)
         viewModel = ViewModelProvider(this, factory)[HomeActiveTripViewModel::class.java]
 
-        // Initialize fusedLocationClient
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
     }
 
     override fun onCreateView(
@@ -122,8 +105,6 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
             observeTrip()
         }
 
-        // Setup location callback for real-time updates
-        setupLocationCallback()
     }
     
     /**
@@ -169,27 +150,8 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         googleMap?.uiSettings?.isMyLocationButtonEnabled = true
-        
-        // Configura la mappa per il viaggio attivo
-        setupActiveTripMap()
-
-        // Start location updates if permission granted
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates()
-        }
     }
 
-    /**
-     * Configura la mappa per mostrare il percorso del viaggio attivo
-     */
-    private fun setupActiveTripMap() {
-        // Correzione: usa viewModel.trip invece di viewModel.currentTrip
-        viewModel.trip.observe(viewLifecycleOwner) { trip ->
-            trip?.let {
-                updateMapWithTripData(it)
-            }
-        }
-    }
 
     /**
      * Aggiorna la mappa con i dati del viaggio
@@ -239,76 +201,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
                     )
                 }
             }
-            // Reset user path polyline
-            userPath?.remove()
-            userPathPoints.clear()
         }
-    }
-
-    /**
-     * Setup LocationCallback for real-time updates
-     */
-    private fun setupLocationCallback() {
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                val map = googleMap ?: return
-                for (location in locationResult.locations) {
-                    val latLng = LatLng(location.latitude, location.longitude)
-                    userPathPoints.add(latLng)
-                    // Draw or update polyline
-                    if (userPath == null) {
-                        userPath = map.addPolyline(
-                            PolylineOptions()
-                                .addAll(userPathPoints)
-                                .color(Color.MAGENTA)
-                                .width(7f)
-                        )
-                    } else {
-                        userPath?.points = userPathPoints
-                    }
-                    // Move camera to current location
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
-
-                    // Salva la fase e aggiorna la distanza
-                    viewModel.savePhaseAndUpdateDistance(tripId, location.latitude, location.longitude)
-                }
-            }
-        }
-    }
-
-    /**
-     * Start location updates for real-time tracking
-     */
-    private fun startLocationUpdates() {
-        val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY, 30000L
-        ).apply {
-            setMinUpdateIntervalMillis(1500L)
-        }.build()
-
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permesso non concesso.
-            return
-        }
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
-        )
-    }
-
-    /**
-     * Stop location updates when not needed
-     */
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     /**
@@ -319,6 +212,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         viewModel.getTripById(tripId).observe(viewLifecycleOwner) { trip ->
             trip?.let {
                 updateUI(it)
+                updateMapWithTripData(it)
             }
         }
     }
@@ -428,6 +322,5 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         if (isChronoRunning) {
             chronometer.stop()
         }
-        stopLocationUpdates()
     }
 }

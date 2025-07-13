@@ -22,55 +22,6 @@ class HomeActiveTripViewModel(
     application: Application,
     private val repository: TravelRepository
 ) : AndroidViewModel(application) {
-    /**
-     * Salva una nuova fase del viaggio e aggiorna la distanza totale
-     */
-    fun savePhaseAndUpdateDistance(tripId: Long, latitude: Double, longitude: Double) {
-        viewModelScope.launch {
-            try {
-                // 1. Salva la location
-                val location = Location(latitude = latitude, longitude = longitude)
-                val locationId = repository.insertLocation(location)
-
-                // 2. Calcola phaseOrder
-                val lastPhase = repository.getLatestTripPhase(tripId)
-                val phaseOrder = (lastPhase?.phaseOrder ?: 0) + 1
-
-                // 3. Salva la fase
-                val phase = TripPhase(
-                    tripId = tripId,
-                    locationId = locationId,
-                    phaseOrder = phaseOrder,
-                    timestamp = System.currentTimeMillis()
-                )
-                repository.insertTripPhase(phase)
-
-                // 4. Aggiorna la distanza del viaggio
-                var distanceToAdd = 0.0
-                if (lastPhase != null) {
-                    val lastLocation = repository.getLocationById(lastPhase.locationId)
-                    if (lastLocation != null) {
-                        val results = FloatArray(1)
-                        android.location.Location.distanceBetween(
-                            lastLocation.latitude, lastLocation.longitude,
-                            latitude, longitude,
-                            results
-                        )
-                        distanceToAdd = results[0].toDouble()
-                    }
-                }
-                val trip = repository.getTripById(tripId)
-                if (trip != null) {
-                    val newDistance = trip.distance + distanceToAdd
-                    val updatedTrip = trip.copy(distance = newDistance)
-                    repository.updateTrip(updatedTrip)
-                    _trip.postValue(updatedTrip)
-                }
-            } catch (e: Exception) {
-                Log.e("HomeActiveTripViewModel", "Errore salvataggio fase/aggiornamento distanza", e)
-            }
-        }
-    }
     
     private val _trip = MutableLiveData<Trip?>()
     val trip: LiveData<Trip?> = _trip

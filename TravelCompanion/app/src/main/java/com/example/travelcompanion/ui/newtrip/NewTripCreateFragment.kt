@@ -11,12 +11,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.travelcompanion.R
 import com.example.travelcompanion.databinding.FragmentNewTripCreateBinding
-import com.example.travelcompanion.repository.TravelRepository
 import com.example.travelcompanion.ui.common.AddressSearchFragment
 import com.google.android.gms.maps.model.LatLng
 import java.util.Calendar
 import android.text.InputFilter
 import android.widget.Toast
+import android.app.Application
 
 class NewTripCreateFragment : Fragment() {
 
@@ -82,8 +82,7 @@ class NewTripCreateFragment : Fragment() {
             pendingTripData = null
         }
 
-        val repository = TravelRepository.create(requireContext())
-        val factory = NewTripCreateViewModelFactory(repository, requireContext())
+        val factory = NewTripCreateViewModelFactory(requireActivity().application)
         viewModel = ViewModelProvider(this, factory)[NewTripCreateViewModel::class.java]
 
         val datePicker = binding.datePickerEnd
