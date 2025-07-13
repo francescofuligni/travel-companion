@@ -10,6 +10,10 @@ import com.example.travelcompanion.R
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
+/**
+ * Fragment principale per la sezione statistiche
+ * Gestisce le tab per navigare tra statistiche storiche e future
+ */
 class StatsFragment : Fragment() {
 
     override fun onCreateView(
@@ -20,6 +24,15 @@ class StatsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        setupTabsAndViewPager(view)
+    }
+
+    /**
+     * Configura le tab e il ViewPager per la navigazione tra sezioni
+     */
+    private fun setupTabsAndViewPager(view: View) {
         val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
 
