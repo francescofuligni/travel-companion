@@ -116,14 +116,13 @@ class TrackingService : BaseLocationService() {
         val db = TravelDatabase.getDatabase(applicationContext)
         if (System.currentTimeMillis() > endDate && endDate > 0) {
             Log.d("TrackingService", "Fine viaggio raggiunta. Interrompo il tracking.")
-            // Aggiorna il viaggio come terminato
+            // Aggiorna il viaggio come terminato (solo isActive, preserva endDate)
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val trip = db.tripDao().getTripById(tripId)
                     if (trip != null && trip.isActive) {
                         val updatedTrip = trip.copy(
-                            isActive = false,
-                            endDate = System.currentTimeMillis()
+                            isActive = false
                         )
                         db.tripDao().updateTrip(updatedTrip)
                         Log.d("TrackingService", "Trip aggiornato come terminato automaticamente: ${updatedTrip.id}")
