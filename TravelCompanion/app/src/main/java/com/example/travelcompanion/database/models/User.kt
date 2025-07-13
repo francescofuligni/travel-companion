@@ -5,6 +5,9 @@ import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
 import androidx.room.Index
 
+/**
+ * Entità per gli utenti del sistema
+ */
 @Entity(
     tableName = "user",
     foreignKeys = [
@@ -23,7 +26,6 @@ import androidx.room.Index
     ],
     indices = [Index(value = ["homeLocationId"]), Index(value = ["profilePictureId"])]
 )
-
 data class User(
     @PrimaryKey
     val id: Long,

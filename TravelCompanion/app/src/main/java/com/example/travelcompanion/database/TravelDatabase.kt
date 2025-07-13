@@ -7,6 +7,9 @@ import android.content.Context
 import com.example.travelcompanion.database.dao.*
 import com.example.travelcompanion.database.models.*
 
+/**
+ * Database principale dell'applicazione Travel Companion
+ */
 @Database(
     entities = [User::class, Location::class, Trip::class, Image::class, TripPhase::class, Note::class],
     version = 4,
