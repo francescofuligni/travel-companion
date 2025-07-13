@@ -8,14 +8,12 @@
     android:padding="16dp"
     tools:context=".ui.mytrips.MyTripsFragment">
 
-    <!-- Header con filtri -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:orientation="vertical">
 
-        <!-- Filtro Anno -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -27,7 +25,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Filtra per anno"
+                android:text="@string/filter_by_year"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <ImageView
@@ -38,11 +36,10 @@
                 android:layout_marginStart="8dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:visibility="gone"
-                android:contentDescription="Pulisci filtri"
+                android:contentDescription="@string/clear_filter_desc"
                 android:background="?android:attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
 
-        <!-- Filtro Tipo Viaggio -->
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/toggleTripType"
             android:layout_width="match_parent"
@@ -55,7 +52,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="In città"
+                android:text="@string/type_local"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <com.google.android.material.button.MaterialButton
@@ -63,7 +60,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Un giorno"
+                android:text="@string/type_one_day"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <com.google.android.material.button.MaterialButton
@@ -71,18 +68,16 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Più giorni"
+                android:text="@string/type_multi_days"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
     </LinearLayout>
 
-    <!-- Lista Viaggi -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- RecyclerView per la lista -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvMyTrips"
             android:layout_width="match_parent"
@@ -91,13 +86,12 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_trip" />
 
-        <!-- Stato vuoto -->
         <TextView
             android:id="@+id/tvEmptyState"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Nessun viaggio trovato\nInizia un nuovo viaggio per vederlo qui!"
+            android:text="@string/empty_trips_full_message"
             android:textSize="16sp"
             android:textAlignment="center"
             android:textColor="@android:color/darker_gray"

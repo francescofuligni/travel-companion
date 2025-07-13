@@ -20,7 +20,7 @@
                 android:id="@+id/etAddressSearch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Cerca indirizzo" />
+                android:hint="@string/search_address_hint" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -28,7 +28,7 @@
             android:id="@+id/btnSearchAddress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cerca" />
+            android:text="@string/search" />
 
     </LinearLayout>
 
@@ -36,7 +36,7 @@
         android:id="@+id/tvSelectedAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nessun indirizzo selezionato"
+        android:text="@string/no_address_selected"
         android:textSize="14sp"
         android:layout_marginBottom="8dp" />
 

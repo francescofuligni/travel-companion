@@ -48,11 +48,33 @@
     <string name="cannot_get_current_position">Impossibile ottenere la posizione corrente</string>
     <string name="your_position">La tua posizione</string>
     <string name="current_position">Posizione corrente</string>
-    
     <string name="distance_format">Distanza: %1$.1f m</string>
     <string name="in_progress">In corso</string>
-
     <string name="filter_by_year">Filtra per anno</string>
     <string name="year_format">%1$d</string>
 
+    <string name="add_note_title">Aggiungi una nota</string>
+    <string name="add_note_hint">Scrivi la tua nota qui…</string>
+    <string name="cancel">Annulla</string>
+    <string name="save">Salva</string>
+    <string name="apply_filter">Applica filtro</string>
+    <string name="search_address_hint">Cerca indirizzo</string>
+    <string name="search">Cerca</string>
+    <string name="no_address_selected">Nessun indirizzo selezionato</string>
+    <string name="active_trip_title">Viaggio in corso…</string>
+    <string name="date_placeholder">--/--/----</string>
+    <string name="date_separator"> - </string>
+    <string name="distance_placeholder">Distanza: 0.0 m</string>
+    <string name="stop_trip">Interrompi Viaggio</string>
+    <string name="photo_button">Foto</string>
+    <string name="note_button">Nota</string>
+    <string name="no_trip_message">Nessun viaggio in corso</string>
+    <string name="my_trips_title">I miei viaggi</string>
+    <string name="trip_year_label">Anno:</string>
+    <string name="trip_type_label">Tipo:</string>
+    <string name="empty_trips_message">Nessun viaggio trovato</string>
+    <string name="clear">Azzera</string>
+    <string name="clear_filter_desc">Pulisci filtri</string>
+    <string name="empty_trips_full_message">Nessun viaggio trovato&#10;Inizia un nuovo viaggio per vederlo qui!</string>
+    
 </resources>
