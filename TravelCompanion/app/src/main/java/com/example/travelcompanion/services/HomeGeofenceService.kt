@@ -23,7 +23,7 @@ object HomeGeofenceService {
 
     private const val GEOFENCE_ID = "HOME_GEOFENCE_ID"
     private const val GEOFENCE_RADIUS_METERS = 500f
-    private const val TAG = "HomeGeofenceService"
+    private const val TAG = "HomeGeofenceService" // per non scrivere un botto di volte da dove viene il log
 
     /**
      * Registra il geofence per la casa dell'utente
@@ -58,11 +58,9 @@ object HomeGeofenceService {
             .setCircularRegion(latitude, longitude, GEOFENCE_RADIUS_METERS)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_ENTER)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
-            .setLoiteringDelay(10000)
             .build()
 
         val geofencingRequest = GeofencingRequest.Builder()
-            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_EXIT)
             .addGeofence(geofence)
             .build()
 
@@ -135,7 +133,7 @@ object HomeGeofenceService {
             context,
             0,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE
         )
     }
 }
@@ -163,7 +161,7 @@ class HomeGeofenceReceiver : BroadcastReceiver() {
             message = "Ricordati di monitorare tutti i tuoi viaggi!",
             notificationId = System.currentTimeMillis().toInt(),
             iconRes = android.R.drawable.ic_dialog_info,
-            channelDescription = "Notifica evento geofence generica"
+            channelDescription = "Notifica evento geofence"
         )
     }
 }

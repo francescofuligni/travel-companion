@@ -141,12 +141,12 @@ class SettingsFragment : Fragment(), OnMapReadyCallback {
             locationPermissionRequest.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
-        // Imposta Bologna come posizione di default
+
         val defaultLocation = LocationUtils.getDefaultBolognaLocation()
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
 
         // Prova a ottenere la posizione corrente
-        LocationUtils.getCurrentLocationForSettings(
+        LocationUtils.getCurrentLocation(
             requireContext(),
             onSuccess = { currentLatLng ->
                 googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
