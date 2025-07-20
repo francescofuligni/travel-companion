@@ -92,6 +92,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         return inflater.inflate(R.layout.fragment_home_active_trip, container, false)
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
@@ -119,7 +120,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         
         stopButton.setOnClickListener {
             Log.d("HomeActiveTripFragment", "Stop button clicked")
-            stopTrip()
+            stopTrip() //chiama prima stopTrackingService
         }
         
         photoButton.setOnClickListener {
@@ -149,6 +150,8 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
         googleMap = map
         googleMap?.uiSettings?.isZoomControlsEnabled = true
         googleMap?.uiSettings?.isMyLocationButtonEnabled = true
+
+
     }
 
     /**
@@ -203,7 +206,7 @@ class HomeActiveTripFragment : Fragment(), OnMapReadyCallback {
     /**
      * Osserva i dati del viaggio e aggiorna la UI
      */
-    private suspend fun observeTrip() {
+    private fun observeTrip() {
         viewModel.getTripById(tripId).observe(viewLifecycleOwner) { trip ->
             trip?.let {
                 updateUI(it)

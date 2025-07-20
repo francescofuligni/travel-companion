@@ -246,6 +246,7 @@ class NewTripCreateFragment : Fragment() {
      * Aggiorna lo stato del pulsante di avvio viaggio
      */
     private fun updateBtnStartTripState() {
+
         val titleNotEmpty = binding.etTripTitle.text.toString().isNotBlank()
         val selectedType = binding.toggleTripType.checkedButtonId
         val addressSelected = selectedDestinationLatLng != null

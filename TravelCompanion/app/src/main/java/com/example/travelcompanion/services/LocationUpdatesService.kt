@@ -46,11 +46,11 @@ class LocationUpdatesService : BaseLocationService() {
         }
         placesClient = Places.createClient(this)
 
-        initFusedLocationClient()
+        initFusedLocationClient()  //usa il metodo di BaseLocationService
 
-        locationRequest = buildHighAccuracyRequest(
-            intervalMillis = 2 * 60 * 1000L,
-            minUpdateMillis = 60 * 1000L
+        locationRequest = buildHighAccuracyRequest( //costruisce la richiesta di posizione semopre da Base...
+            intervalMillis = 2 * 60 * 1000L, // ogni 2 minuti
+            minUpdateMillis = 60 * 1000L //ogni minuto minimo non li voglio ogni 30
         )
 
         locationCallback = object : LocationCallback() {
@@ -70,7 +70,7 @@ class LocationUpdatesService : BaseLocationService() {
     }
 
     /**
-     * Avvia il servizio in foreground con notifica persistente
+     * Avvia il servizio in foreground con notifica persistente AVREMMO DOVUTO USARE LA NOSTRA CLASSE
      */
     private fun startForegroundServiceWithNotification() {
         val channelId = "location_foreground"
@@ -78,6 +78,7 @@ class LocationUpdatesService : BaseLocationService() {
         val notificationId = 10001
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+        // A PARTIRE DA ANDROID OREO (8) PER LE NOTIFICHE BISOGNA CREARE IL CHANNEL
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = android.app.NotificationChannel(
                 channelId,
@@ -88,7 +89,7 @@ class LocationUpdatesService : BaseLocationService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
+        val notification =  androidx.core.app.NotificationCompat.Builder(this, channelId)
             .setContentTitle(getString(R.string.notification_title_active))
             .setContentText(getString(R.string.notification_text_tracking_active))
             .setSmallIcon(android.R.drawable.star_on)
@@ -118,7 +119,7 @@ class LocationUpdatesService : BaseLocationService() {
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
-            Looper.getMainLooper()
+            Looper.getMainLooper()  //fa partire nel main thread
         )
         android.util.Log.d("LocationService", "Aggiornamenti di localizzazione avviati")
     }
@@ -138,9 +139,9 @@ class LocationUpdatesService : BaseLocationService() {
             Place.Field.RATING
         )
 
-        val request = FindCurrentPlaceRequest.newInstance(placeFields)
+        val request = FindCurrentPlaceRequest.newInstance(placeFields) //crea request per places api client
 
-        if (ActivityCompat.checkSelfPermission(
+        if (ActivityCompat.checkSelfPermission( // check permessi
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -152,7 +153,7 @@ class LocationUpdatesService : BaseLocationService() {
         placesClient.findCurrentPlace(request)
             .addOnSuccessListener { response ->
                 android.util.Log.d("LocationService", "Luoghi trovati: ${response.placeLikelihoods.size}")
-                processFindPlaceResults(response.placeLikelihoods, location)
+                processFindPlaceResults(response.placeLikelihoods, location) //likelihood è probabilità che ci sei vicino
             }
             .addOnFailureListener { exception ->
                 android.util.Log.e("LocationService", "Errore findCurrentPlace: ${exception.message}")
@@ -164,34 +165,34 @@ class LocationUpdatesService : BaseLocationService() {
      * Processa i risultati dei luoghi trovati
      */
     private fun processFindPlaceResults(
-        placeLikelihoods: List<PlaceLikelihood>,
+        placeLikelihoods: List<PlaceLikelihood>, //sono valori float da 0 a 1
         userLocation: Location
     ) {
-        for (placeLikelihood in placeLikelihoods) {
+        for (placeLikelihood in placeLikelihoods) { //per ogni place
             val place = placeLikelihood.place
-            val poiLocation = place.latLng ?: continue
+            val poiLocation = place.latLng ?: continue //operatore ELVIS
             val placeId = place.id ?: continue
 
-            val distance = calculateDistance(
+            val distance = calculateDistance( //calcola distanza da user a place
                 userLocation.latitude, userLocation.longitude,
                 poiLocation.latitude, poiLocation.longitude
             )
 
             android.util.Log.d("LocationService", "Posto: ${place.name}, distanza: $distance metri")
 
-            if (distance < 100 &&
-                isInterestingPlace(place) &&
-                shouldNotifyForPlace(placeId)
+            if (distance < 100 &&  //se distanza è minore di 100 metri
+                isInterestingPlace(place) &&  //se è interessante
+                shouldNotifyForPlace(placeId) // se devo notificare
             ) {
                 val placeName = place.name ?: getString(R.string.notification_default_place)
                 android.util.Log.d("LocationService", "Invio notifica per: $placeName")
 
-                NotificationUtils.sendPoiNotification(applicationContext, placeName)
+                NotificationUtils.sendPoiNotification(applicationContext, placeName) //se si notifica
 
-                notifiedPlaces.add(placeId)
+                notifiedPlaces.add(placeId) // e aggiunge alla lista dei notificati
 
-                CoroutineScope(Dispatchers.IO).launch {
-                    delay(notificationCooldown)
+                CoroutineScope(Dispatchers.IO).launch { //lancia coroutine su thread IO
+                    delay(notificationCooldown) //fra 20 minuti lo toglierà
                     notifiedPlaces.remove(placeId)
                 }
 
@@ -203,7 +204,7 @@ class LocationUpdatesService : BaseLocationService() {
     /**
      * Determina se un luogo è interessante per il viaggiatore
      */
-    private fun isInterestingPlace(place: Place): Boolean {
+    private fun isInterestingPlace(place: Place): Boolean { // fa solo il check se è in uno di questi
         val interestingTypes = setOf(
             Place.Type.TOURIST_ATTRACTION,
             Place.Type.MUSEUM,
@@ -219,10 +220,10 @@ class LocationUpdatesService : BaseLocationService() {
         
         val hasInterestingType = place.types?.any { type -> 
             interestingTypes.contains(type) 
-        } ?: false
+        } ?: false //se è un tipo che non considero lo ignora
         
         android.util.Log.d("LocationService", "Posto: ${place.name}, tipi: ${place.types}, interessante: $hasInterestingType")
-        return hasInterestingType
+        return hasInterestingType //sennò returna true
     }
 
     /**
@@ -238,5 +239,5 @@ class LocationUpdatesService : BaseLocationService() {
         android.util.Log.d("LocationService", "Servizio LocationUpdatesService terminato")
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onBind(intent: Intent?): IBinder? = null //OBBLIGATORIO STAI SERENO
 }
