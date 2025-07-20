@@ -125,18 +125,22 @@ class MainActivity : AppCompatActivity() {
      * Gestisce la navigazione verso la home con reload forzato
      */
     private fun handleHomeNavigation(navController: androidx.navigation.NavController) {
-        val navOptions = NavOptions.Builder()
-            .setPopUpTo(navController.graph.id, false)
-            .build()
-        navController.navigate(R.id.nav_home, null, navOptions)
-        
-        // Forza il reload del fragment home
+        val currentDestination = navController.currentDestination?.id
+
+        if (currentDestination != R.id.nav_home) {
+            val navOptions = NavOptions.Builder()
+                .setPopUpTo(navController.graph.id, false)
+                .build()
+            navController.navigate(R.id.nav_home, null, navOptions)
+        }
+
+        // Se sei già in Home, o appena navigato, forza il reload
         val hostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
         if (hostFragment is NavHostFragment) {
             val current = hostFragment.childFragmentManager.fragments.firstOrNull()
             if (current is HomeFragment) current.forceReload()
         }
-        
+
         binding.drawerLayout.closeDrawers()
     }
 
