@@ -10,11 +10,7 @@
         android:id="@+id/nav_home"
         android:name="com.example.travelcompanion.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home">
-        <action
-            android:id="@+id/action_nav_home_to_nav_note"
-            app:destination="@id/nav_note" />
-    </fragment>
+        tools:layout="@layout/fragment_home"/>
 
     <!-- Nuovo viaggio -->
     <fragment
@@ -37,7 +33,7 @@
             app:destination="@id/nav_home" />
     </fragment>
 
-    <!-- Viaggi passati -->
+    <!-- Elenco viaggi -->
     <fragment
         android:id="@+id/nav_my_trips"
         android:name="com.example.travelcompanion.ui.mytrips.MyTripsFragment"
@@ -74,9 +70,4 @@
         tools:layout="@layout/fragment_settings" />
 
     <!-- Nota -->
-    <fragment
-        android:id="@+id/nav_note"
-        android:name="com.example.travelcompanion.ui.home.NoteFragment"
-        android:label="Nota"
-        tools:layout="@layout/fragment_note" />
 </navigation>

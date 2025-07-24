@@ -1,7 +1,7 @@
 # Project Travel Companion
 
-Android app for trips tracking.
+Progetto di laboratorio del corso di Introduzione all'Apprendimento Automatico, corso di laurea in Informatica, Università di Bologna, 2025.
 
-Created by:
+Creato da:
 - Francesco Maria Fuligni
-- Roberto Zanolli
+- Robeto Zanolli

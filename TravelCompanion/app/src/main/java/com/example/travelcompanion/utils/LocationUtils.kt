@@ -14,45 +14,13 @@ object LocationUtils {
     /*
      * Default fallback locations
      */
-    private val DEFAULT_ITALY_LOCATION = LatLng(41.9028, 12.4964)
     private val DEFAULT_BOLOGNA_LOCATION = LatLng(44.4949, 11.3426)
     
     /*
      * Gets the current user location if permissions are granted
-     * Uses Rome as fallback location when location cannot be retrieved
-     */
-    fun getCurrentLocation(
-        context: Context,
-        onSuccess: (LatLng) -> Unit,
-        onFailure: (LatLng) -> Unit
-    ) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-            
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    val currentLatLng = LatLng(location.latitude, location.longitude)
-                    onSuccess(currentLatLng)
-                } else {
-                    onFailure(DEFAULT_ITALY_LOCATION)
-                }
-            }.addOnFailureListener {
-                onFailure(DEFAULT_ITALY_LOCATION)
-            }
-        } else {
-            onFailure(DEFAULT_ITALY_LOCATION)
-        }
-    }
-    
-    /*
-     * Gets the current user location for settings screen
      * Uses Bologna as fallback location when location cannot be retrieved
      */
-    fun getCurrentLocationForSettings(
+    fun getCurrentLocation(
         context: Context,
         onSuccess: (LatLng) -> Unit,
         onFailure: (LatLng) -> Unit
@@ -78,6 +46,7 @@ object LocationUtils {
             onFailure(DEFAULT_BOLOGNA_LOCATION)
         }
     }
+
     
     /*
      * Checks if location permissions are granted

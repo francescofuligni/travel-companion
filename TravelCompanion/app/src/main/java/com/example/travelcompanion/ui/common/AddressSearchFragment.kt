@@ -161,6 +161,7 @@ class AddressSearchFragment : Fragment() {
                                 address.thoroughfare?.takeIf { it.isNotBlank() },
                                 address.subThoroughfare?.takeIf { it.isNotBlank() }
                             ).joinToString(" ")
+
                             if (street.isNotBlank()) addressParts.add(street)
                             
                             address.locality?.takeIf { it.isNotBlank() }?.let { addressParts.add(it) }
@@ -170,36 +171,36 @@ class AddressSearchFragment : Fragment() {
                             
                             if (addressParts.isNotEmpty()) {
                                 addressParts.joinToString(", ")
+                            } else {
+                                getString(R.string.position, location.latitude, location.longitude)
+                            }
                         } else {
                             getString(R.string.position, location.latitude, location.longitude)
                         }
-                    } else {
-                        getString(R.string.position, location.latitude, location.longitude)
-                    }
 
-                    binding.etAddressSearch.setText(addressText)
-                    binding.tvSelectedAddress.text = getString(R.string.selected_address, addressText)
-                    val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
-                    mapFragment?.showLocation(latLng, addressText)
-                    onAddressSelectedListener?.invoke(addressText, latLng)
-                    onLocationReady(addressText, latLng)
+                        binding.etAddressSearch.setText(addressText)
+                        binding.tvSelectedAddress.text = getString(R.string.selected_address, addressText)
+                        val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
+                        mapFragment?.showLocation(latLng, addressText)
+                        onAddressSelectedListener?.invoke(addressText, latLng)
+                        onLocationReady(addressText, latLng)
                     } catch (e: Exception) {
-                    val fallbackAddress = getString(R.string.position, location.latitude, location.longitude)
-                    binding.etAddressSearch.setText(fallbackAddress)
-                    binding.tvSelectedAddress.text = getString(R.string.selected_address, fallbackAddress)
-                    val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
-                    mapFragment?.showLocation(latLng, fallbackAddress)
-                    onAddressSelectedListener?.invoke(fallbackAddress, latLng)
-                    onLocationReady(fallbackAddress, latLng)
+                        val fallbackAddress = getString(R.string.position, location.latitude, location.longitude)
+                        binding.etAddressSearch.setText(fallbackAddress)
+                        binding.tvSelectedAddress.text = getString(R.string.selected_address, fallbackAddress)
+                        val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? MapFragment
+                        mapFragment?.showLocation(latLng, fallbackAddress)
+                        onAddressSelectedListener?.invoke(fallbackAddress, latLng)
+                        onLocationReady(fallbackAddress, latLng)
                     }
                 } else {
-                Toast.makeText(context, getString(R.string.position_not_available), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.position_not_available), Toast.LENGTH_SHORT).show()
                 }
-        }.addOnFailureListener { exception ->
-            Toast.makeText(context, getString(R.string.location_error, exception.message), Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener { exception ->
+                Toast.makeText(context, getString(R.string.location_error, exception.message), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
         }
-    } else {
-        Toast.makeText(context, getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
-    }
     }
 }

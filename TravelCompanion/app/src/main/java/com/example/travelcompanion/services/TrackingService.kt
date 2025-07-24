@@ -34,11 +34,11 @@ class TrackingService : BaseLocationService() {
         initFusedLocationClient()
 
         locationRequest = buildHighAccuracyRequest(
-            intervalMillis = 30_000L,
+            intervalMillis = 30_000L, //può essere più di 30 ma non meno di 30
             minUpdateMillis = 30_000L
         )
 
-        locationCallback = object : LocationCallback() {
+        locationCallback = object : LocationCallback() { //possono arrivarmi più location (esempio se aggiornamento ogni 60 me ne arriano 2 in botta)
             override fun onLocationResult(result: LocationResult) {
                 result.locations.forEach { location ->
                     handleNewLocation(location)
@@ -50,7 +50,7 @@ class TrackingService : BaseLocationService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val tripIdString = intent?.getStringExtra("TRIP_ID")
+        val tripIdString = intent?.getStringExtra("TRIP_ID") //dall'intent
         tripId = tripIdString?.toLongOrNull() ?: -1L
         endDate = intent?.getLongExtra("END_DATE", -1L) ?: -1L
         
@@ -128,8 +128,10 @@ class TrackingService : BaseLocationService() {
      */
     private fun handleNewLocation(location: android.location.Location) {
         val db = TravelDatabase.getDatabase(applicationContext)
+
         if (System.currentTimeMillis() > endDate && endDate > 0) {
             Log.d("TrackingService", "Fine viaggio raggiunta. Interrompo il tracking.")
+
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val trip = db.tripDao().getTripById(tripId)
@@ -137,7 +139,7 @@ class TrackingService : BaseLocationService() {
                         val updatedTrip = trip.copy(
                             isActive = false
                         )
-                        db.tripDao().updateTrip(updatedTrip)
+                        db.tripDao().updateTrip(updatedTrip) //stiamo sovrascrivendo il trip per segnarlo come finito
                         Log.d("TrackingService", "Trip aggiornato come terminato automaticamente: ${updatedTrip.id}")
                     }
                 } catch (e: Exception) {
@@ -149,7 +151,7 @@ class TrackingService : BaseLocationService() {
         }
         Log.d("TrackingService", "Nuova posizione: ${location.latitude}, ${location.longitude}")
 
-        val radius = 0.0003
+        val radius = 0.0003 //33 metri di raggio
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -157,14 +159,17 @@ class TrackingService : BaseLocationService() {
                     location.latitude - radius, location.latitude + radius,
                     location.longitude - radius, location.longitude + radius
                 )
+                //vede se ne ho già reccata una nei paraggi
 
-                val locationId = if (existingLocation != null) {
+                val locationId = if (existingLocation != null) { //se esiste si prende location id
+
                     Log.d("TrackingService", "Using existing location ID: ${existingLocation.id}")
                     existingLocation.id
+
                 } else {
                     val newLocationId = db.locationDao().insertLocation(
                         Location(
-                            id = 0,
+                            id = 0, //autoincrement
                             latitude = location.latitude,
                             longitude = location.longitude
                         )
@@ -174,14 +179,14 @@ class TrackingService : BaseLocationService() {
                 }
 
                 val tripPhase = TripPhase(
-                    id = 0,
+                    id = 0, //autoincrement
                     tripId = tripId,
                     locationId = locationId,
                     timestamp = System.currentTimeMillis(),
                     phaseOrder = phaseOrderCounter
                 )
                 
-                val insertedPhaseId = db.tripPhaseDao().insertPhase(tripPhase)
+                val insertedPhaseId = db.tripPhaseDao().insertPhase(tripPhase) //inserimento returna id
                 Log.d("TrackingService", "Fase inserita con ID: $insertedPhaseId, order: $phaseOrderCounter, tripId: $tripId")
                 
                 phaseOrderCounter++

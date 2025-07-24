@@ -42,16 +42,7 @@ class StatsFutureFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupViews(view)
         loadFutureStats()
-    }
-
-    /**
-     * Configura i riferimenti alle view
-     */
-    private fun setupViews(view: View) {
-        // Le view verranno aggiornate nel metodo loadFutureStats
     }
 
     /**
@@ -63,9 +54,6 @@ class StatsFutureFragment : Fragment() {
             val db = TravelDatabase.getDatabase(requireContext())
             val trips = db.tripDao().getAllTrips()
             val now = LocalDate.now()
-
-            android.util.Log.d("StatsFuture", "Total trips found: ${trips.size}")
-
             val analysisData = analyzeHistoricalData(trips, now)
             
             view?.let { view ->

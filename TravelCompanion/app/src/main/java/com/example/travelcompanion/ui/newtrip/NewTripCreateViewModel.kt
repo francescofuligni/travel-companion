@@ -46,7 +46,7 @@ class NewTripCreateViewModel(application: Application) : AndroidViewModel(applic
                 createTripAndGetId(title, destination, type, endDate, destinationLatLng)
             }
 
-            startTrackingService(appContext, tripId, actualEndDateMillis)
+            startTrackingService(appContext, tripId, actualEndDateMillis) //Starta il tracking e con intent passa id e fine
         }
     }
 

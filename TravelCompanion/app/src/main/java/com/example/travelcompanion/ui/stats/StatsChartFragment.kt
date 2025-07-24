@@ -1,11 +1,13 @@
 package com.example.travelcompanion.ui.stats
 
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -36,28 +38,20 @@ class StatsChartFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_stats_chart, container, false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        setupViews(view)
         loadChartData()
-    }
-
-    /**
-     * Configura i riferimenti alle view
-     */
-    private fun setupViews(view: View) {
-        // Le view verranno aggiornate nel metodo loadChartData
     }
 
     /**
      * Carica i dati dal database e popola i grafici
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun loadChartData() {
         lifecycleScope.launch {
             val db = TravelDatabase.getDatabase(requireContext())
             val trips = db.tripDao().getAllTrips()
-
             val chartData = generateChartData(trips)
             
             view?.let { view ->
@@ -69,6 +63,7 @@ class StatsChartFragment : Fragment() {
     /**
      * Genera i dati per i grafici dagli ultimi 6 mesi
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun generateChartData(trips: List<com.example.travelcompanion.database.models.Trip>): ChartData {
         val monthLabels = mutableListOf<String>()
         val tripsData = mutableListOf<Float>()
@@ -135,7 +130,6 @@ class StatsChartFragment : Fragment() {
 
         chart.apply {
             data = LineData(dataSet)
-            
             xAxis.apply {
                 valueFormatter = IndexAxisValueFormatter(labels)
                 granularity = 1f
