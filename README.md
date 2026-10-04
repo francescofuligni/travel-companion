@@ -1,7 +1,7 @@
 # Project Travel Companion
 
-Progetto di laboratorio del corso di Introduzione all'Apprendimento Automatico, corso di laurea in Informatica, Università di Bologna, 2025.
+Laboratory project for the Introduction to Machine Learning course, Computer Science degree programme, University of Bologna, 2025.
 
-Creato da:
+Created by:
 - Francesco Maria Fuligni
-- Robeto Zanolli
+- Roberto Zanolli
